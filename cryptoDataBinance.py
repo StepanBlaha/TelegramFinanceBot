@@ -78,27 +78,21 @@ activeOrders = client.get_order_book(symbol="BTCUSDT", limit = 5)
 # vrati nejvyssi popavku, nejlevnejsi nabdku a posledni prodanou cenu pto aktivum
 Ordertick = client.get_orderbook_ticker(symbol="BTCUSDT")
 #------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
+# vrati trading pary
+exchange_info = client.get_exchange_info()
 #------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
+#vrati posledni trady pro dany symbol
+recent_trades = client.get_recent_trades(symbol='BTCUSDT', limit=5)
 #------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
+# vrati list dostupnych flexibilnich produktu - typ aktiva kde uzivatel dostava intrest a muze kdykoliv withdrawnout
+flexible_products = client.get_simple_earn_flexible_product_list()
 #------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
-
+# vrati info o symbolu
+symbol_info = client.get_symbol_info(symbol='BTCUSDT')
 #------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
-
+# vrati posledni cenu pro symbol
+symbol_ticker = client.get_symbol_ticker(symbol='BTCUSDT')
+# je pak i get_symbol_ticker_window ktery jeste bere window="" napr 5m
 #------------------------------------------------------------------------------------------------------------------------------------------
 
 
