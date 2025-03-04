@@ -62,7 +62,7 @@ kl = client.get_historical_klines("BNBBTC", client.KLINE_INTERVAL_1HOUR, start_s
 tr = client.get_historical_trades(symbol = "BTCUSDT", limit=10)
 
 #------------------------------------------------------------------------------------------------------------------------------------------
-# vrati data jako symbol, stepsize, quantity, atd.. o jednotlivem aktivu
+# vrati data jako symbol, stepsize, quantity, atd.. o jednotlivem aktivu - pozaduje api key
 singleSymbolData = client.get_isolated_margin_symbol(symbol = "BTCUSDT")
 
 #------------------------------------------------------------------------------------------------------------------------------------------
@@ -94,10 +94,8 @@ symbol_info = client.get_symbol_info(symbol='BTCUSDT')
 symbol_ticker = client.get_symbol_ticker(symbol='BTCUSDT')
 # je pak i get_symbol_ticker_window ktery jeste bere window="" napr 5m
 #------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
-
+# vrati data o symbolu za poslednich 24 hodin, viz dokumentace
+ticker = client.get_ticker(symbol="BTCUSDT")
 #------------------------------------------------------------------------------------------------------------------------------------------
 
 

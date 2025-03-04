@@ -20,7 +20,7 @@ import logging
 
 from telegram import ForceReply, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
-
+from TelegramBotFunctions import *
 
 
 
@@ -55,6 +55,27 @@ async def help(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
 async def echo(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
     await update.message.reply_text(update.message.text)
 
+
+
+async def symbol_info(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
+    # Takes user given argument
+    user_arg = "".join(context.args)
+    response = format_symbol_info(user_arg.upper())
+    await update.message.reply_text(response)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def main()->None:
     # aplication.builder() ja na zakladni build bota .token() ma v sobe nas api key a .buiuld() build provede
     application = Application.builder().token("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU").build()
@@ -62,6 +83,7 @@ def main()->None:
     # zaregistruje comand (nazev komandu, callback funcke)
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help))
+    application.add_handler(CommandHandler("symbol_info", symbol_info))
 
     # pridam neco na handlovani zprav filter.TEXT jsou vsechny textopve zpravy a filtyer.COMMAND jsou vsechny commandy zacinajici s /
     # kdyz dam pred filter ~ je to jako bych dal v php ! a tedy to neguje
