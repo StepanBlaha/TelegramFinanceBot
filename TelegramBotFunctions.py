@@ -41,6 +41,11 @@ def get_average_order_values(symbol):
     return response
 
 def get_recent_trade_info(symbol, limit):
+    """
+    Function for getting info about recent trades of given symbol including the average price and quantity
+    :param symbol:
+    :return : Average, minimal and maximal prices and quantities of trades
+    """
     trades = client.get_recent_trades(symbol = symbol, limit = limit)
     tradeQuantities = []
     tradePrices = []
