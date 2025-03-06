@@ -93,6 +93,12 @@ def format_symbol_info(symbol_name):
 
 
 def get_price_momentum( openingPrice, closingPrice):
+    """
+    Function for getting the market pattern base on the opening and closing price
+    :param openingPrice:
+    :param closingPrice:
+    :return:
+    """
     acceptableMargin = openingPrice / 100
     if closingPrice - openingPrice > acceptableMargin:
         return "bullish"
@@ -125,7 +131,21 @@ def plot_kline_dataframe(symbol):
         tradeVolumes.append(currentKline[5])
         numberOfTrades.append(currentKline[8])
 
-        averageTradeVolumes.append(currentKline[5] / currentKline[8])
-        currentPatern = get_price_momentum(openingPrice = currentKline[1], closingPrice = currentKline[4])
+        averageTradeVolumes.append(float(currentKline[5]) / float(currentKline[8]))
+        currentPatern = get_price_momentum(openingPrice = float(currentKline[1]), closingPrice = float(currentKline[4]))
         marketPatterns.append(currentPatern)
 
+    dataSet = {
+        "Time": timestamps,
+        "Number of trades": numberOfTrades,
+        "Trade volume": tradeVolumes,
+        "Average volume per trade": averageTradeVolumes,
+        "Highest price": highPrices,
+        "Lowest price": lowPrices,
+        "Opening price": openPrices,
+        "Closing price": closePrices,
+        "Market pattern": marketPatterns
+
+    }
+    dataFrame = np.DataFrame(dataSet)
+    print(dataFrame)
