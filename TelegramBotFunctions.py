@@ -1,4 +1,5 @@
 from binance.client import Client
+import pandas as np
 
 from telegram import ForceReply, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
@@ -88,4 +89,43 @@ def format_symbol_info(symbol_name):
     recent_trades = get_recent_trade_info(symbol=symbol_name, limit=10)
     response = f"Symbol: {symbol['symbol']}\n Status: {symbol['status']}\n Price: {last_price['price']}\n\n Current market: \n {market_depth}\n\n Recent trades: {recent_trades}\n "
     return response
+
+
+
+def get_price_momentum( openingPrice, closingPrice):
+    acceptableMargin = openingPrice / 100
+    if closingPrice - openingPrice > acceptableMargin:
+        return "bullish"
+    elif closingPrice - openingPrice < acceptableMargin:
+        return "bearish"
+    else:
+        return "neutral"
+def plot_kline_dataframe(symbol):
+    klines = client.get_historical_klines(symbol = symbol, interval = client.KLINE_INTERVAL_1HOUR, start_str ="7 days ago" )
+    openPrices = [] # Opening prices of klines
+    closePrices = [] # Closing prices of klines
+    highPrices = [] # Highest prices of klines
+    lowPrices = [] # Lowest prices of klines
+    timestamps = [] # Timestamps of klines
+    numberOfTrades = [] # Number of trades made
+    tradeVolumes = [] # Amount of actives traded
+
+    averageTradeVolumes = [] # Calculated average trade volume for each kline
+    marketPatterns = [] # List containing the market patterns of each kline
+
+    for i in range(len(klines)):
+        currentKline = klines[i]
+        timestamps.append(currentKline[0])
+
+        openPrices.append(currentKline[1])
+        highPrices.append(currentKline[2])
+        lowPrices.append(currentKline[3])
+        closePrices.append(currentKline[4])
+
+        tradeVolumes.append(currentKline[5])
+        numberOfTrades.append(currentKline[8])
+
+        averageTradeVolumes.append(currentKline[5] / currentKline[8])
+        currentPatern = get_price_momentum(openingPrice = currentKline[1], closingPrice = currentKline[4])
+        marketPatterns.append(currentPatern)
 
