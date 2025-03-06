@@ -1,5 +1,10 @@
 from binance.client import Client
 import pandas as np
+import matplotlib
+import matplotlib.pyplot as plt
+from datetime import datetime
+
+
 
 from telegram import ForceReply, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
@@ -11,6 +16,10 @@ print(tr)
 
 symbol_info = client.get_symbol_info(symbol='BTCUSDT')
 print(symbol_info)
+
+def unix_to_date(unix):
+    unixTime = int(unix)
+    return datetime.fromtimestamp(unixTime/ 1000).strftime('%Y-%m-%d %H:%M:%S')
 
 def get_average_order_values(symbol):
     """
@@ -106,7 +115,14 @@ def get_price_momentum( openingPrice, closingPrice):
         return "bearish"
     else:
         return "neutral"
+
+
+
 def plot_kline_dataframe(symbol):
+
+    #MUSIM PREPRACOVAT
+    #SPRAVNE JE STRUKTURA list of OHLCV values (Open time, Open, High, Low, Close, Volume, Close time, Quote asset volume, Number of trades, Taker buy base asset volume, Taker buy quote asset volume, Ignore)
+
     klines = client.get_historical_klines(symbol = symbol, interval = client.KLINE_INTERVAL_1HOUR, start_str ="7 days ago" )
     openPrices = [] # Opening prices of klines
     closePrices = [] # Closing prices of klines
@@ -121,15 +137,15 @@ def plot_kline_dataframe(symbol):
 
     for i in range(len(klines)):
         currentKline = klines[i]
-        timestamps.append(currentKline[0])
+        timestamps.append(float(currentKline[0]))
 
-        openPrices.append(currentKline[1])
-        highPrices.append(currentKline[2])
-        lowPrices.append(currentKline[3])
-        closePrices.append(currentKline[4])
+        openPrices.append(float(currentKline[1]))
+        highPrices.append(float(currentKline[2]))
+        lowPrices.append(float(currentKline[3]))
+        closePrices.append(float(currentKline[4]))
 
-        tradeVolumes.append(currentKline[5])
-        numberOfTrades.append(currentKline[8])
+        tradeVolumes.append(float(currentKline[5]))
+        numberOfTrades.append(float(currentKline[8]))
 
         averageTradeVolumes.append(float(currentKline[5]) / float(currentKline[8]))
         currentPatern = get_price_momentum(openingPrice = float(currentKline[1]), closingPrice = float(currentKline[4]))
@@ -148,4 +164,25 @@ def plot_kline_dataframe(symbol):
 
     }
     dataFrame = np.DataFrame(dataSet)
+    dataFrame.plot()
+    plt.show()
     print(dataFrame)
+#plot_kline_dataframe("BTCUSDT")
+
+def plot_price_in_time(symbol):
+    klines = client.get_historical_klines(symbol = symbol, interval = client.KLINE_INTERVAL_1HOUR, start_str ="7 days ago")
+    timestamps = []
+    closingPrices = []
+    for i in range(len(klines)):
+        currentKline = klines[i]
+        curTime = unix_to_date(int(currentKline[6]))
+        timestamps.append(curTime)
+        closingPrices.append(float(currentKline[4]))
+
+    plt.plot(timestamps, closingPrices)
+    plt.show()
+plot_price_in_time("BTCUSDT")
+
+
+
+
