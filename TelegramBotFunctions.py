@@ -1,5 +1,6 @@
 from binance.client import Client
 import pandas as np
+import numpy as pd
 import matplotlib
 import matplotlib.pyplot as plt
 from datetime import datetime
@@ -181,8 +182,35 @@ def plot_price_in_time(symbol):
 
     plt.plot(timestamps, closingPrices)
     plt.show()
-plot_price_in_time("BTCUSDT")
+#plot_price_in_time("BTCUSDT")
 
 
+#Function for getting 14 day rsi for symbol
+def get_rsi(symbol):
+    klines = client.get_historical_klines(symbol=symbol, interval=client.KLINE_INTERVAL_1DAY, start_str="15 days ago")
+    closePrices = []
+    gains = []
+    loses = []
+    for i in range(len(klines)):
+        currentKline = klines[i]
+        closePrices.append(float(currentKline[4]))
+    differences = pd.diff(closePrices)
+    for i in range(len(differences)):
+        if differences[i] > 0:
+            gains.append(differences[i])
+            loses.append(0)
+        elif differences[i] < 0:
+            loses.append(abs(differences[i]))
+            gains.append(0)
 
+    averageGain = sum(gains) / 14
+    averageLoss = sum(loses) / 14
 
+    if averageLoss == 0:
+        rsi = 100
+    else:
+        rs = averageGain / averageLoss
+        rsi = 100 - (100/(1 + rs))
+
+    print(rsi)
+get_rsi("BTCUSDT")
