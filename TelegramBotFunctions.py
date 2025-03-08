@@ -4,24 +4,21 @@ import numpy as pd
 import matplotlib
 import matplotlib.pyplot as plt
 from datetime import datetime
-
+from library.utils import *
+import io
 
 
 from telegram import ForceReply, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
 client = Client()
-tr = client.get_historical_trades(symbol = "BTCUSDT", limit=10)
-print(tr)
+# Get historical trades
+# tr = client.get_historical_trades(symbol = "BTCUSDT", limit=10)
+# print(tr)
 
 
-symbol_info = client.get_symbol_info(symbol='BTCUSDT')
-print(symbol_info)
 
-def unix_to_date(unix):
-    unixTime = int(unix)
-    return datetime.fromtimestamp(unixTime/ 1000).strftime('%Y-%m-%d %H:%M:%S')
-
+# Function for calculating the average order values for given symbol
 def get_average_order_values(symbol):
     """
     Function for calculating the average order values for given symbol
@@ -51,6 +48,7 @@ def get_average_order_values(symbol):
     response = f"Average offered price: {averageSellPrice}\n Average offered quantity: {averageSellQuantity}\n Average asked price: {averageBuyPrice}\n Average asked quantity: {averageBuyQuantity}"
     return response
 
+# Function for getting info about recent trades of given symbol including the average price and quantity
 def get_recent_trade_info(symbol, limit):
     """
     Function for getting info about recent trades of given symbol including the average price and quantity
@@ -77,6 +75,7 @@ def get_recent_trade_info(symbol, limit):
     formatedString =f'Average trade quantity: {averageTradeQuantity}\n Average trade price: {averageTradePrice}\n Minimum trade price: {MinTradePrice}\n Maximum trade price: {MaxTradePrice}\n Minimun trade quantity: {MinTradeQuantity}\n Maximum trade quantity: {MaxTradeQuantity}\n'
     return formatedString
 
+# Function for showing basic info about given symbol
 def format_symbol_info(symbol_name):
     """
     Function for showing basic info about given symbol
@@ -100,8 +99,7 @@ def format_symbol_info(symbol_name):
     response = f"Symbol: {symbol['symbol']}\n Status: {symbol['status']}\n Price: {last_price['price']}\n\n Current market: \n {market_depth}\n\n Recent trades: {recent_trades}\n "
     return response
 
-
-
+# Function for getting the market pattern base on the opening and closing price
 def get_price_trend( openingPrice, closingPrice):
     """
     Function for getting the market pattern base on the opening and closing price
@@ -170,6 +168,7 @@ def plot_kline_dataframe(symbol):
     print(dataFrame)
 #plot_kline_dataframe("BTCUSDT")
 
+#Function for generating graph of prices of symbol over specified period
 def plot_price_in_time(symbol, period):
     """
     Function for generating graph of prices of symbol over specified period
@@ -187,10 +186,19 @@ def plot_price_in_time(symbol, period):
         closingPrices.append(float(currentKline[4]))
 
     plt.plot(timestamps, closingPrices)
-    plt.show()
+    # Plot setup
+    plt.xticks(timestamps[::10], rotation=45, ha="right")
+    plt.subplots_adjust(bottom=0.3, left=0.15)
+    plt.title(f"{symbol} Historical Prices")
+    IoStream = io.BytesIO()
+    plt.savefig(IoStream, format='png')
+    IoStream.seek(0)
+
+    return IoStream
+
 #plot_price_in_time("BTCUSDT", 7)
 
-
+# Function to extract closing prices from given kline list
 def get_closing_prices(klines):
     """
     Function to extract closing prices from given kline list
@@ -203,7 +211,7 @@ def get_closing_prices(klines):
         closingPrices.append(float(currentKline[4]))
     return closingPrices
 
-
+# Function for getting specific data from given klines
 def get_data_from_klines(klines, desiredData):
     """
     Function for getting specific data from given klines
@@ -230,8 +238,6 @@ def get_data_from_klines(klines, desiredData):
         currentKline = klines[i]
         dataList.append(float(currentKline[dataIndex]))
     return dataList
-
-
 
 #Function for getting 14 day rsi for symbol
 def get_rsi(symbol):
@@ -264,6 +270,7 @@ def get_rsi(symbol):
 
     return rsi
 
+# Function for calculating SMA of given symbol in the range of given days
 def get_sma(symbol, days):
     """
     Function for calculating SMA of given symbol in the range of given days
@@ -276,6 +283,7 @@ def get_sma(symbol, days):
     sma = sum(closePrices) / len(closePrices)
     return sma
 
+# Function for calculating EMA for given days
 def get_ema(symbol, emaDays, smaDays):
     """
     Function for calculating EMA for given days
@@ -304,9 +312,7 @@ def get_ema(symbol, emaDays, smaDays):
             emas.append(ema)
     return emas
 
-ts = get_ema("BTCUSDT", 7, 14)
-print(ts)
-
+# Function for calculating KDJ for given symbol over the given period of time
 def get_kdj(symbol, period):
     """
     Function for calculating KDJ for given symbol over the given period of time
@@ -318,15 +324,16 @@ def get_kdj(symbol, period):
     closePrices = get_data_from_klines(klines, "Close price")
     highPrices = get_data_from_klines(klines, "High price")
     lowPrices = get_data_from_klines(klines, "Low price")
+    closeTimes = get_data_from_klines(klines, "Close time")
     # Lists for the KDJs
     Ks = []
     Ds = []
     Js = []
     for i in range(period):
         # Lowest prices till the day
-        low = lowPrices[:(i-1)]
+        low = lowPrices[:(i+1)]
         # Highest prices till the day
-        high = highPrices[:(i-1)]
+        high = highPrices[:(i+1)]
         close = closePrices[i]
         # Calculate the K
         K = (close - min(low)) / (max(high) - min(low)) * 100
@@ -344,6 +351,30 @@ def get_kdj(symbol, period):
         else:
             Ds.append(0)
             Js.append(0)
+    for i in range(len(closeTimes)):
+        closeTimes[i] = unix_to_date(int(closeTimes[i]), day = True)
+    return Ks, Ds, Js, closeTimes
+
+# Function for getting graph of KDJ for given symbol over period of time
+def plot_kdj(symbol, period):
+    """
+    Function for getting graph of KDJ for given symbol over period of time
+    :param symbol: Symbol to calculate KDJ of
+    :param period: Period of time for calculation
+    :return:
+    """
+    Ks, Ds, Js, closeTimes = get_kdj(symbol, period)
+    plt.plot(closeTimes, Ks, label="K")
+    plt.plot(closeTimes, Ds, label="D")
+    plt.plot(closeTimes, Js, label="J")
+    # Plot setup
+    plt.xticks(rotation=45, ha="right")
+    plt.subplots_adjust(bottom=0.2)
+    plt.title("KDJ")
+    plt.legend()
+    plt.show()
+
+
 
 
 

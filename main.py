@@ -18,14 +18,25 @@
 
 import logging
 
+from telegram import Bot, BotCommand
+import asyncio
 from telegram import ForceReply, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 from TelegramBotFunctions import *
 
+# ------------------------------------Nefunguje--------------------------------------------------------
+bot = Bot("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU")
+commands = [
+    BotCommand("start", "Start interacting with the bot"),
+    BotCommand("help", "Get help on how to use the bot"),
+    BotCommand("commands", "Get a list of available commands"),
+    BotCommand("symbol_info", "Get the base info about a given symbol. \nFormat: /symbol_info <symbol>"),
+    BotCommand("price_chart", "Get a graph of prices of given symbol over the span of given days. \nFormat: /price_chart <symbol> <period>"),
+]
+#bot.set_my_commands(commands)
+bot.set_my_commands([])
 
-
-
-
+# ------------------------------------Nefunguje--------------------------------------------------------
 
 
 
@@ -57,11 +68,36 @@ async def echo(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
 
 
 
+# Function for getting all the bot commands
+#------------------------------------Nefunguje--------------------------------------------------------
+async def list_commands(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
+    commands = await context.bot.get_my_commands()
+    if commands:
+        for command in commands:
+            await update.message.reply_text(f"Command: {command.command}, Description: {command.description}")
+    else:
+        await update.message.reply_text("No commands available.")
+#------------------------------------Nefunguje--------------------------------------------------------
+
+
+# Function for getting base info about symbol
 async def symbol_info(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
     # Takes user given argument
     user_arg = "".join(context.args)
     response = format_symbol_info(user_arg.upper())
     await update.message.reply_text(response)
+
+
+# Function for returning price chart for desired symbol
+async def price_chart(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
+    # Takes user given argument
+    try:
+        symbol = context.args[0]
+        period = int(context.args[1])
+        graph = plot_price_in_time(symbol, period)
+        await update.message.reply_photo( photo = graph, caption=f"Price chart for {symbol} over {period} days.")
+    except Exception as e:
+        await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
 
 
@@ -83,7 +119,9 @@ def main()->None:
     # zaregistruje comand (nazev komandu, callback funcke)
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help))
+    application.add_handler(CommandHandler("commands", list_commands))
     application.add_handler(CommandHandler("symbol_info", symbol_info))
+    application.add_handler(CommandHandler("price_chart", price_chart))
 
     # pridam neco na handlovani zprav filter.TEXT jsou vsechny textopve zpravy a filtyer.COMMAND jsou vsechny commandy zacinajici s /
     # kdyz dam pred filter ~ je to jako bych dal v php ! a tedy to neguje
