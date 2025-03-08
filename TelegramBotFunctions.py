@@ -102,12 +102,12 @@ def format_symbol_info(symbol_name):
 
 
 
-def get_price_momentum( openingPrice, closingPrice):
+def get_price_trend( openingPrice, closingPrice):
     """
     Function for getting the market pattern base on the opening and closing price
-    :param openingPrice:
-    :param closingPrice:
-    :return:
+    :param openingPrice: The opening price of current kline
+    :param closingPrice: The closing price of current kline
+    :return: Type of trend
     """
     acceptableMargin = openingPrice / 100
     if closingPrice - openingPrice > acceptableMargin:
@@ -149,7 +149,7 @@ def plot_kline_dataframe(symbol):
         numberOfTrades.append(float(currentKline[8]))
 
         averageTradeVolumes.append(float(currentKline[5]) / float(currentKline[8]))
-        currentPatern = get_price_momentum(openingPrice = float(currentKline[1]), closingPrice = float(currentKline[4]))
+        currentPatern = get_price_trend(openingPrice = float(currentKline[1]), closingPrice = float(currentKline[4]))
         marketPatterns.append(currentPatern)
 
     dataSet = {
@@ -185,15 +185,30 @@ def plot_price_in_time(symbol):
 #plot_price_in_time("BTCUSDT")
 
 
-#Function for getting 14 day rsi for symbol
-def get_rsi(symbol):
-    klines = client.get_historical_klines(symbol=symbol, interval=client.KLINE_INTERVAL_1DAY, start_str="15 days ago")
-    closePrices = []
-    gains = []
-    loses = []
+def get_closing_prices(klines):
+    """
+    Functiob to extract closing prices from given kline list
+    :param klines: List of kline data
+    :return: list of closing prices
+    """
+    closingPrices = []
     for i in range(len(klines)):
         currentKline = klines[i]
-        closePrices.append(float(currentKline[4]))
+        closingPrices.append(float(currentKline[4]))
+    return closingPrices
+
+
+#Function for getting 14 day rsi for symbol
+def get_rsi(symbol):
+    """
+    Function for getting RSI of given symbol
+    :param symbol: The symbol to get RSI
+    :return: The RSI of the symbol
+    """
+    klines = client.get_historical_klines(symbol=symbol, interval=client.KLINE_INTERVAL_1DAY, start_str="15 days ago")
+    closePrices = get_closing_prices(klines)
+    gains = []
+    loses = []
     differences = pd.diff(closePrices)
     for i in range(len(differences)):
         if differences[i] > 0:
@@ -212,5 +227,49 @@ def get_rsi(symbol):
         rs = averageGain / averageLoss
         rsi = 100 - (100/(1 + rs))
 
-    print(rsi)
-get_rsi("BTCUSDT")
+    return rsi
+
+def get_sma(symbol, days):
+    """
+    Function for calculating SMA of given symbol in the range of given days
+    :param symbol: The symbol for calculating the sma of
+    :param days: The number of days for calculations
+    :return: SMA of given symbol
+    """
+    klines = client.get_historical_klines(symbol=symbol, interval=client.KLINE_INTERVAL_1DAY, start_str=f"{days+1} days ago")
+    closePrices = get_closing_prices(klines)
+    sma = sum(closePrices) / len(closePrices)
+    return sma
+
+def get_ema(symbol, emaDays, smaDays):
+    """
+    Function for calculating EMA for given days
+    :param symbol: The symbol for calculating the ema of
+    :param emaDays: The number of days for ema calculations
+    :param smaDays: The number of days for calculating the starting SMA
+    :return: List of EMAs of given symbol over the span of given days
+    """
+    # Get the klines
+    klines = client.get_historical_klines(symbol=symbol, interval=client.KLINE_INTERVAL_1DAY, start_str=f"{emaDays} days ago")
+    # Extract the closing prices
+    closePrices = get_closing_prices(klines)
+    # Get SMA
+    sma = get_sma(symbol, smaDays)
+    alpha = 2 / (emaDays + 1)
+    emas = []
+    # Get the EMAs
+    for i in range(len(closePrices)):
+        currentPrice = closePrices[i]
+        if len(emas) == 0 :
+            ema = alpha * currentPrice + (1 - alpha) * sma
+            emas.append(ema)
+        else:
+            lastEma = emas[-1]
+            ema = alpha * currentPrice + (1 - alpha) * lastEma
+            emas.append(ema)
+    return emas
+
+ts = get_ema("BTCUSDT", 7, 14)
+print(ts)
+
+
