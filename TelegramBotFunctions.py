@@ -120,7 +120,7 @@ def get_price_trend( openingPrice, closingPrice):
 
 
 def plot_kline_dataframe(symbol):
-
+# NEFUNGUJE SPRAVNE PLOTTING
     #MUSIM PREPRACOVAT
     #SPRAVNE JE STRUKTURA list of OHLCV values (Open time, Open, High, Low, Close, Volume, Close time, Quote asset volume, Number of trades, Taker buy base asset volume, Taker buy quote asset volume, Ignore)
 
@@ -170,8 +170,14 @@ def plot_kline_dataframe(symbol):
     print(dataFrame)
 #plot_kline_dataframe("BTCUSDT")
 
-def plot_price_in_time(symbol):
-    klines = client.get_historical_klines(symbol = symbol, interval = client.KLINE_INTERVAL_1HOUR, start_str ="7 days ago")
+def plot_price_in_time(symbol, period):
+    """
+    Function for generating graph of prices of symbol over specified period
+    :param symbol: Symbol to plot
+    :param period: Number of days to plot
+    :return:
+    """
+    klines = client.get_historical_klines(symbol = symbol, interval = client.KLINE_INTERVAL_1HOUR, start_str =f"{period} days ago")
     timestamps = []
     closingPrices = []
     for i in range(len(klines)):
@@ -182,20 +188,49 @@ def plot_price_in_time(symbol):
 
     plt.plot(timestamps, closingPrices)
     plt.show()
-#plot_price_in_time("BTCUSDT")
+#plot_price_in_time("BTCUSDT", 7)
 
 
 def get_closing_prices(klines):
     """
-    Functiob to extract closing prices from given kline list
+    Function to extract closing prices from given kline list
     :param klines: List of kline data
-    :return: list of closing prices
+    :return: List of closing prices
     """
     closingPrices = []
     for i in range(len(klines)):
         currentKline = klines[i]
         closingPrices.append(float(currentKline[4]))
     return closingPrices
+
+
+def get_data_from_klines(klines, desiredData):
+    """
+    Function for getting specific data from given klines
+    :param klines: List with kline data
+    :param desiredData: Type of data
+    :return: List of desired data
+    """
+    dataTypes = {
+        "Open time": 0,
+        "Open price": 1,
+        "High price": 2,
+        "Low price": 3,
+        "Close price": 4,
+        "Volume": 5,
+        "Close time": 6,
+        "Quote asset volume": 7,
+        "Number of trades": 8,
+        "Taker buy base asset volume": 9,
+        "Taker buy quote asset volume": 10
+    }
+    dataList = []
+    dataIndex = dataTypes[desiredData]
+    for i in range(len(klines)):
+        currentKline = klines[i]
+        dataList.append(float(currentKline[dataIndex]))
+    return dataList
+
 
 
 #Function for getting 14 day rsi for symbol
@@ -271,5 +306,48 @@ def get_ema(symbol, emaDays, smaDays):
 
 ts = get_ema("BTCUSDT", 7, 14)
 print(ts)
+
+def get_kdj(symbol, period):
+    """
+    Function for calculating KDJ for given symbol over the given period of time
+    :param symbol: Symbol to calculate KDJ of
+    :param period: Period of time for calculation
+    :return:
+    """
+    klines = client.get_historical_klines(symbol=symbol, interval=client.KLINE_INTERVAL_1DAY, start_str=f"{period} days ago")
+    closePrices = get_data_from_klines(klines, "Close price")
+    highPrices = get_data_from_klines(klines, "High price")
+    lowPrices = get_data_from_klines(klines, "Low price")
+    # Lists for the KDJs
+    Ks = []
+    Ds = []
+    Js = []
+    for i in range(period):
+        # Lowest prices till the day
+        low = lowPrices[:(i-1)]
+        # Highest prices till the day
+        high = highPrices[:(i-1)]
+        close = closePrices[i]
+        # Calculate the K
+        K = (close - min(low)) / (max(high) - min(low)) * 100
+        Ks.append(K)
+        # If you have K data from more than 3 days calculate the other metrics
+        if len(Ks) > 2 :
+            # Get last three Ks
+            lastThreeKs = Ks[-3:]
+            # Calcutale the D
+            D = sum(lastThreeKs) / len(lastThreeKs)
+            Ds.append(D)
+            #Calculate the J
+            J = 3 * K - 2 * D
+            Js.append(J)
+        else:
+            Ds.append(0)
+            Js.append(0)
+
+
+
+
+
 
 
