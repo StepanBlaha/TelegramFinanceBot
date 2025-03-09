@@ -284,18 +284,20 @@ def get_sma(symbol, days):
     return sma
 
 # Function for calculating EMA for given days
-def get_ema(symbol, emaDays, smaDays):
+def get_ema(symbol, emaDays = 14, smaDays = 10, timestamp = False):
     """
     Function for calculating EMA for given days
     :param symbol: The symbol for calculating the ema of
     :param emaDays: The number of days for ema calculations
     :param smaDays: The number of days for calculating the starting SMA
+    :param timestamp: Flag for checking if you want to also return corresponding timestamps
     :return: List of EMAs of given symbol over the span of given days
     """
     # Get the klines
     klines = client.get_historical_klines(symbol=symbol, interval=client.KLINE_INTERVAL_1DAY, start_str=f"{emaDays} days ago")
     # Extract the closing prices
     closePrices = get_closing_prices(klines)
+    timestamps = get_data_from_klines(klines, "Close time")
     # Get SMA
     sma = get_sma(symbol, smaDays)
     alpha = 2 / (emaDays + 1)
@@ -310,7 +312,55 @@ def get_ema(symbol, emaDays, smaDays):
             lastEma = emas[-1]
             ema = alpha * currentPrice + (1 - alpha) * lastEma
             emas.append(ema)
+    if timestamp:
+        return emas, timestamps
     return emas
+
+# Function for getting pandas dataframe of EMA
+def get_ema_dataframe(symbol, period):
+    """
+    Function for getting pandas dataframe of EMA
+    :param symbol: Symbol to get the dataframe of
+    :param period: Days for measuring
+    :return: Dataframe
+    """
+    # Get the Ema data and corresponding timestamps
+    emas, timestamps = get_ema(symbol=symbol, emaDays=period, timestamp=True)
+    # Replace the timestamps with unix
+    for i in range(len(timestamps)):
+        timestamps[i] = unix_to_date(int(timestamps[i]), day=True)
+    # Turn the data into dataframe
+    data = {
+        "EMA": emas,
+        "Timestamp": timestamps
+    }
+    dataFrame = get_dataframe(data)
+    dataFrame = dataFrame.to_string(index=False)
+    return dataFrame
+
+# Function for getting graph of EMA for given symbol over period of time
+def plot_ema(symbol, period):
+    """
+    Function for getting graph of EMA for given symbol over period of time
+    :param symbol: Symbol to calculate EMA of
+    :param period: Period of time for calculation
+    :return: Ema graph of given symbol
+    """
+    # Get the Ema data and corresponding timestamps
+    emas, timestamps = get_ema(symbol = symbol, emaDays = period, timestamp= True)
+    # Replace the timestamps with unix
+    for i in range(len(timestamps)):
+        timestamps[i] = unix_to_date(int(timestamps[i]), day=True)
+    # Plot setup
+    plt.plot(timestamps, emas, marker='o')
+    plt.xticks(rotation=45, ha="right")
+    plt.subplots_adjust(bottom=0.3, left=0.15)
+    plt.title(f"{symbol} EMA data")
+    IoStream = io.BytesIO()
+    plt.savefig(IoStream, format='png')
+    IoStream.seek(0)
+
+    return IoStream
 
 # Function for calculating KDJ for given symbol over the given period of time
 def get_kdj(symbol, period):
@@ -354,6 +404,28 @@ def get_kdj(symbol, period):
     for i in range(len(closeTimes)):
         closeTimes[i] = unix_to_date(int(closeTimes[i]), day = True)
     return Ks, Ds, Js, closeTimes
+print(get_kdj("BTCUSDT", 14))
+
+
+# Function for getting pandas dataframe of KDJ
+def get_kdj_dataframe(symbol, period):
+    """
+    Function for getting pandas dataframe of KDJ
+    :param symbol: Symbol to get the dataframe of
+    :param period: Days for measuring
+    :return: Dataframe
+    """
+    Ks, Ds, Js, closeTimes = get_kdj(symbol, int(period))
+    data = {
+        "K": Ks,
+        "D": Ds,
+        "J": Js,
+        "Timestamp": closeTimes
+    }
+    dataFrame = get_dataframe(data)
+
+    dataFrame = dataFrame.to_string(index=False)
+    return dataFrame
 
 # Function for getting graph of KDJ for given symbol over period of time
 def plot_kdj(symbol, period):
@@ -372,7 +444,11 @@ def plot_kdj(symbol, period):
     plt.subplots_adjust(bottom=0.2)
     plt.title("KDJ")
     plt.legend()
-    plt.show()
+    IoStream = io.BytesIO()
+    plt.savefig(IoStream, format='png')
+    IoStream.seek(0)
+
+    return IoStream
 
 
 

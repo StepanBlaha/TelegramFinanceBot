@@ -100,10 +100,31 @@ async def price_chart(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
 
+async def kdj(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
+    # Takes user given argument
+    try:
+        symbol = context.args[0]
+        period = int(context.args[1])
+        graph = plot_kdj(symbol, period)
+        dataframe = get_kdj_dataframe(symbol, period)
+        await update.message.reply_photo( photo = graph, caption=f"KDJ chart for {symbol} over {period} days.")
+        await update.message.reply_text(f"Here is the KDJ data:\n```\n{dataframe}\n```", parse_mode="Markdown")
+        #await update.message.reply_document(document=dataframe, filename="data.csv")
+    except Exception as e:
+        await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
-
-
-
+async def ema(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
+    # Takes user given argument
+    try:
+        symbol = context.args[0]
+        period = int(context.args[1])
+        graph = plot_ema(symbol, period)
+        dataframe = get_ema_dataframe(symbol, period)
+        await update.message.reply_photo( photo = graph, caption=f"EMA chart for {symbol} over {period} days.")
+        await update.message.reply_text(f"Here is the EMA data:\n```\n{dataframe}\n```", parse_mode="Markdown")
+        #await update.message.reply_document(document=dataframe, filename="data.csv")
+    except Exception as e:
+        await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
 
 
@@ -122,6 +143,8 @@ def main()->None:
     application.add_handler(CommandHandler("commands", list_commands))
     application.add_handler(CommandHandler("symbol_info", symbol_info))
     application.add_handler(CommandHandler("price_chart", price_chart))
+    application.add_handler(CommandHandler("KDJ", kdj))
+    application.add_handler(CommandHandler("EMA", ema))
 
     # pridam neco na handlovani zprav filter.TEXT jsou vsechny textopve zpravy a filtyer.COMMAND jsou vsechny commandy zacinajici s /
     # kdyz dam pred filter ~ je to jako bych dal v php ! a tedy to neguje
