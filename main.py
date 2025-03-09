@@ -128,6 +128,17 @@ async def ema(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
 
 
 
+# Example - usefull for future
+async def send_msg_to_user( user_chat_id: int, text: str, bot):
+    await bot.send_message(chat_id=user_chat_id, text=text)
+
+async def send(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
+
+    id = update.effective_user.id
+    text =f"dsmfsnd {id}"
+    await send_msg_to_user( user_chat_id=id, text=text, bot = context.bot)
+
+
 
 
 
@@ -145,6 +156,7 @@ def main()->None:
     application.add_handler(CommandHandler("price_chart", price_chart))
     application.add_handler(CommandHandler("KDJ", kdj))
     application.add_handler(CommandHandler("EMA", ema))
+    application.add_handler(CommandHandler("send", send))
 
     # pridam neco na handlovani zprav filter.TEXT jsou vsechny textopve zpravy a filtyer.COMMAND jsou vsechny commandy zacinajici s /
     # kdyz dam pred filter ~ je to jako bych dal v php ! a tedy to neguje
