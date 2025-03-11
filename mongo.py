@@ -15,6 +15,7 @@ def db_connect():
         # get a collection
         collection = mydb['Users']
         print("Successfully connected to MongoDB!")
+        return mydb
     except Exception as e:
         print(e)
 db_connect()
