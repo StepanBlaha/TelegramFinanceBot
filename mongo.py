@@ -10,12 +10,6 @@ def db_connect():
         client.admin.command('ping')
         # Get the desired database
         mydb = client['TelegramFinance']
-        # Print all the collections
-        print(mydb.list_collection_names())
-        # get a collection
-        collection = mydb['Users']
-        print("Successfully connected to MongoDB!")
         return mydb
     except Exception as e:
         print(e)
-db_connect()

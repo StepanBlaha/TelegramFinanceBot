@@ -96,7 +96,7 @@ def format_symbol_info(symbol_name):
     market_depth = get_average_order_values(symbol=symbol_name)
     #Get recent trades of symbol
     recent_trades = get_recent_trade_info(symbol=symbol_name, limit=10)
-    response = f"Symbol: {symbol['symbol']}\n Status: {symbol['status']}\n Price: {last_price['price']}\n\n Current market: \n {market_depth}\n\n Recent trades: {recent_trades}\n "
+    response = f"Symbol: {symbol['symbol']}\n Status: {symbol['status']}\n Price: {last_price['price']}\n\n Current market: \n {market_depth}\n\n Recent trades: \n {recent_trades}\n "
     return response
 
 # Function for getting the market pattern base on the opening and closing price
@@ -193,6 +193,7 @@ def plot_price_in_time(symbol, period):
     IoStream = io.BytesIO()
     plt.savefig(IoStream, format='png')
     IoStream.seek(0)
+    plt.close('all')
 
     return IoStream
 
@@ -269,6 +270,7 @@ def get_rsi(symbol):
         rsi = 100 - (100/(1 + rs))
 
     return rsi
+#print(get_rsi("BTCUSDT"))
 
 # Function for calculating SMA of given symbol in the range of given days
 def get_sma(symbol, days):
@@ -359,6 +361,7 @@ def plot_ema(symbol, period):
     IoStream = io.BytesIO()
     plt.savefig(IoStream, format='png')
     IoStream.seek(0)
+    plt.close('all')
 
     return IoStream
 
@@ -404,8 +407,6 @@ def get_kdj(symbol, period):
     for i in range(len(closeTimes)):
         closeTimes[i] = unix_to_date(int(closeTimes[i]), day = True)
     return Ks, Ds, Js, closeTimes
-print(get_kdj("BTCUSDT", 14))
-
 
 # Function for getting pandas dataframe of KDJ
 def get_kdj_dataframe(symbol, period):
@@ -442,15 +443,64 @@ def plot_kdj(symbol, period):
     # Plot setup
     plt.xticks(rotation=45, ha="right")
     plt.subplots_adjust(bottom=0.2)
-    plt.title("KDJ")
+    plt.title(f"{symbol} KDJ data")
     plt.legend()
     IoStream = io.BytesIO()
     plt.savefig(IoStream, format='png')
     IoStream.seek(0)
+    plt.close('all')
 
     return IoStream
 
+# Function for getting the current price of given symbol
+def current_price(symbol):
+    """
+    Function for getting the current price of given symbol
+    :param symbol: Symbol to calculate current price
+    :return: Current price
+    """
+    symbolPrice = client.get_symbol_ticker(symbol=symbol)
+    return symbolPrice["price"]
 
+# Function for getting the recent traded volume of given symbol
+def get_recent_traded_volume(symbol, period):
+    """
+    Function for getting the recent traded volume of given symbol
+    :param symbol: Symbol to calculate recent traded volume
+    :param period: Period of time for calculation
+    :return: Traded volume
+    """
+    klines = client.get_historical_klines(symbol=symbol, interval=client.KLINE_INTERVAL_1HOUR, start_str=f"{period} days ago")
+    volumes = get_data_from_klines(klines, "Volume")
+    volume = sum(volumes)
+    return volume
+
+# Function for getting the number of recent trades of given symbol
+def get_number_of_recent_trades(symbol, period):
+    """
+    Function for getting the number of recent trades of given symbol
+    :param symbol: Symbol to calculate number of recent trades
+    :param period: Period of time for calculation
+    :return: Number of recent trades
+    """
+    klines = client.get_historical_klines(symbol=symbol, interval=client.KLINE_INTERVAL_1HOUR, start_str=f"{period} days ago")
+    Trades = get_data_from_klines(klines, "Number of trades")
+    tradeNumber = sum(Trades)
+    return tradeNumber
+
+# Function for getting the latest price trend
+def get_recent_trend(symbol, period):
+    """
+    Function for getting the recent trend of given symbol
+    :param symbol: Symbol to calculate recent trend
+    :param period: Period of time for calculation
+    :return: Trend
+    """
+    klines = client.get_historical_klines(symbol=symbol, interval=client.KLINE_INTERVAL_1HOUR, start_str=f"1 hour ago")
+    openingPrice = get_data_from_klines(klines, "Open price")
+    closingPrice = get_data_from_klines(klines, "Close price")
+    trend = get_price_trend(openingPrice, closingPrice)
+    return trend
 
 
 

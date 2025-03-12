@@ -15,21 +15,32 @@ bot = Bot("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU")
 
 
 #Funkc ktera bude posilat digest o zmene cen atd specifickemu uzivateli jednou za cas co si sam nastavi
-def digest(params, userId, bot):
+async def digest(params, userId, bot):
     #Get the parameters
     symbol = params[0]
     period = params[1] if len(params) > 1 else 14
+
+    # Get the most recent price
+    recentPrice = int(current_price(symbol))
+    recentTradeVolume = get_recent_traded_volume(symbol, period)
+    recentTradeNumber = get_number_of_recent_trades(symbol, period)
+    recentTrend = get_recent_trend(symbol, period)
+    await bot.send_message(chat_id=userId, text=f"The latest price for {symbol} is: {recentPrice}.\n The traded volume in the last {period} days: {recentTradeVolume}.\n The number of trades made in the last {period} days: {recentTradeNumber}.\n Latest trend: {recentTrend}")
+
+    # Get the price data
+    graphPrice = plot_price_in_time(symbol, period)
+    await bot.send_photo(chat_id=userId, photo=graphPrice)
+
+    #Get the EMA data
     graphEMA = plot_ema(symbol, period)
     dataframeEMA = get_ema_dataframe(symbol, period)
-    #Tady poslu uzivateli ten graf a dataframe
+
+    await bot.send_photo(chat_id=userId, photo=graphEMA)
+    await bot.send_message(chat_id=userId, text=f"Here is the EMA data:\n```\n{dataframeEMA}\n```", parse_mode="Markdown")
+
+    #Get the KDJ data
     graphKDJ = plot_kdj(symbol, period)
     dataframeKDJ = get_kdj_dataframe(symbol, period)
-    # Tady poslu uzivateli ten graf a dataframe
-    graphPrice = plot_price_in_time(symbol, period)
-    # Tady poslu uzivateli ten graf a dataframe
 
-    bot.send_photo(chat_id=userId, photo=graphEMA)
-    bot.send_document(chat_id=userId, document=dataframeEMA.to_csv(index=False))
-    bot.send_photo(chat_id=userId, photo=graphKDJ)
-    bot.send_document(chat_id=userId, document=dataframeKDJ.to_csv(index=False))
-    bot.send_photo(chat_id=userId, photo=graphPrice)
+    await bot.send_photo(chat_id=userId, photo=graphKDJ)
+    await bot.send_message(chat_id=userId, text=f"Here is the KDJ data:\n```\n{dataframeKDJ}\n```", parse_mode="Markdown")
