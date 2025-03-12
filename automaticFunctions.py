@@ -20,8 +20,8 @@ async def digest(params, userId, bot):
     symbol = params[0]
     period = params[1] if len(params) > 1 else 14
 
-    # Get the most recent price
-    recentPrice = int(current_price(symbol))
+    # Get the base info
+    recentPrice = float(current_price(symbol))
     recentTradeVolume = get_recent_traded_volume(symbol, period)
     recentTradeNumber = get_number_of_recent_trades(symbol, period)
     recentTrend = get_recent_trend(symbol, period)

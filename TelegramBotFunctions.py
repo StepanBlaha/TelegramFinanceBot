@@ -499,7 +499,7 @@ def get_recent_trend(symbol, period):
     klines = client.get_historical_klines(symbol=symbol, interval=client.KLINE_INTERVAL_1HOUR, start_str=f"1 hour ago")
     openingPrice = get_data_from_klines(klines, "Open price")
     closingPrice = get_data_from_klines(klines, "Close price")
-    trend = get_price_trend(openingPrice, closingPrice)
+    trend = get_price_trend(float(openingPrice[0]), float(closingPrice[0]))
     return trend
 
 
