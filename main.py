@@ -23,6 +23,8 @@ import asyncio
 from telegram import ForceReply, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 from TelegramBotFunctions import *
+from library.utils import *
+from mongoFunctions import *
 
 # ------------------------------------Nefunguje--------------------------------------------------------
 bot = Bot("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU")
@@ -139,6 +141,43 @@ async def send(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
     await send_msg_to_user( user_chat_id=id, text=text, bot = context.bot)
 
 
+# format:
+# /digest mena interval optional
+async def setDigest(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
+    # dictionary for possible user intervals
+    intervalDIct = {
+        "daily": 86400,
+        "weekly": 604800,
+        "monthly": 3072000,
+        "yearly": 3652000
+    }
+    # Takes user given argument
+    try:
+        func = "digest"
+        userId = update.effective_user.id
+        symbol = context.args[0]
+        interval = context.args[1]
+        if interval.isdigit():
+            interval = int(interval)
+            interval = interval * 3600
+        else:
+            interval = intervalDIct[interval.lower()]
+
+        optionalPeriod = int(context.args[2]) if len(context.args) > 2 else False
+
+        # Get current last proces
+        curUnix = int(time.time())
+        curUnix = unix_to_timestamp(curUnix)
+
+        # Get next process
+        nextUnix = seconds_to_unix(interval)
+        nextUnix = unix_to_timestamp(nextUnix)
+
+        insert(col="Digest", user=userId, interval=interval, func=func, args=(symbol, optionalPeriod), lastProcess=curUnix, nextProcess=nextUnix  )
+        await update.message.reply_text("Digest settings updated successfully.")
+
+    except Exception as e:
+        await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
 
 
@@ -157,6 +196,7 @@ def main()->None:
     application.add_handler(CommandHandler("KDJ", kdj))
     application.add_handler(CommandHandler("EMA", ema))
     application.add_handler(CommandHandler("send", send))
+    application.add_handler(CommandHandler("digest", setDigest))
 
     # pridam neco na handlovani zprav filter.TEXT jsou vsechny textopve zpravy a filtyer.COMMAND jsou vsechny commandy zacinajici s /
     # kdyz dam pred filter ~ je to jako bych dal v php ! a tedy to neguje

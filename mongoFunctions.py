@@ -1,9 +1,13 @@
+from bson import ObjectId
+from pymongo.synchronous.database import Database
+
 from mongo import *
 
 
-def insert(user, interval, func, args, lastProcess, nextProcess):
+def insert(col, user, interval, func, args, lastProcess, nextProcess):
     """
 
+    :param col: collection to insert into
     :param user: Telegram user id
     :param interval: interval in which to execute function e. 1 day, 1 week,...
     :param func: function to execute
@@ -13,15 +17,50 @@ def insert(user, interval, func, args, lastProcess, nextProcess):
     :return:
     """
     DB = db_connect()
-    collection = DB[""]
+    collection = DB[col]
 
     data = {
         "userId": user,
         "function": func,
         "arguments": args,
         "interval": interval,
-        "lastProcess": lastProcess
+        "lastProcess": lastProcess,
+        "nextProcess": nextProcess
     }
 
     insertedId = collection.insert_one(data).inserted_id
+    print(insertedId)
 
+#insert("Digest",12323213,2133, "digest",("skibi","di"), lastProcess=2017-12-2,nextProcess=2021-1-1)
+
+def select(col, postId = False, time = False):
+    DB = db_connect()
+    collection = DB[col]
+    DatabaseResponse = []
+
+    #If the post id is set select only set post
+    if postId:
+        query = { "_id": ObjectId(postId) }
+        DatabaseResponse = collection.find(query)
+        return DatabaseResponse
+
+    # If time is sset select only the corresponding ones
+    if time:
+        query = { "nextProcess": time }
+        DatabaseResponse = collection.find(query)
+        return DatabaseResponse
+
+    for record in collection.find():
+        DatabaseResponse.append(record)
+    return DatabaseResponse
+
+print(select("Digest"))
+
+def update(col, postId, lastProcess, nextProcess):
+    DB = db_connect()
+    collection = DB[col]
+
+    query = { "_id": ObjectId(postId) }
+    newValues = { "$set": { "lastProcess": lastProcess, "nextProcess": nextProcess }}
+    collection.update_one(query, newValues)
+    print("Successfully updated")
