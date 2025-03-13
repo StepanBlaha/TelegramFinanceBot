@@ -47,5 +47,18 @@ async def digest(params, userId, bot):
 
 
 async def priceMonitor(params, userId, bot):
+    """
+    Function for sending info about price change of given symbol
+    :param params: list containing data such as symbol and price difference
+    :param userId: id of the user
+    :param bot: bot
+    :return:
+    """
+    # Get the data
     symbol = params[0]
-    margin = params[1]
+    priceDiff = params[1]
+    percentageDiff = params[2]
+    lastPrice = params[3]
+    newPrice = lastPrice + priceDiff
+
+    await bot.send_message(chat_id=userId, text=f" ''''''''''''''''''''''''''''Watch out''''''''''''''''''''''''''''\n\nThe price for {symbol} has changed by {percentageDiff}%\n Old price: {lastPrice}\n New price: {newPrice}\n Price change: {priceDiff}")

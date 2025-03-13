@@ -31,7 +31,7 @@ def insertDigest(col, user, interval, func, args, lastProcess, nextProcess):
     insertedId = collection.insert_one(data).inserted_id
     print(insertedId)
 
-def insertPriceMonitor(col, user, margin, func, args, lastPrice):
+def insertPriceMonitor(col, user, margin, func, symbol, lastPrice):
 
     DB = db_connect()
     collection = DB[col]
@@ -39,7 +39,7 @@ def insertPriceMonitor(col, user, margin, func, args, lastPrice):
     data = {
         "userId": user,
         "function": func,
-        "arguments": args,
+        "symbol": symbol,
         "margin": margin,
         "lastPrice":lastPrice
     }

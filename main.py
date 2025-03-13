@@ -186,9 +186,10 @@ async def priceMonitor(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         userId = update.effective_user.id
         symbol = context.args[0]
         margin = float(context.args[1])
-        lastPrice = current_price(symbol)
+        lastPrice = float(current_price(symbol))
 
-        insertPriceMonitor(col='priceMonitor', user=userId, margin=margin, func=func, args=(symbol), lastPrice=lastPrice)
+        insertPriceMonitor(col='priceMonitor', user=userId, margin=margin, func=func, symbol=symbol, lastPrice=lastPrice)
+        await update.message.reply_text("Price monitor set successfully.")
     except Exception as e:
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
@@ -208,6 +209,8 @@ def main()->None:
     application.add_handler(CommandHandler("EMA", ema))
     application.add_handler(CommandHandler("send", send))
     application.add_handler(CommandHandler("digest", setDigest))
+    application.add_handler(CommandHandler("set_monitor", priceMonitor))
+
 
     # pridam neco na handlovani zprav filter.TEXT jsou vsechny textopve zpravy a filtyer.COMMAND jsou vsechny commandy zacinajici s /
     # kdyz dam pred filter ~ je to jako bych dal v php ! a tedy to neguje

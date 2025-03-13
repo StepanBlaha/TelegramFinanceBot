@@ -3,7 +3,7 @@ import asyncio
 from telegram import ForceReply, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 from TelegramBotFunctions import *
-from automaticFunctions import digest
+from automaticFunctions import *
 from library.utils import *
 import asyncio
 from mongoFunctions import *
@@ -52,21 +52,26 @@ async def main():
             recordId = str(record["_id"])
             functionName = record["function"]
             margin = record["margin"]
-            lastPrice = record["lastPrice"]
-            arguments = record["arguments"]
-            symbol = arguments[0]
+            lastPrice = float(record["lastPrice"])
+            symbol = record["symbol"]
+            print(symbol)
             #calculate one percent of old price
             onePercent = lastPrice / 100
             # calculate margin price from margin percentage
             marginPrice = onePercent * margin
             # Get current price
-            curPrice = current_price(symbol)
+            curPrice = float(current_price(symbol))
+
+            #Get price difference
+            priceDifference = curPrice - lastPrice
+            percentageDifference = priceDifference / onePercent
             # check if price is within margin of change
-            if(abs(curPrice - lastPrice) >= marginPrice):
-                pass
-                #tady zavolam fnkci a updatnu last price
+            if(abs(priceDifference) < marginPrice):
+                continue
 
-
+            formatedArguments = [symbol,priceDifference, percentageDifference, lastPrice]
+            await functionDict[functionName](formatedArguments, userId, bot)
+            updatePriceMonitor("priceMonitor", recordId, curPrice)
 
 
         await asyncio.sleep(10)
