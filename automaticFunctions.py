@@ -44,3 +44,8 @@ async def digest(params, userId, bot):
 
     await bot.send_photo(chat_id=userId, photo=graphKDJ)
     await bot.send_message(chat_id=userId, text=f"Here is the KDJ data:\n```\n{dataframeKDJ}\n```", parse_mode="Markdown")
+
+
+async def priceMonitor(params, userId, bot):
+    symbol = params[0]
+    margin = params[1]

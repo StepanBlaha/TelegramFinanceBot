@@ -4,7 +4,7 @@ from pymongo.synchronous.database import Database
 from mongo import *
 
 
-def insert(col, user, interval, func, args, lastProcess, nextProcess):
+def insertDigest(col, user, interval, func, args, lastProcess, nextProcess):
     """
 
     :param col: collection to insert into
@@ -26,6 +26,22 @@ def insert(col, user, interval, func, args, lastProcess, nextProcess):
         "interval": interval,
         "lastProcess": lastProcess,
         "nextProcess": nextProcess
+    }
+
+    insertedId = collection.insert_one(data).inserted_id
+    print(insertedId)
+
+def insertPriceMonitor(col, user, margin, func, args, lastPrice):
+
+    DB = db_connect()
+    collection = DB[col]
+
+    data = {
+        "userId": user,
+        "function": func,
+        "arguments": args,
+        "margin": margin,
+        "lastPrice":lastPrice
     }
 
     insertedId = collection.insert_one(data).inserted_id
@@ -56,11 +72,19 @@ def select(col, postId = False, time = False):
 
 print(select("Digest"))
 
-def update(col, postId, lastProcess, nextProcess):
+def updateDigest(col, postId, lastProcess, nextProcess):
     DB = db_connect()
     collection = DB[col]
 
     query = { "_id": ObjectId(postId) }
     newValues = { "$set": { "lastProcess": lastProcess, "nextProcess": nextProcess }}
+    collection.update_one(query, newValues)
+    print("Successfully updated")
+
+def updatePriceMonitor(col, postId, newPrice):
+    DB = db_connect()
+    collection = DB[col]
+    query = {"_id": ObjectId(postId)}
+    newValues = {"$set": {"lastPrice":newPrice}}
     collection.update_one(query, newValues)
     print("Successfully updated")

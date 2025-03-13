@@ -173,13 +173,24 @@ async def setDigest(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         nextUnix = seconds_to_unix(interval)
         nextUnix = unix_to_timestamp(nextUnix)
 
-        insert(col="Digest", user=userId, interval=interval, func=func, args=(symbol, optionalPeriod), lastProcess=curUnix, nextProcess=nextUnix  )
+        insertDigest(col="Digest", user=userId, interval=interval, func=func, args=(symbol, optionalPeriod), lastProcess=curUnix, nextProcess=nextUnix  )
         await update.message.reply_text("Digest settings updated successfully.")
 
     except Exception as e:
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
 
+async def priceMonitor(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
+    try:
+        func = "priceMonitor"
+        userId = update.effective_user.id
+        symbol = context.args[0]
+        margin = float(context.args[1])
+        lastPrice = current_price(symbol)
+
+        insertPriceMonitor(col='priceMonitor', user=userId, margin=margin, func=func, args=(symbol), lastPrice=lastPrice)
+    except Exception as e:
+        await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
 
 
