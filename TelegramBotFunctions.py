@@ -16,7 +16,33 @@ client = Client()
 # tr = client.get_historical_trades(symbol = "BTCUSDT", limit=10)
 # print(tr)
 
-
+# Function for getting specific data from given klines
+def get_data_from_klines(klines, desiredData):
+    """
+    Function for getting specific data from given klines
+    :param klines: List with kline data
+    :param desiredData: Type of data
+    :return: List of desired data
+    """
+    dataTypes = {
+        "Open time": 0,
+        "Open price": 1,
+        "High price": 2,
+        "Low price": 3,
+        "Close price": 4,
+        "Volume": 5,
+        "Close time": 6,
+        "Quote asset volume": 7,
+        "Number of trades": 8,
+        "Taker buy base asset volume": 9,
+        "Taker buy quote asset volume": 10
+    }
+    dataList = []
+    dataIndex = dataTypes[desiredData]
+    for i in range(len(klines)):
+        currentKline = klines[i]
+        dataList.append(float(currentKline[dataIndex]))
+    return dataList
 
 # Function for calculating the average order values for given symbol
 def get_average_order_values(symbol):
@@ -199,6 +225,12 @@ def plot_price_in_time(symbol, period):
 
 #plot_price_in_time("BTCUSDT", 7)
 
+def get_historical_prices(symbol, period):
+    klines = client.get_historical_klines(symbol = symbol, interval = client.KLINE_INTERVAL_1HOUR, start_str =f"{period} days ago")
+    closingPrices = get_data_from_klines(klines,"Close price")
+    print(closingPrices)
+get_historical_prices("BTCUSDT", 8)
+
 # Function to extract closing prices from given kline list
 def get_closing_prices(klines):
     """
@@ -211,34 +243,6 @@ def get_closing_prices(klines):
         currentKline = klines[i]
         closingPrices.append(float(currentKline[4]))
     return closingPrices
-
-# Function for getting specific data from given klines
-def get_data_from_klines(klines, desiredData):
-    """
-    Function for getting specific data from given klines
-    :param klines: List with kline data
-    :param desiredData: Type of data
-    :return: List of desired data
-    """
-    dataTypes = {
-        "Open time": 0,
-        "Open price": 1,
-        "High price": 2,
-        "Low price": 3,
-        "Close price": 4,
-        "Volume": 5,
-        "Close time": 6,
-        "Quote asset volume": 7,
-        "Number of trades": 8,
-        "Taker buy base asset volume": 9,
-        "Taker buy quote asset volume": 10
-    }
-    dataList = []
-    dataIndex = dataTypes[desiredData]
-    for i in range(len(klines)):
-        currentKline = klines[i]
-        dataList.append(float(currentKline[dataIndex]))
-    return dataList
 
 #Function for getting 14 day rsi for symbol
 def get_rsi(symbol):

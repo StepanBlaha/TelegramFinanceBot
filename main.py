@@ -23,13 +23,14 @@ import asyncio
 from telegram import ForceReply, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 from TelegramBotFunctions import *
+from ai.chatgptBot import messageChatgpt
+from ai.geminiBot import messageGemini
 from library.utils import *
 from mongoFunctions import *
-
+from ai import *
 # ------------------------------------Nefunguje--------------------------------------------------------
 
 # ------------------------------------Nefunguje--------------------------------------------------------
-
 
 
 # Enable logging
@@ -216,7 +217,7 @@ async def deleteFunction(update:Update, context:ContextTypes.DEFAULT_TYPE)->None
         await update.message.reply_text(str(e))
         await update.message.reply_text("Problem in deleting. Check for any format mistakes.")
 
-async def main():
+def main():
     # aplication.builder() ja na zakladni build bota .token() ma v sobe nas api key a .buiuld() build provede
     application = Application.builder().token("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU").build()
 
@@ -247,4 +248,6 @@ async def main():
 
 
 if __name__ == "__main__":
+    chat = messageChatgpt("is bitcon worth investing into")
+    print(chat)
     main()
