@@ -79,23 +79,12 @@ def select(col, postId = None, time = None, userId = None, func = None):
 
 #print(select("Digest", userId= 8106126437, func = "digest"))
 
-#Function for updating data in digest collection
-def updateDigest(col, postId, lastProcess, nextProcess):
-    DB = db_connect()
-    collection = DB[col]
 
-    query = { "_id": ObjectId(postId) }
-    newValues = { "$set": { "lastProcess": lastProcess, "nextProcess": nextProcess }}
-    collection.update_one(query, newValues)
-    print("Successfully updated")
-
-#Function for updating data in price monitor collection
-def updatePriceMonitor(col, postId, newPrice):
+def update(col, postId, values):
     DB = db_connect()
     collection = DB[col]
     query = {"_id": ObjectId(postId)}
-    newValues = {"$set": {"lastPrice":newPrice}}
-    collection.update_one(query, newValues)
+    collection.update_one(query, values)
     print("Successfully updated")
 
 def delete(col, query):

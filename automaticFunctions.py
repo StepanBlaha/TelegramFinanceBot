@@ -19,6 +19,8 @@ async def digest(params, userId, bot):
     #Get the parameters
     symbol = params[0]
     period = params[1] if len(params) > 1 else 14
+    if period == False:
+        period = 14
 
     # Get the base info
     recentPrice = float(current_price(symbol))

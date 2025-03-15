@@ -122,3 +122,12 @@ def formatDeleteQuery( userId, func, symbol, val):
     else:
         return "Invalid database"
     return query
+
+
+def formatUpdateQuery( format, newPrice=None, lastProcess=None, nextProcess=None):
+    formatDict={
+        "digest":{ "$set": { "lastProcess": lastProcess, "nextProcess": nextProcess }},
+        "priceMonitor": {"$set": {"lastPrice":newPrice}}
+    }
+    query = formatDict[format]
+    return query

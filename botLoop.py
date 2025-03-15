@@ -43,10 +43,15 @@ async def main():
             #Get the new next process
             newNextProcess = seconds_to_unix(interval)
             newNextProcess = unix_to_timestamp(newNextProcess)
-            updateDigest("Digest", recordId, newLastProcess, newNextProcess)
+            #old update func
+            #updateDigest("Digest", recordId, newLastProcess, newNextProcess)
+            # Get the update query
+            query = formatUpdateQuery("digest", lastProcess=newLastProcess, nextProcess=newNextProcess)
+            # Update
+            update("Digest", recordId, query)
             print(f'Function {functionName} for user {userId} executed successfully.')
 
-        priceMonitorRecords = select("priceMonitor")
+        priceMonitorRecords = select("Pricemonitor")
         for record in priceMonitorRecords:
             userId = record["userId"]
             recordId = str(record["_id"])
@@ -71,7 +76,12 @@ async def main():
 
             formatedArguments = [symbol,priceDifference, percentageDifference, lastPrice]
             await functionDict[functionName](formatedArguments, userId, bot)
-            updatePriceMonitor("priceMonitor", recordId, curPrice)
+            # Old update func
+            #updatePriceMonitor("priceMonitor", recordId, curPrice)
+            # Get the update query
+            query = formatUpdateQuery("priceMonitor", newPrice=curPrice)
+            # Update
+            update("Pricemonitor", recordId, query)
 
 
         await asyncio.sleep(10)
