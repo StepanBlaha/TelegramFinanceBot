@@ -24,6 +24,7 @@ from telegram import ForceReply, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 from TelegramBotFunctions import *
 from ai.chatgptBot import messageChatgpt
+from ai.chatgptFunctions import msgChatbot
 from ai.geminiBot import messageGemini
 from library.utils import *
 from mongoFunctions import *
@@ -217,6 +218,16 @@ async def deleteFunction(update:Update, context:ContextTypes.DEFAULT_TYPE)->None
         await update.message.reply_text(str(e))
         await update.message.reply_text("Problem in deleting. Check for any format mistakes.")
 
+
+
+async def chatbot(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
+    try:
+        msg = context.args[0]
+        response = msgChatbot(msg)
+        await update.message.reply_text(response)
+    except Exception as e:
+        await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
+
 def main():
     # aplication.builder() ja na zakladni build bota .token() ma v sobe nas api key a .buiuld() build provede
     application = Application.builder().token("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU").build()
@@ -235,6 +246,7 @@ def main():
 
     application.add_handler(CommandHandler("my_functions", showUserFunctions))
     application.add_handler(CommandHandler("delete", deleteFunction))
+    application.add_handler(CommandHandler("chatbot", chatbot))
 
 
     # pridam neco na handlovani zprav filter.TEXT jsou vsechny textopve zpravy a filtyer.COMMAND jsou vsechny commandy zacinajici s /

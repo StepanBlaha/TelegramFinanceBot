@@ -4,6 +4,9 @@ import numpy as pd
 import matplotlib
 import matplotlib.pyplot as plt
 from datetime import datetime
+import json
+
+from ai.chatgptFunctions import gptTradeAdvice
 from library.utils import *
 import io
 
@@ -101,8 +104,20 @@ def get_recent_trade_info(symbol, limit):
     formatedString =f'Average trade quantity: {averageTradeQuantity}\n Average trade price: {averageTradePrice}\n Minimum trade price: {MinTradePrice}\n Maximum trade price: {MaxTradePrice}\n Minimun trade quantity: {MinTradeQuantity}\n Maximum trade quantity: {MaxTradeQuantity}\n'
     return formatedString
 
+# Function for getting prices of given symbol over the last period days
+def get_historical_prices(symbol, period):
+    """
+    Function for getting prices of given symbol over the last period days
+    :param symbol: symbol to get prices of
+    :param period: span of days to track
+    :return: list of prices
+    """
+    klines = client.get_historical_klines(symbol = symbol, interval = client.KLINE_INTERVAL_1HOUR, start_str =f"{period} days ago")
+    closingPrices = get_data_from_klines(klines,"Close price")
+    return closingPrices
+
 # Function for showing basic info about given symbol
-def format_symbol_info(symbol_name):
+def format_symbol_info(symbol_name, period = 14):
     """
     Function for showing basic info about given symbol
     :param symbol_name:
@@ -122,7 +137,11 @@ def format_symbol_info(symbol_name):
     market_depth = get_average_order_values(symbol=symbol_name)
     #Get recent trades of symbol
     recent_trades = get_recent_trade_info(symbol=symbol_name, limit=10)
-    response = f"Symbol: {symbol['symbol']}\n Status: {symbol['status']}\n Price: {last_price['price']}\n\n Current market: \n {market_depth}\n\n Recent trades: \n {recent_trades}\n "
+    #Get recent prices
+    recent_prices = get_historical_prices(symbol['symbol'], period)
+
+    tradeAdvice = gptTradeAdvice(symbol["symbol"], period, recent_prices, recent_trades, market_depth).capitalize()
+    response = f"Symbol: {symbol['symbol']}\n Status: {symbol['status']}\n Price: {last_price['price']}\n Trade advice: {tradeAdvice}\n\n Current market: \n {market_depth}\n\n Recent trades: \n {recent_trades}\n "
     return response
 
 # Function for getting the market pattern base on the opening and closing price
@@ -212,8 +231,11 @@ def plot_price_in_time(symbol, period):
         closingPrices.append(float(currentKline[4]))
 
     plt.plot(timestamps, closingPrices)
-    # Plot setup
-    plt.xticks(timestamps[::10], rotation=45, ha="right")
+    # Calculate the timestamp stepsize
+    num_ticks = 10
+    step = len(timestamps) // num_ticks
+
+    plt.xticks(timestamps[::step], rotation=45, ha="right")
     plt.subplots_adjust(bottom=0.3, left=0.15)
     plt.title(f"{symbol} Historical Prices")
     IoStream = io.BytesIO()
@@ -223,13 +245,7 @@ def plot_price_in_time(symbol, period):
 
     return IoStream
 
-#plot_price_in_time("BTCUSDT", 7)
-
-def get_historical_prices(symbol, period):
-    klines = client.get_historical_klines(symbol = symbol, interval = client.KLINE_INTERVAL_1HOUR, start_str =f"{period} days ago")
-    closingPrices = get_data_from_klines(klines,"Close price")
-    print(closingPrices)
-get_historical_prices("BTCUSDT", 8)
+print(plot_price_in_time("BTCUSDT", 7))
 
 # Function to extract closing prices from given kline list
 def get_closing_prices(klines):
@@ -413,7 +429,7 @@ def get_kdj(symbol, period):
     return Ks, Ds, Js, closeTimes
 
 # Function for getting pandas dataframe of KDJ
-def get_kdj_dataframe(symbol, period):
+def get_kdj_dataframe(symbol, period, df = False):
     """
     Function for getting pandas dataframe of KDJ
     :param symbol: Symbol to get the dataframe of
@@ -428,10 +444,11 @@ def get_kdj_dataframe(symbol, period):
         "Timestamp": closeTimes
     }
     dataFrame = get_dataframe(data)
-
+    if df:
+        return dataFrame
     dataFrame = dataFrame.to_string(index=False)
     return dataFrame
-
+print(get_kdj_dataframe("BTCUSDT", 14))
 # Function for getting graph of KDJ for given symbol over period of time
 def plot_kdj(symbol, period):
     """
@@ -508,7 +525,48 @@ def get_recent_trend(symbol, period):
 
 
 
+def trade_advice(symbol, period):
+    """
+    Custom function for giving suggestions on whether o buy or sell
+    :param symbol: symbol to calculate suggestions
+    :param period: period of time for calculation
+    :return: Buy/Sell suggestions
+    """
+    # Maybe pridam jeste buz oir sell podle recent trade
+    buy = 0
+    sell = 0
+    # Get buy/sell based on rsi
+    rsi = get_rsi(symbol)
+    if rsi >70:
+        sell+=1
+    elif rsi<30:
+        buy+=1
 
+    # Get buy/sell based od kdj
+    kdj = get_kdj_dataframe(symbol, period, df=True)
+    signals = []
 
+    for i in range(1, len(kdj)):
+        if kdj["K"][i] > kdj["D"][i] and kdj["K"][i-1] <= kdj["D"][i-1] and kdj['J'][i] > 20 and kdj['J'][i-1] <= kdj['J'][i]:
+            signals.append("buy")
+        elif kdj['K'][i] < kdj['D'][i] and kdj['K'][i - 1] >= kdj['D'][i - 1] and kdj['J'][i] < 80 and kdj['J'][i - 1] >= kdj['J'][i]:
+            signals.append("sell")
+    if signals[len(signals)-1] == "buy":
+        buy+=1
+    else:
+        sell+=1
 
+    # Get buy/sell based on support and resistance levels
+    prices = get_historical_prices(symbol, period)
+    support = min(prices)
+    resistance = max(prices)
+    if int(prices[len(prices)-1]) <= support:
+        buy+=1
+    elif int(prices[len(prices)-1]) >= resistance:
+        sell+=1
+
+    if buy >= sell:
+        return "Buy"
+    else:
+        return "Sell"
 
