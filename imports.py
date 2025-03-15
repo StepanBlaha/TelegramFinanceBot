@@ -42,6 +42,6 @@ pip install google-genai
 pip install -q -U google-genai
 pip install openai
 pip install python-dotenv
-
-
+pip install tensorflow
+pip install tensor
 """
