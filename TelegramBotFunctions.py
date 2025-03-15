@@ -141,6 +141,8 @@ def format_symbol_info(symbol_name, period = 14):
     recent_prices = get_historical_prices(symbol['symbol'], period)
 
     tradeAdvice = gptTradeAdvice(symbol["symbol"], period, recent_prices, recent_trades, market_depth).capitalize()
+
+
     response = f"Symbol: {symbol['symbol']}\n Status: {symbol['status']}\n Price: {last_price['price']}\n Trade advice: {tradeAdvice}\n\n Current market: \n {market_depth}\n\n Recent trades: \n {recent_trades}\n "
     return response
 
@@ -570,3 +572,28 @@ def trade_advice(symbol, period):
     else:
         return "Sell"
 
+
+# Function for getting openai advice on whether to sell or buy
+def get_gpt_trade_advice(symbol_name, period=14):
+    """
+    Function for getting openai advice on whether to sell or buy
+    :param symbol_name: Symbol to calculate advice
+    :return: Buy/Sell suggestions
+    """
+    # Gets all the exchange pairs
+    exchange_info = client.get_exchange_info()
+    trading_pairs = [symbol['symbol'] for symbol in exchange_info['symbols']]
+    # Checks for invalid user pair
+    if symbol_name not in trading_pairs:
+        return "Invalid symbol name."
+
+    # Get all the data to give openai for calculations
+    symbol = client.get_symbol_info(symbol=symbol_name)
+    market_depth = get_average_order_values(symbol=symbol_name)
+    recent_trades = get_recent_trade_info(symbol=symbol_name, limit=10)
+    recent_prices = get_historical_prices(symbol['symbol'], period)
+
+    # Calculate
+    tradeAdvice = gptTradeAdvice(symbol["symbol"], period, recent_prices, recent_trades, market_depth).capitalize()
+
+    return tradeAdvice

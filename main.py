@@ -219,12 +219,25 @@ async def deleteFunction(update:Update, context:ContextTypes.DEFAULT_TYPE)->None
         await update.message.reply_text("Problem in deleting. Check for any format mistakes.")
 
 
-
+#format
+#/chatbot message
+#interval psany v hodinach
 async def chatbot(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
     try:
         msg = context.args[0]
         response = msgChatbot(msg)
         await update.message.reply_text(response)
+    except Exception as e:
+        await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
+
+#format
+#/tradeAdvice symbol
+async def tradeAdvice(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
+    try:
+        symbol = context.args[0]
+        functionResponse = trade_advice(symbol, 14)
+        aiResponse = get_gpt_trade_advice(symbol)
+        await update.message.reply_text(f'Here is your trading advice for {symbol}\n\n Calculated advice: {functionResponse}\n OpenAI advice: {aiResponse}')
     except Exception as e:
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
@@ -247,6 +260,7 @@ def main():
     application.add_handler(CommandHandler("my_functions", showUserFunctions))
     application.add_handler(CommandHandler("delete", deleteFunction))
     application.add_handler(CommandHandler("chatbot", chatbot))
+    application.add_handler(CommandHandler("trade_advice", tradeAdvice))
 
 
     # pridam neco na handlovani zprav filter.TEXT jsou vsechny textopve zpravy a filtyer.COMMAND jsou vsechny commandy zacinajici s /
