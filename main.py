@@ -210,7 +210,7 @@ async def showUserFunctions(update:Update, context:ContextTypes.DEFAULT_TYPE)->N
 #format
 #/delete funkce symbol val(interval/margin
 #interval psany v hodinach
-async def delete(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
+async def deleteFunction(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
     try:
         #Get all the necessary data
         func = context.args[0]
@@ -221,12 +221,9 @@ async def delete(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         # Format the delete query and delete
         query = formatDeleteQuery(userId, func, symbol, val)
         response = delete(col, query)
-
         await update.message.reply_text(response)
-
     except Exception as e:
         await update.message.reply_text(str(e))
-
         await update.message.reply_text("Problem in deleting. Check for any format mistakes.")
 
 
@@ -247,7 +244,7 @@ def main()->None:
     application.add_handler(CommandHandler("set_monitor", priceMonitor))
 
     application.add_handler(CommandHandler("my_functions", showUserFunctions))
-    application.add_handler(CommandHandler("delete", delete))
+    application.add_handler(CommandHandler("delete", deleteFunction))
 
 
     # pridam neco na handlovani zprav filter.TEXT jsou vsechny textopve zpravy a filtyer.COMMAND jsou vsechny commandy zacinajici s /

@@ -107,7 +107,7 @@ def formatDeleteQuery( userId, func, symbol, val):
         query = {
             "userId": userId,
             "function": func,
-            "symbol": symbol,
+            "arguments.0": symbol,
             "interval": val
         }
 

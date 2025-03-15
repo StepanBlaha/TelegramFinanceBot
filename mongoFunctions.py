@@ -102,5 +102,8 @@ def delete(col, query):
     #Connect to db and delete
     DB = db_connect()
     collection = DB[col]
-    collection.delete_one(query)
-    return "Successfully deleted"
+    result = collection.delete_one(query)
+    if result.deleted_count>0:
+        return "Successfully deleted"
+    else:
+        return "Failed"
