@@ -27,16 +27,6 @@ from library.utils import *
 from mongoFunctions import *
 
 # ------------------------------------Nefunguje--------------------------------------------------------
-bot = Bot("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU")
-commands = [
-    BotCommand("start", "Start interacting with the bot"),
-    BotCommand("help", "Get help on how to use the bot"),
-    BotCommand("commands", "Get a list of available commands"),
-    BotCommand("symbol_info", "Get the base info about a given symbol. \nFormat: /symbol_info <symbol>"),
-    BotCommand("price_chart", "Get a graph of prices of given symbol over the span of given days. \nFormat: /price_chart <symbol> <period>"),
-]
-#bot.set_my_commands(commands)
-bot.set_my_commands([])
 
 # ------------------------------------Nefunguje--------------------------------------------------------
 
@@ -226,8 +216,7 @@ async def deleteFunction(update:Update, context:ContextTypes.DEFAULT_TYPE)->None
         await update.message.reply_text(str(e))
         await update.message.reply_text("Problem in deleting. Check for any format mistakes.")
 
-
-def main()->None:
+async def main():
     # aplication.builder() ja na zakladni build bota .token() ma v sobe nas api key a .buiuld() build provede
     application = Application.builder().token("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU").build()
 
@@ -254,6 +243,8 @@ def main()->None:
     # run_polling zacne bota a spusti jeho running loop, nekonecne checkuje(polluje) server a hleda noive zpravy
     # allowed_updates=Update.ALL_TYPES dela ze bot bere vsechno co se stane, fungovalo by to i bez toho ale bot by poslouchal a bral jen zpravy, takhle bere treba i kdyz se nekdo pripoji do roomky
     application.run_polling(allowed_updates=Update.ALL_TYPES)
+
+
 
 if __name__ == "__main__":
     main()

@@ -38,7 +38,8 @@ import pymysql
 pip install mysql-connector-python
 pip install pymongo
 python -m pip install "pymongo[srv]"
-
+pip install google-genai
+pip install -q -U google-genai
 
 
 """
