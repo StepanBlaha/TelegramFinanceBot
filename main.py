@@ -179,7 +179,8 @@ async def setDigest(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
     except Exception as e:
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
-
+#format
+#/set_monitor mena margin
 async def priceMonitor(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
     try:
         func = "priceMonitor"
@@ -188,11 +189,45 @@ async def priceMonitor(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         margin = float(context.args[1])
         lastPrice = float(current_price(symbol))
 
-        insertPriceMonitor(col='priceMonitor', user=userId, margin=margin, func=func, symbol=symbol, lastPrice=lastPrice)
+        insertPriceMonitor(col='Pricemonitor', user=userId, margin=margin, func=func, symbol=symbol, lastPrice=lastPrice)
         await update.message.reply_text("Price monitor set successfully.")
     except Exception as e:
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
+#format
+#/my_functions funkce
+async def showUserFunctions(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
+    try:
+        func = context.args[0]
+        col = func.lower().capitalize()
+        userId = update.effective_user.id
+        response = formatDatabaseResponse(col, userId=userId, func=func )
+
+        await update.message.reply_text(response)
+    except Exception as e:
+        await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
+
+#format
+#/delete funkce symbol val(interval/margin
+#interval psany v hodinach
+async def delete(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
+    try:
+        #Get all the necessary data
+        func = context.args[0]
+        col = func.lower().capitalize()
+        userId = update.effective_user.id
+        symbol = context.args[1]
+        val = int(context.args[2])
+        # Format the delete query and delete
+        query = formatDeleteQuery(userId, func, symbol, val)
+        response = delete(col, query)
+
+        await update.message.reply_text(response)
+
+    except Exception as e:
+        await update.message.reply_text(str(e))
+
+        await update.message.reply_text("Problem in deleting. Check for any format mistakes.")
 
 
 def main()->None:
@@ -210,6 +245,9 @@ def main()->None:
     application.add_handler(CommandHandler("send", send))
     application.add_handler(CommandHandler("digest", setDigest))
     application.add_handler(CommandHandler("set_monitor", priceMonitor))
+
+    application.add_handler(CommandHandler("my_functions", showUserFunctions))
+    application.add_handler(CommandHandler("delete", delete))
 
 
     # pridam neco na handlovani zprav filter.TEXT jsou vsechny textopve zpravy a filtyer.COMMAND jsou vsechny commandy zacinajici s /

@@ -5,6 +5,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import time
 from datetime import datetime
+from mongoFunctions import *
 
 
 def get_dataframe(data):
@@ -57,3 +58,67 @@ def unix_to_timestamp(unix):
     """
     timestamp = datetime.fromtimestamp(unix)
     return timestamp.strftime('%Y-%m-%d %H:%M:%S')
+
+def formatDatabaseResponse(col, userId=None, func=None):
+    """
+    Function that formats database's response into a message'
+    :param col: Collection to select from
+    :param userId: id of user to select
+    :param func: function to select
+    :return: formated database response
+    """
+    if func and userId:
+        response = select(col, userId=userId, func=func)
+        formatedResponse = "Here are your set functions:\n\n"
+        for row in response:
+            #Format  the response based on db
+            if col == "Digest":
+                # Format the interval
+                if row["interval"]>86400:
+                    interval = str((row["interval"]/86400)) + " Days"
+                else:
+                    interval = str((row["interval"]/3600)) + " Hours"
+                # Format the record into a string
+                record = f'Function: {row["function"]}, Symbol: {row["arguments"][0]}, Interval: {interval}'
+                # Add to response string
+            elif col == "Pricemonitor":
+                record = f'Function: {row["function"]}, Symbol: {row["symbol"]}, Monitor change margin: {row["margin"]}%'
+            else:
+                record = "Invalid database"
+            formatedResponse = formatedResponse + record
+            formatedResponse = formatedResponse + '\n'
+        return formatedResponse
+    return "Not enough data"
+
+
+
+# Function that formats database delete query
+def formatDeleteQuery( userId, func, symbol, val):
+    """
+    Function that formats database delete query
+    :param userId: id of user
+    :param func: function
+    :param symbol: symbol
+    :param val: value
+    :return: formated query string
+    """
+    if func == "digest":
+        val = int(val)*3600
+        query = {
+            "userId": userId,
+            "function": func,
+            "symbol": symbol,
+            "interval": val
+        }
+
+    elif func == "priceMonitor":
+        val = int(val)
+        query = {
+            "userId": userId,
+            "function": func,
+            "symbol": symbol,
+            "margin": val
+        }
+    else:
+        return "Invalid database"
+    return query

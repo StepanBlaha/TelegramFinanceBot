@@ -49,7 +49,7 @@ def insertPriceMonitor(col, user, margin, func, symbol, lastPrice):
 
 #insert("Digest",12323213,2133, "digest",("skibi","di"), lastProcess=2017-12-2,nextProcess=2021-1-1)
 
-def select(col, postId = False, time = False):
+def select(col, postId = None, time = None, userId = None, func = None):
     DB = db_connect()
     collection = DB[col]
     DatabaseResponse = []
@@ -66,12 +66,20 @@ def select(col, postId = False, time = False):
         DatabaseResponse = collection.find(query)
         return DatabaseResponse
 
+    # Used for checking users set automatic functions
+    if userId and func:
+        print(func)
+        query = { "userId": userId, "function": func }
+        DatabaseResponse = collection.find(query)
+        return DatabaseResponse
+
     for record in collection.find():
         DatabaseResponse.append(record)
     return DatabaseResponse
 
-print(select("Digest"))
+#print(select("Digest", userId= 8106126437, func = "digest"))
 
+#Function for updating data in digest collection
 def updateDigest(col, postId, lastProcess, nextProcess):
     DB = db_connect()
     collection = DB[col]
@@ -81,6 +89,7 @@ def updateDigest(col, postId, lastProcess, nextProcess):
     collection.update_one(query, newValues)
     print("Successfully updated")
 
+#Function for updating data in price monitor collection
 def updatePriceMonitor(col, postId, newPrice):
     DB = db_connect()
     collection = DB[col]
@@ -88,3 +97,10 @@ def updatePriceMonitor(col, postId, newPrice):
     newValues = {"$set": {"lastPrice":newPrice}}
     collection.update_one(query, newValues)
     print("Successfully updated")
+
+def delete(col, query):
+    #Connect to db and delete
+    DB = db_connect()
+    collection = DB[col]
+    collection.delete_one(query)
+    return "Successfully deleted"
