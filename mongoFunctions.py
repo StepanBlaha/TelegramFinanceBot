@@ -4,48 +4,17 @@ from pymongo.synchronous.database import Database
 from mongo import *
 
 
-def insertDigest(col, user, interval, func, args, lastProcess, nextProcess):
+def insert(col, query):
     """
-
+    Function for inserting data into mongo db
     :param col: collection to insert into
-    :param user: Telegram user id
-    :param interval: interval in which to execute function e. 1 day, 1 week,...
-    :param func: function to execute
-    :param args: arguments to pass to function
-    :param lastProcess: time of the last function process
-    :param nextProcess: calculated time of the next process
+    :param query: data to insert
     :return:
     """
     DB = db_connect()
     collection = DB[col]
-
-    data = {
-        "userId": user,
-        "function": func,
-        "arguments": args,
-        "interval": interval,
-        "lastProcess": lastProcess,
-        "nextProcess": nextProcess
-    }
-
-    insertedId = collection.insert_one(data).inserted_id
-    print(insertedId)
-
-def insertPriceMonitor(col, user, margin, func, symbol, lastPrice):
-
-    DB = db_connect()
-    collection = DB[col]
-
-    data = {
-        "userId": user,
-        "function": func,
-        "symbol": symbol,
-        "margin": margin,
-        "lastPrice":lastPrice
-    }
-
-    insertedId = collection.insert_one(data).inserted_id
-    print(insertedId)
+    insertedId = collection.insert_one(query).inserted_id
+    print(f'Successfully inserted {insertedId}')
 
 #insert("Digest",12323213,2133, "digest",("skibi","di"), lastProcess=2017-12-2,nextProcess=2021-1-1)
 

@@ -131,3 +131,32 @@ def formatUpdateQuery( format, newPrice=None, lastProcess=None, nextProcess=None
     }
     query = formatDict[format]
     return query
+
+def formatInsertQuery(format, userId, func, lastProcess=None, nextProcess=None, interval=None, symbol=None, margin=None, lastPrice=None, args=None):
+    formatDict={
+        "digest":
+            {
+                "userId": userId,
+                "function": func,
+                "arguments": args,
+                "interval": interval,
+                "lastProcess": lastProcess,
+                "nextProcess": nextProcess
+            },
+        "priceMonitor":
+            {
+                "userId": userId,
+                "function": func,
+                "symbol": symbol,
+                "margin": margin,
+                "lastPrice": lastPrice
+            }
+
+    }
+
+
+    try:
+        query = formatDict[format]
+        return query
+    except Exception as e:
+        return "Invalid set of arguments"

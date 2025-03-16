@@ -164,8 +164,9 @@ async def setDigest(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         # Get next process
         nextUnix = seconds_to_unix(interval)
         nextUnix = unix_to_timestamp(nextUnix)
-
-        insertDigest(col="Digest", user=userId, interval=interval, func=func, args=(symbol, optionalPeriod), lastProcess=curUnix, nextProcess=nextUnix  )
+        # Get the query and insert data into db
+        query = formatInsertQuery(format=func, userId=userId, func=func, interval=interval, lastProcess=curUnix, nextProcess=nextUnix)
+        insert(col="Digest", query=query)
         await update.message.reply_text("Digest settings updated successfully.")
 
     except Exception as e:
@@ -180,8 +181,9 @@ async def priceMonitor(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         symbol = context.args[0]
         margin = float(context.args[1])
         lastPrice = float(current_price(symbol))
-
-        insertPriceMonitor(col='Pricemonitor', user=userId, margin=margin, func=func, symbol=symbol, lastPrice=lastPrice)
+        # Get the query and insert into db
+        query = formatInsertQuery(format=func, userId=userId, func=func, margin=margin, lastPrice=lastPrice, symbol=symbol)
+        insert(col="Pricemonitor", query=query)
         await update.message.reply_text("Price monitor set successfully.")
     except Exception as e:
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
