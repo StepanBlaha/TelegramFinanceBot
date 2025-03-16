@@ -47,12 +47,23 @@ async def digest(params, userId, bot):
     await bot.send_photo(chat_id=userId, photo=graphKDJ)
     await bot.send_message(chat_id=userId, text=f"Here is the KDJ data:\n```\n{dataframeKDJ}\n```", parse_mode="Markdown")
 
+
+# Function for sending user personalised update about chosen cryptocurrency
 async def cryptoUpdate(symbol, userId, bot, lastPrice, interval):
+    """
+    Function for sending user personalised update about chosen cryptocurrency
+    :param symbol: symbol of cryptocurrency
+    :param userId: id of user
+    :param bot: telegram bot
+    :param lastPrice: last price of cryptocurrency
+    :param interval: interval between updates
+    :return:
+    """
     # rozdil ceny normalne a procentualne, done
     # tradenuto volume done
     # volatilitu done
     #bid-ask spread done
-    # order book imbalance
+    # order book imbalance done
     #
 
     currentPrice = float(current_price(symbol))
@@ -78,8 +89,9 @@ async def cryptoUpdate(symbol, userId, bot, lastPrice, interval):
     bidAskSpreadData = get_bid_ask_spread(symbol=symbol, dictionary=True)
     await bot.send_message(chat_id=userId, text=f"The average bid-ask spread: {bidAskSpreadData["spread"]}\n Average bid price: {bidAskSpreadData['averageBid']}\n Average ask price: {bidAskSpreadData['averageAsk']}")
 
+    orderBookImbalance = get_order_book_imbalance(symbol=symbol)
+    await bot.send_message(chat_id=userId, text=f"The order book imbalance: {orderBookImbalance}%")
 
-    pass
 async def priceMonitor(params, userId, bot):
     """
     Function for sending info about price change of given symbol

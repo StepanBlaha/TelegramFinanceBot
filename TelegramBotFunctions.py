@@ -101,9 +101,11 @@ def get_recent_trade_info(symbol, limit, dictionary=False):
     trades = client.get_recent_trades(symbol = symbol, limit = limit)
     tradeQuantities = []
     tradePrices = []
+    totalTradePrice= 0
     for i in range(len(trades)):
         tradeQuantities.append(float(trades[i]['qty']))
         tradePrices.append(float(trades[i]['price']))
+        totalTradePrice += float(trades[i]['qty']) * float(trades[i]['price'])
 
     averageTradeQuantity = (sum(tradeQuantities) / len(tradeQuantities))
     averageTradeQuantity = f"{averageTradeQuantity:.8f}"
@@ -115,7 +117,7 @@ def get_recent_trade_info(symbol, limit, dictionary=False):
     MinTradeQuantity = min(tradeQuantities)
     MinTradeQuantity = f"{MinTradeQuantity:.8f}"
     totalTradeQuantity = sum(tradeQuantities)
-    totalTradePrice = sum(tradePrices)
+    listTradePrice = sum(tradePrices)
 
     if dictionary:
         data = {
@@ -663,7 +665,7 @@ def plot_volatility(symbol, period):
         timestamps[i] = unix_to_date(int(timestamps[i]), day=True)
 
     # Calculate the timestamp stepsize
-    num_ticks = 10
+    num_ticks = 2
     step = len(timestamps) // num_ticks
 
     #Get only the decired timestamps
@@ -748,8 +750,8 @@ def get_order_book_imbalance(symbol, limit=100, dictionary=False):
     bids = orderData['bids']
     asks = orderData['asks']
     # Calculate bid and ask volumes
-    totalBuy = sum(quantity for price, quantity in bids)
-    totalSell = sum(quantity for price, quantity in asks)
+    totalBuy = sum(float(quantity) for price, quantity in bids)
+    totalSell = sum(float(quantity) for price, quantity in asks)
     # Calculate imbalance
     imbalance = (totalBuy - totalSell) / (totalBuy + totalSell) * 100
 
