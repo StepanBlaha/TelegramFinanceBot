@@ -808,3 +808,48 @@ def get_cci(symbol, period, timestamp=False):
         return CCIs, timestamps
 
     return CCIs
+
+# Function for getting mfi of given symbol
+def get_mfi(symbol, period):
+    """
+    Function for getting mfi of given symbol
+    :param symbol: symbol to calculate mfi of
+    :param period: period of mfi
+    :return: mfi
+    """
+    # Get the price data
+    klines = client.get_historical_klines(symbol=symbol, interval=client.KLINE_INTERVAL_1HOUR, start_str=f"{period} days ago")
+    openingPrices = get_data_from_klines(klines, "Open price")
+    closingPrices = get_data_from_klines(klines, "Close price")
+    highPrices = get_data_from_klines(klines, "High price")
+    lowPrices = get_data_from_klines(klines, "Low price")
+    volumes = get_data_from_klines(klines, "Volume")
+    timestamps = get_data_from_klines(klines, "Close time")
+
+    # Calculate TPs
+    TPs = []
+    rawMoneyFlows = []
+    negativeMoneyFlow = 0
+    positiveMoneyFlow = 0
+    for i in range(len(closingPrices)):
+        # Calculate tp
+        tp = (highPrices[i] + lowPrices[i] + closingPrices[i]) / 3
+        TPs.append(tp)
+        # Calculate raw money flow
+        rawMoneyFlow = tp * volumes[i]
+        rawMoneyFlows.append(rawMoneyFlow)
+
+    # Sort the raw money flows to positive or negatives
+    for i in range(1, len(TPs)):
+        if TPs[i] > TPs[i - 1]:
+            positiveMoneyFlow += rawMoneyFlows[i]
+        elif TPs[i] < TPs[i - 1]:
+            negativeMoneyFlow += rawMoneyFlows[i]
+
+    # Calculate money flow ratio
+    MFR = positiveMoneyFlow / negativeMoneyFlow
+
+    # Calculate money flow index
+    MFI = 100 - (100 / (1 + MFR))
+
+    return MFI
