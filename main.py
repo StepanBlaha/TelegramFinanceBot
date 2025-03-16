@@ -193,6 +193,43 @@ async def priceMonitor(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
     except Exception as e:
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
+async def cryptoUpdate(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
+    intervalDIct = {
+        "daily": 86400,
+        "weekly": 604800,
+        "monthly": 3072000,
+        "yearly": 3652000
+    }
+    try:
+        func = "cryptoUpdate"
+        userId = update.effective_user.id
+        symbol = context.args[0].upper()
+
+        # Format the interval correctly
+        interval = context.args[1]
+        if interval.isdigit():
+            interval = int(interval)
+            interval = interval * 3600
+        else:
+            interval = intervalDIct[interval.lower()]
+
+        # Get current last proces
+        lastProcess = int(time.time())
+        lastProcess = unix_to_timestamp(lastProcess)
+
+        # Get next process
+        nextProcess = seconds_to_unix(interval)
+        nextProcess = unix_to_timestamp(nextProcess)
+
+        # Get current price
+        lastPrice = float(current_price(symbol))
+
+        query = formatInsertQuery(format="cryptoUpdate", userId=userId, func=func, interval=interval, lastProcess=lastProcess, nextProcess=nextProcess, lastPrice=lastPrice, symbol=symbol)
+        insert(col="Userfunctions", query=query)
+        await update.message.reply_text("Crypto update settings updated successfully.")
+    except Exception as e:
+        await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
+
 #format
 #/my_functions funkce
 async def showUserFunctions(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:

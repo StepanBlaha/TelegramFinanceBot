@@ -11,7 +11,8 @@ bot = Bot("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU")
 
 functionDict = {
     "digest": digest,
-    "priceMonitor":priceMonitor
+    "priceMonitor":priceMonitor,
+    "cryptoUpdate":cryptoUpdate,
 }
 #Musim z main loopu udelat async funkci a vsechny funkce jako digest taky, kvuli tomu ze bez toho bot. nefunguje
 #asyncio.run(func) dela to ze zpusti func v asynchronim rezimu
@@ -82,6 +83,39 @@ async def main():
             query = formatUpdateQuery("priceMonitor", newPrice=curPrice)
             # Update
             update("Pricemonitor", recordId, query)
+
+        functionRecords = select("Userfunctions")
+        for record in functionRecords:
+            recordId = str(record["_id"])
+            userId = record["userId"]
+            symbol = record["symbol"]
+            functionName = record["function"]
+            interval = record["interval"]
+            lastPrice = float(record["lastPrice"])
+
+
+
+            lastProcess = int(time.time())
+            nextProcess = record["nextProcess"]
+            nextProcess = datetime.strptime(nextProcess, '%Y-%m-%d %H:%M:%S')
+            # convert to unix
+            nextProcess = datetime_to_unix(nextProcess)
+            # If the next process time is more than 60 seconds later than now continue next cycle iteration
+            if nextProcess - lastProcess > 60:
+                continue
+
+            # TADY SE PROVEDE FUNKCE
+            await  functionDict[functionName](userId=userId, symbol=symbol, bot=bot, lastPrice=lastPrice, interval=interval)
+
+
+
+            newLastProcess = unix_to_timestamp(nextProcess)
+            newNextProcess = seconds_to_unix(interval)
+            newNextProcess = unix_to_timestamp(newNextProcess)
+            query = formatUpdateQuery("digest", lastProcess=newLastProcess, nextProcess=newNextProcess)
+            update("UserFunctions", recordId, query)
+            print(f'Function {functionName} for user {userId} executed successfully.')
+
 
 
         await asyncio.sleep(10)

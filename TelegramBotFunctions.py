@@ -78,10 +78,12 @@ def get_average_order_values(symbol):
     return response
 
 # Function for getting info about recent trades of given symbol including the average price and quantity
-def get_recent_trade_info(symbol, limit):
+def get_recent_trade_info(symbol, limit, dictionary=False):
     """
     Function for getting info about recent trades of given symbol including the average price and quantity
-    :param symbol:
+    :param symbol: symbol to get recent trades for
+    :param limit: limit of records
+    :param dictionary: if true function returns dictionary with the data
     :return : Average, minimal and maximal prices and quantities of trades
     """
     trades = client.get_recent_trades(symbol = symbol, limit = limit)
@@ -100,6 +102,21 @@ def get_recent_trade_info(symbol, limit):
     MaxTradeQuantity =f"{MaxTradeQuantity:.8f}"
     MinTradeQuantity = min(tradeQuantities)
     MinTradeQuantity = f"{MinTradeQuantity:.8f}"
+    totalTradeQuantity = sum(tradeQuantities)
+    totalTradePrice = sum(tradePrices)
+
+    if dictionary:
+        data = {
+            "tradeVolume": totalTradeQuantity,
+            "priceVolume": totalTradePrice,
+            "averageTradeQuantity": averageTradeQuantity,
+            "averageTradePrice": averageTradePrice,
+            "maxTradePrice": MaxTradePrice,
+            "minTradePrice": MinTradePrice,
+            "maxTradeQuantity": MaxTradeQuantity,
+            "minTradeQuantity": MinTradeQuantity
+        }
+        return data
 
     formatedString =f'Average trade quantity: {averageTradeQuantity}\n Average trade price: {averageTradePrice}\n Minimum trade price: {MinTradePrice}\n Maximum trade price: {MaxTradePrice}\n Minimun trade quantity: {MinTradeQuantity}\n Maximum trade quantity: {MaxTradeQuantity}\n'
     return formatedString
@@ -597,3 +614,28 @@ def get_gpt_trade_advice(symbol_name, period=14):
     tradeAdvice = gptTradeAdvice(symbol["symbol"], period, recent_prices, recent_trades, market_depth).capitalize()
 
     return tradeAdvice
+
+# Function for getting volatility percentage of given symbol over the span of given days
+def get_volatility(symbol, period, average=False):
+    """
+    Function for getting volatility percentage of given symbol over the span of given days
+    :param symbol: symbol to calculate volatility of
+    :param period: number of days for measuring
+    :param average: If true functions returns average volatility
+    :return: list of daily volatilities
+    """
+    klines = client.get_historical_klines(symbol=symbol, interval=client.KLINE_INTERVAL_1HOUR,start_str=f"{period} days ago")
+    openingPrices = get_data_from_klines(klines, "Open price")
+    highPrices = get_data_from_klines(klines, "High price")
+    lowPrices = get_data_from_klines(klines, "Low price")
+    percentageVolatilities = []
+    for i in range(len(openingPrices)):
+        volatilityPercentage = (highPrices[i] - lowPrices[i])/openingPrices[i] * 100
+        percentageVolatilities.append(volatilityPercentage)
+
+    if average:
+        return sum(percentageVolatilities) / len(percentageVolatilities)
+
+    return percentageVolatilities
+
+def plot_volatility()

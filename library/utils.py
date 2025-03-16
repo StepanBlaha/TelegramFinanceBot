@@ -127,7 +127,8 @@ def formatDeleteQuery( userId, func, symbol, val):
 def formatUpdateQuery( format, newPrice=None, lastProcess=None, nextProcess=None):
     formatDict={
         "digest":{ "$set": { "lastProcess": lastProcess, "nextProcess": nextProcess }},
-        "priceMonitor": {"$set": {"lastPrice":newPrice}}
+        "priceMonitor": {"$set": {"lastPrice":newPrice}},
+        "cryptoUpdate": {"$set": {"lastProcess": lastProcess, "nextProcess": nextProcess, "lastPrice":newPrice}}
     }
     query = formatDict[format]
     return query
@@ -150,6 +151,16 @@ def formatInsertQuery(format, userId, func, lastProcess=None, nextProcess=None, 
                 "symbol": symbol,
                 "margin": margin,
                 "lastPrice": lastPrice
+            },
+        "cryptoUpdate":
+            {
+                "userId": userId,
+                "function": func,
+                "symbol": symbol,
+                "interval": interval,
+                "lastPrice": lastPrice,
+                "lastProcess": lastProcess,
+                "nextProcess": nextProcess
             }
 
     }

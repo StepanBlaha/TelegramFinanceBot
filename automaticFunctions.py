@@ -47,7 +47,32 @@ async def digest(params, userId, bot):
     await bot.send_photo(chat_id=userId, photo=graphKDJ)
     await bot.send_message(chat_id=userId, text=f"Here is the KDJ data:\n```\n{dataframeKDJ}\n```", parse_mode="Markdown")
 
+async def cryptoUpdate(symbol, userId, bot, lastPrice, interval):
+    # rozdil ceny normalne a procentualne, done
+    # tradenuto volume done
+    # volatilitu
+    #bid-ask spread
+    # order book imbalance
+    #
 
+    currentPrice = float(current_price(symbol))
+    priceChange = currentPrice - lastPrice
+    percentualChange = (currentPrice - lastPrice) / lastPrice * 100
+    await bot.send_message(chat_id=userId, text=f"The latest price for {symbol} is: {currentPrice}.\n Last recorded price: {lastPrice}\n Raw price change: {priceChange}.\n Percentual price change: {percentualChange}%")
+
+    # Get the recent trade data and format them
+    tradeData = get_recent_trade_info(symbol=symbol, limit=200, dictionary=True)
+    await bot.send_message(chat_id=userId, text=f"Data about recent trades\n\n Total trade volume: {tradeData["tradeVolume"]}\n Total trade price: {tradeData["priceVolume"]}\n Max trade price: {tradeData['maxTradePrice']}\n Min trade price: {tradeData['minTradePrice']}\n Max trade volume: {tradeData["maxTradeQuantity"]}\n Min trade volume: {tradeData["minTradeQuantity"]}\n Average trade price: {tradeData['averageTradePrice']}\n Average trade volume: {tradeData['averageTradeQuantity']}")
+
+
+    # Format the period for volatility into days
+    period = interval/86400
+    if period < 1:
+        period = 1
+    avgPercentVolatility = get_volatility(symbol=symbol, period=period, average=True)
+    await bot.send_message(chat_id=userId, text=f"The average percentage volatility: {avgPercentVolatility}%")
+
+    pass
 async def priceMonitor(params, userId, bot):
     """
     Function for sending info about price change of given symbol
