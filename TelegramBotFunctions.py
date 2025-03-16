@@ -676,7 +676,8 @@ def plot_volatility(symbol, period):
         ticks.append(timestamps[i])
 
     plt.plot(timestamps, volatilities, marker='o')
-    plt.xticks(ticks, rotation=45, ha="right")
+    # misto timestamps tick pro min  popisku
+    plt.xticks(timestamps, rotation=45, ha="right")
     plt.xticks(rotation=45, ha="right")
     plt.subplots_adjust(bottom=0.3, left=0.15)
     plt.title(f"{symbol} volatility data")
