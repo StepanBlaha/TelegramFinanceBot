@@ -112,6 +112,7 @@ async def main():
             newLastProcess = unix_to_timestamp(nextProcess)
             newNextProcess = seconds_to_unix(interval)
             newNextProcess = unix_to_timestamp(newNextProcess)
+
             query = formatUpdateQuery("digest", lastProcess=newLastProcess, nextProcess=newNextProcess)
             update("UserFunctions", recordId, query)
             print(f'Function {functionName} for user {userId} executed successfully.')

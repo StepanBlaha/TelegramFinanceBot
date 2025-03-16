@@ -119,6 +119,14 @@ def formatDeleteQuery( userId, func, symbol, val):
             "symbol": symbol,
             "margin": val
         }
+    elif func == "cryptoUpdate":
+        val = int(val)*3600
+        query = {
+            "userId": userId,
+            "function": func,
+            "symbol": symbol,
+            "interval": val
+        }
     else:
         return "Invalid database"
     return query

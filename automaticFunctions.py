@@ -51,7 +51,7 @@ async def cryptoUpdate(symbol, userId, bot, lastPrice, interval):
     # rozdil ceny normalne a procentualne, done
     # tradenuto volume done
     # volatilitu done
-    #bid-ask spread
+    #bid-ask spread done
     # order book imbalance
     #
 
@@ -75,7 +75,8 @@ async def cryptoUpdate(symbol, userId, bot, lastPrice, interval):
     graphVolatilities = plot_volatility(symbol, period)
     await bot.send_photo(chat_id=userId, photo=graphVolatilities)
 
-
+    bidAskSpreadData = get_bid_ask_spread(symbol=symbol, dictionary=True)
+    await bot.send_message(chat_id=userId, text=f"The average bid-ask spread: {bidAskSpreadData["spread"]}\n Average bid price: {bidAskSpreadData['averageBid']}\n Average ask price: {bidAskSpreadData['averageAsk']}")
 
 
     pass

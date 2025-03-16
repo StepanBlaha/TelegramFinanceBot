@@ -193,6 +193,9 @@ async def priceMonitor(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
     except Exception as e:
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
+
+#format
+#/crypto_update symbol interval
 async def cryptoUpdate(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
     intervalDIct = {
         "daily": 86400,
@@ -245,13 +248,16 @@ async def showUserFunctions(update:Update, context:ContextTypes.DEFAULT_TYPE)->N
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
 #format
-#/delete funkce symbol val(interval/margin
+#/delete funkce symbol val(interval/margin)
 #interval psany v hodinach
 async def deleteFunction(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
     try:
         #Get all the necessary data
         func = context.args[0]
         col = func.lower().capitalize()
+        if col == "Cryptoupdate":
+            col = "Userfunctions"
+
         userId = update.effective_user.id
         symbol = context.args[1]
         val = int(context.args[2])
@@ -306,6 +312,7 @@ def main():
     application.add_handler(CommandHandler("delete", deleteFunction))
     application.add_handler(CommandHandler("chatbot", chatbot))
     application.add_handler(CommandHandler("trade_advice", tradeAdvice))
+    application.add_handler(CommandHandler("crypto_update", cryptoUpdate))
 
 
     # pridam neco na handlovani zprav filter.TEXT jsou vsechny textopve zpravy a filtyer.COMMAND jsou vsechny commandy zacinajici s /
