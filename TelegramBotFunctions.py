@@ -48,15 +48,16 @@ def get_data_from_klines(klines, desiredData):
     return dataList
 
 # Function for calculating the average order values for given symbol
-def get_average_order_values(symbol):
+def get_average_order_values(symbol, limit=20, dictionary=False):
     """
     Function for calculating the average order values for given symbol
     :param symbol:
     :return : Average prices and quantities of bids and asks
     """
-    orders = client.get_order_book(symbol=symbol, limit = 20)
+    orders = client.get_order_book(symbol=symbol, limit = limit)
     bids = orders['bids'] # buy orders
     asks = orders['asks'] # sell order
+
     # Calulate the averages
     averageSellQuantity = 0
     averageBuyQuantity = 0
@@ -73,6 +74,17 @@ def get_average_order_values(symbol):
     averageBuyQuantity = averageBuyQuantity / len(bids)
     averageSellPrice = averageSellPrice / len(asks)
     averageBuyPrice = averageBuyPrice / len(bids)
+
+    if dictionary:
+        data={
+            "bids":bids,
+            "asks":asks,
+            "averageAskPrice": averageSellPrice,
+            "averageBidPrice": averageBuyPrice,
+            "averageAskQuantity": averageSellQuantity,
+            "averageBidQuantity": averageBuyQuantity,
+        }
+        return data
 
     response = f"Average offered price: {averageSellPrice}\n Average offered quantity: {averageSellQuantity}\n Average asked price: {averageBuyPrice}\n Average asked quantity: {averageBuyQuantity}"
     return response
@@ -616,18 +628,20 @@ def get_gpt_trade_advice(symbol_name, period=14):
     return tradeAdvice
 
 # Function for getting volatility percentage of given symbol over the span of given days
-def get_volatility(symbol, period, average=False):
+def get_volatility(symbol, period, average=False, timestamp=False):
     """
     Function for getting volatility percentage of given symbol over the span of given days
     :param symbol: symbol to calculate volatility of
     :param period: number of days for measuring
     :param average: If true functions returns average volatility
-    :return: list of daily volatilities
+    :param timestamp: If true functions returns volatilities+corresponding timestamps
+    :return: list of daily volatilities and timestamps
     """
     klines = client.get_historical_klines(symbol=symbol, interval=client.KLINE_INTERVAL_1HOUR,start_str=f"{period} days ago")
     openingPrices = get_data_from_klines(klines, "Open price")
     highPrices = get_data_from_klines(klines, "High price")
     lowPrices = get_data_from_klines(klines, "Low price")
+    timestamps = get_data_from_klines(klines, "Close time")
     percentageVolatilities = []
     for i in range(len(openingPrices)):
         volatilityPercentage = (highPrices[i] - lowPrices[i])/openingPrices[i] * 100
@@ -636,6 +650,86 @@ def get_volatility(symbol, period, average=False):
     if average:
         return sum(percentageVolatilities) / len(percentageVolatilities)
 
+    if timestamp:
+        return percentageVolatilities, timestamps
+
     return percentageVolatilities
 
-def plot_volatility()
+
+def plot_volatility(symbol, period):
+    volatilities, timestamps = get_volatility(symbol=symbol, period=period, timestamp=True)
+    # Replace the timestamps with unix
+    for i in range(len(timestamps)):
+        timestamps[i] = unix_to_date(int(timestamps[i]), day=True)
+
+    # Calculate the timestamp stepsize
+    num_ticks = 10
+    step = len(timestamps) // num_ticks
+
+    #Get only the decired timestamps
+    ticks=[]
+    ticks.append(timestamps[0])
+    ticks.append(timestamps[-1])
+    for i in range(1, len(timestamps)-1, step):
+        ticks.append(timestamps[i])
+
+    plt.plot(timestamps, volatilities, marker='o')
+    plt.xticks(ticks, rotation=45, ha="right")
+    plt.xticks(rotation=45, ha="right")
+    plt.subplots_adjust(bottom=0.3, left=0.15)
+    plt.title(f"{symbol} volatility data")
+    IoStream = io.BytesIO()
+    plt.savefig(IoStream, format='png')
+    IoStream.seek(0)
+    plt.close('all')
+
+    return IoStream
+
+# Function for calculating weighted average
+def calculate_weighted_average(data):
+    """
+    Function for calculating weighted average
+    :param data: data to calculate weighted average of
+    :return: weighted average
+    """
+    totalValue = 0
+    totalQuantity = 0
+
+    for price, quantity in data:
+        price = float(price)
+        quantity = float(quantity)
+        totalValue += price * quantity
+        totalQuantity += quantity
+
+    if totalQuantity == 0:
+        return 0
+
+    return totalValue / totalQuantity
+
+# Function for getting bid-ask spread of given symbol
+def get_bid_ask_spread(symbol, limit=100, dictionary=False):
+    """
+    Function for getting bid-ask spread of given symbol
+    :param symbol: symbol to calculate spread
+    :param limit: limit of orders evaluated
+    :param dictionary: if true returns dictionary of all the values including average bid and ask weighted averages
+    :return: bid-ask spread
+    """
+    orderData = get_average_order_values(symbol=symbol, limit=limit, dictionary=True)
+    bids = orderData['bids']
+    asks = orderData['asks']
+
+    bidAverage = calculate_weighted_average(bids)
+    askAverage = calculate_weighted_average(asks)
+
+    spread = bidAverage - askAverage
+
+    if dictionary:
+        data = {
+            "averageBid": bidAverage,
+            "averageAsk": askAverage,
+            "spread": spread
+        }
+        return data
+
+    return spread

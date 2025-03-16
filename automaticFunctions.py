@@ -50,7 +50,7 @@ async def digest(params, userId, bot):
 async def cryptoUpdate(symbol, userId, bot, lastPrice, interval):
     # rozdil ceny normalne a procentualne, done
     # tradenuto volume done
-    # volatilitu
+    # volatilitu done
     #bid-ask spread
     # order book imbalance
     #
@@ -71,6 +71,12 @@ async def cryptoUpdate(symbol, userId, bot, lastPrice, interval):
         period = 1
     avgPercentVolatility = get_volatility(symbol=symbol, period=period, average=True)
     await bot.send_message(chat_id=userId, text=f"The average percentage volatility: {avgPercentVolatility}%")
+    # Get the volatility graph and send it to user
+    graphVolatilities = plot_volatility(symbol, period)
+    await bot.send_photo(chat_id=userId, photo=graphVolatilities)
+
+
+
 
     pass
 async def priceMonitor(params, userId, bot):
