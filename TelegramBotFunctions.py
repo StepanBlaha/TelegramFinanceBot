@@ -733,3 +733,32 @@ def get_bid_ask_spread(symbol, limit=100, dictionary=False):
         return data
 
     return spread
+
+# Function for getting order book imbalance of given symbol
+def get_order_book_imbalance(symbol, limit=100, dictionary=False):
+    """
+    Function for getting order book imbalance of given symbol
+    :param symbol: symbol to calculate imbalance of
+    :param limit: limit for the order data
+    :param dictionary: if true return dictionary with data
+    :return: imbalance
+    """
+    # Get the order data
+    orderData = get_average_order_values(symbol=symbol, limit=limit, dictionary=True)
+    bids = orderData['bids']
+    asks = orderData['asks']
+    # Calculate bid and ask volumes
+    totalBuy = sum(quantity for price, quantity in bids)
+    totalSell = sum(quantity for price, quantity in asks)
+    # Calculate imbalance
+    imbalance = (totalBuy - totalSell) / (totalBuy + totalSell) * 100
+
+    if dictionary:
+        data = {
+            "bidVolume": totalBuy,
+            "askVolume": totalSell,
+            "imbalance": imbalance
+        }
+        return data
+
+    return imbalance

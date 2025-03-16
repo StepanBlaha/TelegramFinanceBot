@@ -112,8 +112,10 @@ async def main():
             newLastProcess = unix_to_timestamp(nextProcess)
             newNextProcess = seconds_to_unix(interval)
             newNextProcess = unix_to_timestamp(newNextProcess)
+            currentPrice = float(current_price(symbol))
+                #Update a a dalsi data dodelat
 
-            query = formatUpdateQuery("digest", lastProcess=newLastProcess, nextProcess=newNextProcess)
+            query = formatUpdateQuery("cryptoUpdate", lastProcess=newLastProcess, nextProcess=newNextProcess, newPrice=currentPrice)
             update("UserFunctions", recordId, query)
             print(f'Function {functionName} for user {userId} executed successfully.')
 
