@@ -764,3 +764,47 @@ def get_order_book_imbalance(symbol, limit=100, dictionary=False):
         return data
 
     return imbalance
+
+# Function for getting cci of given symbol
+def get_cci(symbol, period, timestamp=False):
+    """
+    Function for getting cci of given symbol
+    :param symbol: symbol to calculate cci of
+    :param period: period of cci
+    :param timestamp: if true returns cci data + timestamp
+    :return: CCI data
+    """
+    # Get the price data
+    klines = client.get_historical_klines(symbol=symbol, interval=client.KLINE_INTERVAL_1HOUR,start_str=f"{period} days ago")
+    openingPrices = get_data_from_klines(klines, "Open price")
+    closingPrices = get_data_from_klines(klines, "Close price")
+    highPrices = get_data_from_klines(klines, "High price")
+    lowPrices = get_data_from_klines(klines, "Low price")
+    timestamps = get_data_from_klines(klines, "Close time")
+
+
+    TPs = []
+    absoluteDifferences = []
+    CCIs = []
+    for i in range(len(closingPrices)):
+        # Calculate TP
+        tp = (highPrices[i] + lowPrices[i] + closingPrices[i]) / 3
+        TPs.append(tp)
+
+    # Calculate SMA
+    SMA = sum(TPs) / len(TPs)
+    for i in range(len(TPs)):
+        absoluteDifferences.append(abs(TPs[i] - SMA))
+
+    # Calculate mean absolute deviation
+    MAD = sum(absoluteDifferences) / len(absoluteDifferences)
+
+    # Calculate CCI for each day
+    for i in range(len(TPs)):
+        cci = (TPs[i] - SMA) / (0.015 * MAD)
+        CCIs.append(cci)
+
+    if timestamp:
+        return CCIs, timestamps
+
+    return CCIs
