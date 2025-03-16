@@ -155,7 +155,12 @@ async def setDigest(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         else:
             interval = intervalDIct[interval.lower()]
 
-        optionalPeriod = int(context.args[2]) if len(context.args) > 2 else False
+        # Format the function arguments
+        if len(context.args) > 2:
+            optionalPeriod = int(context.args[2])
+            args = [symbol, optionalPeriod]
+        else:
+            args = [symbol]
 
         # Get current last proces
         curUnix = int(time.time())
@@ -165,7 +170,7 @@ async def setDigest(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         nextUnix = seconds_to_unix(interval)
         nextUnix = unix_to_timestamp(nextUnix)
         # Get the query and insert data into db
-        query = formatInsertQuery(format=func, userId=userId, func=func, interval=interval, lastProcess=curUnix, nextProcess=nextUnix)
+        query = formatInsertQuery(format=func, userId=userId, func=func, interval=interval, lastProcess=curUnix, nextProcess=nextUnix, args=args)
         insert(col="Digest", query=query)
         await update.message.reply_text("Digest settings updated successfully.")
 
@@ -178,7 +183,7 @@ async def priceMonitor(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
     try:
         func = "priceMonitor"
         userId = update.effective_user.id
-        symbol = context.args[0]
+        symbol = context.args[0].upper()
         margin = float(context.args[1])
         lastPrice = float(current_price(symbol))
         # Get the query and insert into db
@@ -192,11 +197,12 @@ async def priceMonitor(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
 #/my_functions funkce
 async def showUserFunctions(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
     try:
+        # Get the parameters
         func = context.args[0]
         col = func.lower().capitalize()
         userId = update.effective_user.id
-        response = formatDatabaseResponse(col, userId=userId, func=func )
-
+        # Get the formated database response
+        response = formatedDatabaseResponse(col, userId=userId, func=func )
         await update.message.reply_text(response)
     except Exception as e:
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")

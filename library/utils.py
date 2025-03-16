@@ -59,7 +59,7 @@ def unix_to_timestamp(unix):
     timestamp = datetime.fromtimestamp(unix)
     return timestamp.strftime('%Y-%m-%d %H:%M:%S')
 
-def formatDatabaseResponse(col, userId=None, func=None):
+def formatedDatabaseResponse(col, userId=None, func=None):
     """
     Function that formats database's response into a message'
     :param col: Collection to select from
