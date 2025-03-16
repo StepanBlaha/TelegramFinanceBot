@@ -80,9 +80,19 @@ def formatedDatabaseResponse(col, userId=None, func=None):
                     interval = str((row["interval"]/3600)) + " Hours"
                 # Format the record into a string
                 record = f'Function: {row["function"]}, Symbol: {row["arguments"][0]}, Interval: {interval}'
-                # Add to response string
+
             elif col == "Pricemonitor":
                 record = f'Function: {row["function"]}, Symbol: {row["symbol"]}, Monitor change margin: {row["margin"]}%'
+
+            elif col == "Userfunctions":
+                # Format the interval
+                if row["interval"]>86400:
+                    interval = str((row["interval"]/86400)) + " Days"
+                else:
+                    interval = str((row["interval"]/3600)) + " Hours"
+                # Format the record into a string
+                record = f'Function: {row["function"]}, Symbol: {row["arguments"][0]}, Interval: {interval}'
+
             else:
                 record = "Invalid database"
             formatedResponse = formatedResponse + record

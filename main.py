@@ -240,6 +240,8 @@ async def showUserFunctions(update:Update, context:ContextTypes.DEFAULT_TYPE)->N
         # Get the parameters
         func = context.args[0]
         col = func.lower().capitalize()
+        if col == "Cryptoupdate":
+            col = "Userfunctions"
         userId = update.effective_user.id
         # Get the formated database response
         response = formatedDatabaseResponse(col, userId=userId, func=func )
