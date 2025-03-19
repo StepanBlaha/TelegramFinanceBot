@@ -871,7 +871,6 @@ def get_atr(symbol, period = 30, dictionary=False):
     closingPrices = get_data_from_klines(klines, "Close price")
     highPrices = get_data_from_klines(klines, "High price")
     lowPrices = get_data_from_klines(klines, "Low price")
-    print(len(closingPrices), len(highPrices), len(lowPrices))
 
     InitialTRs = []
     TRs = []
