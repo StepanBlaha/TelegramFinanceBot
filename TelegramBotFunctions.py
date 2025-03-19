@@ -854,3 +854,57 @@ def get_mfi(symbol, period):
     MFI = 100 - (100 / (1 + MFR))
 
     return MFI
+
+
+
+def get_atr(symbol, period = 30, dictionary=False):
+    """
+    Function for getting atr of given symbol
+    :param symbol: symbol to calculate atr of
+    :param period: period of atr
+    :param dictionary: if true returns dictionary with more data
+    :return: final atr over the last period/30 days
+    """
+    InitialRTAPeriod = 14
+
+    klines = client.get_historical_klines(symbol=symbol, interval=client.KLINE_INTERVAL_1DAY, start_str=f"{period + 1} days ago")
+    closingPrices = get_data_from_klines(klines, "Close price")
+    highPrices = get_data_from_klines(klines, "High price")
+    lowPrices = get_data_from_klines(klines, "Low price")
+    print(len(closingPrices), len(highPrices), len(lowPrices))
+
+    InitialTRs = []
+    TRs = []
+    ATRs = []
+
+    for i in range(1, len(closingPrices)):
+        # Calculate TR
+        TR = max(highPrices[i] - lowPrices[i], abs(highPrices[i] - closingPrices[i-1]), abs(lowPrices[i] - closingPrices[i-1]))
+        if i < InitialRTAPeriod + 1:
+            InitialTRs.append(TR)
+        else:
+            TRs.append(TR)
+    # Calculate initial ATR
+    BaseATR = sum(InitialTRs) / len(InitialTRs)
+    ATR = BaseATR
+    ATRs.append(ATR)
+
+    # Calculate the rest of ATRs using wilders formula
+    for i in range(len(TRs)):
+        # Calculate the ATR using the smoothing formula
+        ATR = ( ATR * (InitialRTAPeriod - 1) + TRs[i]) / InitialRTAPeriod
+        ATRs.append(ATR)
+
+    if dictionary:
+        data = {
+            "ATRs": ATRs,
+            "TRs": InitialTRs + TRs,
+            "BaseATR": BaseATR,
+            "ATR": ATR
+        }
+
+        return data
+
+    return ATR
+
+get_atr("BTCUSDT")
