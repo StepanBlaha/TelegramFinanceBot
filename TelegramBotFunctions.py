@@ -10,7 +10,7 @@ from ai.chatgptFunctions import gptTradeAdvice
 from library.utils import *
 import io
 
-from library.indicators import *
+
 from telegram import ForceReply, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
@@ -538,27 +538,26 @@ def get_volatility(symbol, period, average=False, timestamp=False):
 
     return percentageVolatilities
 
-
 def plot_volatility(symbol, period):
     volatilities, timestamps = get_volatility(symbol=symbol, period=period, timestamp=True)
     # Replace the timestamps with unix
     for i in range(len(timestamps)):
-        timestamps[i] = unix_to_date(int(timestamps[i]), day=True)
-
+        timestamps[i] = unix_to_date(int(timestamps[i]))
+    print(f"TIMES:{timestamps}")
     # Calculate the timestamp stepsize
-    num_ticks = 2
+    num_ticks = 7
     step = len(timestamps) // num_ticks
 
     #Get only the decired timestamps
     ticks=[]
     ticks.append(timestamps[0])
     ticks.append(timestamps[-1])
-    for i in range(1, len(timestamps)-1, step):
+    for i in range(step, len(timestamps)-1, step):
         ticks.append(timestamps[i])
 
     plt.plot(timestamps, volatilities, marker='o')
     # misto timestamps tick pro min  popisku
-    plt.xticks(timestamps, rotation=45, ha="right")
+    plt.xticks(ticks, rotation=45, ha="right")
     plt.xticks(rotation=45, ha="right")
     plt.subplots_adjust(bottom=0.3, left=0.15)
     plt.title(f"{symbol} volatility data")
@@ -568,7 +567,7 @@ def plot_volatility(symbol, period):
     plt.close('all')
 
     return IoStream
-
+r = plot_volatility("BTCUSDT", 1)
 # Function for calculating weighted average
 def calculate_weighted_average(data):
     """
