@@ -44,4 +44,6 @@ pip install openai
 pip install python-dotenv
 pip install tensorflow
 pip install tensor
+pip install pywhatkit
+pip3 install pywhatkit
 """

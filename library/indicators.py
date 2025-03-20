@@ -15,11 +15,6 @@ from telegram import ForceReply, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
 
-import sys
-import os
-root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.append(root_dir)
-from TelegramBotFunctions import *
 client = Client()
 
 

@@ -1,9 +1,6 @@
 from TelegramBotFunctions import *
-from library.indicators import *
-sys.path.append(os.path.abspath(os.path.dirname(__file__) + "/.."))
 
-# Import autoload (this will run its code once)
-import autoload
+
 
 client = Client()
 
