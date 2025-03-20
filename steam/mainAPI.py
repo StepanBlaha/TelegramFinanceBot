@@ -22,6 +22,21 @@ def get_steam_user_summary(api_key, steam_id):
         return data["response"]["players"][0]  # Returns the user's profile data
     return None
 
+def get_user_wishlist(apiKey, steamID):
+    url = f"https://api.steampowered.com/IWishlistService/GetWishlist/v1/"
+    params = {
+        "key": apiKey,
+        "steamids": steamID
+    }
+
+    response = requests.get(url, params=params)
+    data = response.json()
+
+    if "response" in data and "players" in data["response"]:
+        return data["response"]["players"][0]  # Returns the user's profile data
+    return None
+
+
 
 user_data = get_steam_user_summary(API_KEY, STEAM_ID)
 
