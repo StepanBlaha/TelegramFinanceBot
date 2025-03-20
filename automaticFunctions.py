@@ -1,4 +1,12 @@
 from TelegramBotFunctions import *
+from library.indicators import *
+sys.path.append(os.path.abspath(os.path.dirname(__file__) + "/.."))
+
+# Import autoload (this will run its code once)
+import autoload
+
+client = Client()
+
 
 #1. user nastavi o jake mene chce digest a jak casto, p additionaly bude moct nastavit napr jak moc dozadu data budou
 # pr format /digest (<mena>, optional<perioda mereni>) <perioda> (daily, weekly, monthlt, pokud da cislo bere to v hodinach)
@@ -73,7 +81,7 @@ async def cryptoUpdate(symbol, userId, bot, lastPrice, interval):
 
     # Get the recent trade data and format them
     tradeData = get_recent_trade_info(symbol=symbol, limit=200, dictionary=True)
-    await bot.send_message(chat_id=userId, text=f"Data about recent trades\n\n Total trade volume: {tradeData["tradeVolume"]}\n Total trade price: {tradeData["priceVolume"]}\n Max trade price: {tradeData['maxTradePrice']}\n Min trade price: {tradeData['minTradePrice']}\n Max trade volume: {tradeData["maxTradeQuantity"]}\n Min trade volume: {tradeData["minTradeQuantity"]}\n Average trade price: {tradeData['averageTradePrice']}\n Average trade volume: {tradeData['averageTradeQuantity']}")
+    await bot.send_message(chat_id=userId, text=f"Data about recent trades\n\n Total trade volume: {tradeData['tradeVolume']}\n Total trade price: {tradeData['priceVolume']}\n Max trade price: {tradeData['maxTradePrice']}\n Min trade price: {tradeData['minTradePrice']}\n Max trade volume: {tradeData['maxTradeQuantity']}\n Min trade volume: {tradeData['minTradeQuantity']}\n Average trade price: {tradeData['averageTradePrice']}\n Average trade volume: {tradeData['averageTradeQuantity']}")
 
 
     # Format the period for volatility into days
@@ -87,7 +95,7 @@ async def cryptoUpdate(symbol, userId, bot, lastPrice, interval):
     await bot.send_photo(chat_id=userId, photo=graphVolatilities)
 
     bidAskSpreadData = get_bid_ask_spread(symbol=symbol, dictionary=True)
-    await bot.send_message(chat_id=userId, text=f"The average bid-ask spread: {bidAskSpreadData["spread"]}\n Average bid price: {bidAskSpreadData['averageBid']}\n Average ask price: {bidAskSpreadData['averageAsk']}")
+    await bot.send_message(chat_id=userId, text=f"The average bid-ask spread: {bidAskSpreadData['spread']}\n Average bid price: {bidAskSpreadData['averageBid']}\n Average ask price: {bidAskSpreadData['averageAsk']}")
 
     orderBookImbalance = get_order_book_imbalance(symbol=symbol)
     await bot.send_message(chat_id=userId, text=f"The order book imbalance: {orderBookImbalance}%")
