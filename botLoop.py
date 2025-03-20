@@ -4,7 +4,7 @@ from telegram import ForceReply, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 from TelegramBotFunctions import *
 from automaticFunctions import *
-from library.utils import *
+from library import *
 import asyncio
 from mongoFunctions import *
 bot = Bot("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU")
