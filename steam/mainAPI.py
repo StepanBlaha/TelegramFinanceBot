@@ -36,6 +36,135 @@ def get_user_wishlist(apiKey, steamID):
         return data["response"]["players"][0]  # Returns the user's profile data
     return None
 
+def get_user_bans(apiKey, steamID):
+    url = f"https://api.steampowered.com/ISteamUser/GetPlayerBans/v1/"
+    params = {
+        "key": apiKey,
+        "steamids": steamID
+    }
+
+    response = requests.get(url, params=params)
+    data = response.json()
+
+    if "response" in data and "players" in data["response"]:
+        return data["response"]["players"][0]  # Returns the user's profile data
+    return None
+
+def get_user_friendlist(apiKey, steamID):
+    url = f"https://api.steampowered.com/ISteamUser/GetFriendList/v1/"
+    params = {
+        "key": apiKey,
+        "steamids": steamID
+    }
+
+    response = requests.get(url, params=params)
+    data = response.json()
+
+    if "response" in data and "players" in data["response"]:
+        return data["response"]["players"][0]  # Returns the user's profile data
+    return None
+
+def get_user_steamid(apiKey, steamUrl):
+    url = f"https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/"
+    params = {
+        "key": apiKey,
+        "vanityurl": steamUrl
+    }
+
+    response = requests.get(url, params=params)
+    data = response.json()
+
+    if "response" in data and "players" in data["response"]:
+        return data["response"]["players"][0]  # Returns the user's profile data
+    return None
+
+def get_user_games(apiKey, steamID):
+    url = f"https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/"
+    params = {
+        "key": apiKey,
+        "steamids": steamID
+    }
+
+    response = requests.get(url, params=params)
+    data = response.json()
+
+    if "response" in data and "players" in data["response"]:
+        return data["response"]["players"][0]  # Returns the user's profile data
+    return None
+
+def get_user_recent_games(apiKey, steamID):
+    url = f"https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v1/"
+    params = {
+        "key": apiKey,
+        "steamids": steamID
+    }
+
+    response = requests.get(url, params=params)
+    data = response.json()
+
+    if "response" in data and "players" in data["response"]:
+        return data["response"]["players"][0]  # Returns the user's profile data
+    return None
+
+def get_user_level(apiKey, steamID):
+    url = f"https://api.steampowered.com/IPlayerService/GetSteamLevel/v1/"
+    params = {
+        "key": apiKey,
+        "steamids": steamID
+    }
+
+    response = requests.get(url, params=params)
+    data = response.json()
+
+    if "response" in data and "players" in data["response"]:
+        return data["response"]["players"][0]  # Returns the user's profile data
+    return None
+
+def get_user_badges(apiKey, steamID, favourite=False):
+    if favourite:
+        url = f"https://api.steampowered.com/IPlayerService/GetFavoriteBadge/v1/"
+    else:
+        url = f"https://api.steampowered.com/IPlayerService/GetBadges/v1/"
+    params = {
+        "key": apiKey,
+        "steamids": steamID
+    }
+
+    response = requests.get(url, params=params)
+    data = response.json()
+
+    if "response" in data and "players" in data["response"]:
+        return data["response"]["players"][0]  # Returns the user's profile data
+    return None
+
+
+def get_user_game_achievements(apiKey, steamID, appID):
+    url = f"https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/"
+    params = {
+        "key": apiKey,
+        "steamids": steamID,
+        "appid": appID
+    }
+
+    response = requests.get(url, params=params)
+    data = response.json()
+
+    if "response" in data and "players" in data["response"]:
+        return data["response"]["players"][0]  # Returns the user's profile data
+    return None
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 user_data = get_steam_user_summary(API_KEY, STEAM_ID)
