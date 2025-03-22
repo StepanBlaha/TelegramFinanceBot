@@ -691,8 +691,45 @@ def get_cci(symbol, period, timestamp=False):
 
     return CCIs
 
+# Function for plotting cci graph
+def plot_cci(symbol, period=14):
+    """
+    Function for plotting cci graph
+    :param symbol: symbol to plot
+    :param period: period of cci
+    :return: graph
+    """
+    CCIs, timestamps = get_cci(symbol, period, timestamp=True)
+    # Replace the timestamps with unix
+    for i in range(len(timestamps)):
+        timestamps[i] = unix_to_date(int(timestamps[i]))
+    print(f"TIMES:{timestamps}")
+    # Calculate the timestamp stepsize
+    num_ticks = 7
+    step = len(timestamps) // num_ticks
+
+    # Get only the decired timestamps
+    ticks = []
+    ticks.append(timestamps[0])
+    ticks.append(timestamps[-1])
+    for i in range(step, len(timestamps) - 1, step):
+        ticks.append(timestamps[i])
+
+    plt.plot(timestamps, CCIs)
+    # misto timestamps tick pro min  popisku
+    plt.xticks(ticks, rotation=45, ha="right")
+    plt.xticks(rotation=45, ha="right")
+    plt.subplots_adjust(bottom=0.3, left=0.15)
+    plt.title(f"{symbol} CCI data")
+    IoStream = io.BytesIO()
+    plt.savefig(IoStream, format='png')
+    IoStream.seek(0)
+    plt.close('all')
+
+    return IoStream
+
 # Function for getting mfi of given symbol
-def get_mfi(symbol, period):
+def get_mfi(symbol, period=14):
     """
     Function for getting mfi of given symbol
     :param symbol: symbol to calculate mfi of
@@ -817,6 +854,8 @@ def get_rsi(symbol):
 
     return rsi
 
+
+
 # Function for calculating SMA of given symbol in the range of given days
 def get_sma(symbol, days):
     """
@@ -906,8 +945,10 @@ def get_kdj(symbol, period):
         closeTimes[i] = unix_to_date(int(closeTimes[i]), day = True)
     return Ks, Ds, Js, closeTimes
 
+
+
 # Function for calculating bollinger lines for given symbol over given period of time
-def get_boll(symbol, period, dictionary=False):
+def get_boll(symbol, period=14, dictionary=False):
     """
     Function for calculating bollinger lines for given symbol over given period of time
     :param symbol: symbol for calculating the bollinger of
@@ -941,7 +982,7 @@ def get_boll(symbol, period, dictionary=False):
     return MB, UB, LB
 
 # Function for calculating AVL of given symbol over given period of time
-def get_avl(symbol, period):
+def get_avl(symbol, period=14):
     """
     Function for calculating AVL of given symbol over given period of time
     :param symbol: symbol for calculating the AVL of

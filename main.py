@@ -28,6 +28,7 @@ from ai.chatgptFunctions import msgChatbot
 from ai.geminiBot import messageGemini
 from library.utils import *
 from mongoFunctions import *
+from library.indicatorMessages import *
 from ai import *
 # ------------------------------------Nefunguje--------------------------------------------------------
 
@@ -118,6 +119,43 @@ async def ema(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         await update.message.reply_text(f"Here is the EMA data:\n```\n{dataframe}\n```", parse_mode="Markdown")
         #await update.message.reply_document(document=dataframe, filename="data.csv")
     except Exception as e:
+        await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
+
+
+# format:
+# /indicators symbol <indicator-optional>
+async def indicators(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
+    try:
+        symbol = context.args[0]
+        if len(context.args)>1:
+            indicator = context.args[1].lower()
+            # Dictionary with different functions
+            indicatorDict = {
+                "cci": send_cci,
+                "mfi": send_mfi,
+                "atr": send_atr,
+                "rsi": send_rsi,
+                "avl": send_avl,
+                "boll": send_boll,
+                "ema": send_ema,
+                "kdj": send_kdj,
+            }
+            # Trigger the correct function according to user picked indicator
+            await indicatorDict.get(indicator, lambda: update.message.reply_text("Invalid indicator."))(update, symbol)
+
+        else:
+            # Simple indicator data
+            await update.message.reply_text(f"Technical indicators for {symbol}\n\n The MFI for {symbol}: {get_mfi(symbol)}\n The ATR for {symbol}: {get_atr(symbol)}\n The RSI for {symbol} for the last 14 days: {get_rsi(symbol)}\n The AVL for {symbol} for the last 14 days: {get_avl(symbol)}\n The bollinger lines for {symbol}:\n  middle band: {get_boll(symbol, dictionary=True)['MB']}\n  lower band: {get_boll(symbol, dictionary=True)['LB']}\n  upper band: {get_boll(symbol, dictionary=True)['UB']}")
+            # EMA data
+            await update.message.reply_photo(photo=plot_ema(symbol, 14), caption=f"EMA chart for {symbol} over 14 days."),
+            await update.message.reply_text(f"Here is the EMA data:\n```\n{get_ema_dataframe(symbol, 14)}\n```", parse_mode="Markdown")
+            # KDJ data
+            await update.message.reply_photo(photo=plot_kdj(symbol, 14), caption=f"KDJ chart for {symbol} over 14 days."),
+            await update.message.reply_text(f"Here is the KDJ data:\n```\n{get_kdj_dataframe(symbol, 14)}\n```", parse_mode="Markdown")
+            # CCI data
+            await update.message.reply_photo(photo=plot_cci(symbol), caption=f"CCI chart for{symbol}.")
+    except Exception as e:
+        await update.message.reply_text(e)
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
 
@@ -315,6 +353,8 @@ def main():
     application.add_handler(CommandHandler("chatbot", chatbot))
     application.add_handler(CommandHandler("trade_advice", tradeAdvice))
     application.add_handler(CommandHandler("crypto_update", cryptoUpdate))
+
+    application.add_handler(CommandHandler("indicators", indicators))
 
 
     # pridam neco na handlovani zprav filter.TEXT jsou vsechny textopve zpravy a filtyer.COMMAND jsou vsechny commandy zacinajici s /
