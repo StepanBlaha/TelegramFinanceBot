@@ -568,7 +568,7 @@ def plot_volatility(symbol, period):
     plt.close('all')
 
     return IoStream
-r = plot_volatility("BTCUSDT", 1)
+
 # Function for calculating weighted average
 def calculate_weighted_average(data):
     """
@@ -607,6 +607,9 @@ def get_bid_ask_spread(symbol, limit=100, dictionary=False):
     askAverage = calculate_weighted_average(asks)
 
     spread = bidAverage - askAverage
+
+    if spread < 0:
+        spread = 0
 
     if dictionary:
         data = {
@@ -995,3 +998,33 @@ def get_avl(symbol, period=14):
     # Calculate AVL
     AVL = sum(volumes) / len(volumes)
     return AVL
+
+# Function for calculating liquidity for given symbol over given period of time
+def get_liquidity(symbol, period=1, dictionary=False):
+    """
+    Function for calculating liquidity for given symbol over given period of time
+    :param symbol: symbol for calculating the liquidity
+    :param period: period of time for calculation
+    :param dictionary: if true return dictionary with data
+    :return: liquidity of given symbol
+    """
+    klines = client.get_historical_klines(symbol=symbol, interval=client.KLINE_INTERVAL_1DAY, start_str=f"{period} days ago")
+    # Get bid-ask spread
+    baSpread = get_bid_ask_spread(symbol, limit=100)
+
+    if baSpread <= 0:
+        return 0
+    # Get the traded volume
+    tradedVolume = sum(get_data_from_klines(klines, "Volume"))
+    # Calculate liquidity
+    liquidity = tradedVolume / baSpread
+
+    if dictionary:
+        data = {
+            "baSpread": baSpread,
+            "tradedVolume": tradedVolume,
+            "liquidity": liquidity
+        }
+        return data
+
+    return liquidity
