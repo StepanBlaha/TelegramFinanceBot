@@ -189,3 +189,13 @@ def formatInsertQuery(format, userId, func, lastProcess=None, nextProcess=None, 
         return query
     except Exception as e:
         return "Invalid set of arguments"
+
+
+def formatLogInsertQuery(userId, func, symbol=None, args=None):
+    query = {
+        "userId": userId,
+        "function": func,
+        "symbol": symbol,
+        "args": args
+    }
+    return query
