@@ -71,7 +71,7 @@ def unix_to_timestamp(unix):
 
 def formatedDatabaseResponse(col, userId=None, func=None):
     """
-    Function that formats database's response into a message'
+    Function that formats database's response into a message
     :param col: Collection to select from
     :param userId: id of user to select
     :param func: function to select
