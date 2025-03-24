@@ -410,6 +410,82 @@ async def tradeAdvice(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
     except Exception as e:
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
+
+# /balance action symbol amount
+async def balance(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
+    try:
+        actionDict = {
+            "show":"show",
+            "add": "add",
+            "remove": "remove",
+        }
+        # Get the data
+        userId = update.effective_user.id
+        action = context.args[0].lower()
+        symbol = False
+        amount = False
+
+        # Error handling
+        if action not in actionDict:
+            await update.message.reply_text("Please choose an action: show, remove, add.")
+            return
+
+        # Get the symbol
+        if len(context.args) > 1:
+            symbol = context.args[1]
+
+        # Error handling
+        if (not symbol and action=="add") or (not symbol and action=="remove"):
+            await update.message.reply_text("Add and remove actions require symbol")
+            return
+
+        # Different actions
+        if action=="show":
+            # Get the response based on if symbol is set or not
+            if symbol:
+                query = {"userId": userId, "symbol": symbol}
+                response = select(userId=userId, query=query, col="Usercrypto")
+            else:
+                query = {"userId": userId}
+                response = select(userId=userId, query=query, col="Usercrypto")
+            await update.message.reply_text(f'Here is your account balance: {response}')
+            return
+        elif action=="remove":
+            # Error handling
+            if not len(context.args) > 2:
+                await update.message.reply_text("This action requires an amount")
+                return
+            # Get the amount
+            amount = context.args[2]
+            # Error handling
+            if not isinstance(amount, (int, float)):
+                await update.message.reply_text("Please enter a number")
+                return
+            # Return the response
+            response = update_balance(symbol=symbol, userId=userId, amount=amount, action=float(action))
+            await update.message.reply_text(f'{response} account balance for symbol {symbol}')
+        elif action=="add":
+            # Error handling
+            if not len(context.args) > 2:
+                await update.message.reply_text("This action requires an amount")
+                return
+            # Get the amount
+            amount = context.args[2]
+            # Error handling
+            if not isinstance(amount, (int, float)):
+                await update.message.reply_text("Please enter a number")
+                return
+            # Return the response
+            response = update_balance(symbol=symbol, userId=userId, amount=amount, action=float(action))
+            await update.message.reply_text(f'{response} account balance for symbol {symbol}')
+
+
+        logQuery = formatLogInsertQuery(userId=userId, func="balance", args={"symbol": symbol, "amount": amount})
+        insert(col="Requesthistory", query=logQuery)
+    except Exception as e:
+        await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
+
+
 def main():
     # aplication.builder() ja na zakladni build bota .token() ma v sobe nas api key a .buiuld() build provede
     application = Application.builder().token("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU").build()
@@ -433,6 +509,8 @@ def main():
     application.add_handler(CommandHandler("crypto_update", cryptoUpdate))
 
     application.add_handler(CommandHandler("indicators", indicators))
+    application.add_handler(CommandHandler("balance", balance))
+
 
 
     # pridam neco na handlovani zprav filter.TEXT jsou vsechny textopve zpravy a filtyer.COMMAND jsou vsechny commandy zacinajici s /

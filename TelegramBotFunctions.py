@@ -1,3 +1,4 @@
+from Demos.SystemParametersInfo import new_h
 from binance.client import Client
 import pandas as np
 import numpy as pd
@@ -10,6 +11,7 @@ import math
 from ai.chatgptFunctions import gptTradeAdvice
 from library.utils import *
 import io
+from mongoFunctions import *
 
 
 from telegram import ForceReply, Update
@@ -1028,3 +1030,46 @@ def get_liquidity(symbol, period=1, dictionary=False):
         return data
 
     return liquidity
+
+
+
+
+
+
+def update_balance(symbol, userId, amount, action):
+    # Check for invalid action
+    if action not in ["remove", "add"]:
+        return "Invalid action"
+
+    # Get users data for given symbol
+    selectQuery = {"userId": userId, "symbol": symbol}
+    selectResponse = list(select(userId=userId, query=selectQuery, col="Usercrypto"))
+
+    # Check if any record exists
+    if len(selectResponse) == 0:
+        if action == "remove":
+            return "No resources for given symbol"
+        else:
+            # If the record doesnt exist and the action is "add" create new record
+            insertQuery = formatInsertQuery(userId=userId, symbol=symbol, amount=amount)
+            insertResponse = insert(col="Usercrypto", query=insertQuery)
+            return "Success"
+
+    # Get the record data
+    currentAmount = selectResponse[0]["amount"]
+    recordId = selectResponse[0]["_id"]
+    newAmount = 0
+
+    # Get new amount
+    if action == "remove":
+        if amount > currentAmount:
+            return "Invalid amount"
+        newAmount = currentAmount - amount
+    elif action == "add":
+        newAmount = currentAmount + amount
+
+    # Update the record
+    updateQuery = formatUpdateQuery(format="balance", amount=newAmount)
+    updateResponse = update(col="Usercrypto", postId=recordId,values=updateQuery)
+
+    return updateResponse

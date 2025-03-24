@@ -18,7 +18,7 @@ def insert(col, query):
 
 #insert("Digest",12323213,2133, "digest",("skibi","di"), lastProcess=2017-12-2,nextProcess=2021-1-1)
 
-def select(col, postId = None, time = None, userId = None, func = None):
+def select(col, postId = None, time = None, userId = None, func = None, query = None):
     DB = db_connect()
     collection = DB[col]
     DatabaseResponse = []
@@ -39,6 +39,10 @@ def select(col, postId = None, time = None, userId = None, func = None):
     if userId and func:
         print(func)
         query = { "userId": userId, "function": func }
+        DatabaseResponse = collection.find(query)
+        return DatabaseResponse
+
+    if query:
         DatabaseResponse = collection.find(query)
         return DatabaseResponse
 

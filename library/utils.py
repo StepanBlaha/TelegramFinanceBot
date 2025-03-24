@@ -137,21 +137,27 @@ def formatDeleteQuery( userId, func, symbol, val):
             "symbol": symbol,
             "interval": val
         }
+    elif func == "balance":
+        query = {
+            "userId": userId,
+            "symbol": symbol,
+        }
     else:
         return "Invalid database"
     return query
 
 
-def formatUpdateQuery( format, newPrice=None, lastProcess=None, nextProcess=None):
+def formatUpdateQuery( format, newPrice=None, lastProcess=None, nextProcess=None, amount=None):
     formatDict={
         "digest":{ "$set": { "lastProcess": lastProcess, "nextProcess": nextProcess }},
         "priceMonitor": {"$set": {"lastPrice":newPrice}},
-        "cryptoUpdate": {"$set": {"lastProcess": lastProcess, "nextProcess": nextProcess, "lastPrice":newPrice}}
+        "cryptoUpdate": {"$set": {"lastProcess": lastProcess, "nextProcess": nextProcess, "lastPrice":newPrice}},
+        "balance": {"$set": {"amount":amount}},
     }
     query = formatDict[format]
     return query
 
-def formatInsertQuery(format, userId, func, lastProcess=None, nextProcess=None, interval=None, symbol=None, margin=None, lastPrice=None, args=None):
+def formatInsertQuery(format, userId, func, lastProcess=None, nextProcess=None, interval=None, symbol=None, margin=None, lastPrice=None, args=None, amount=None):
     formatDict={
         "digest":
             {
@@ -179,6 +185,12 @@ def formatInsertQuery(format, userId, func, lastProcess=None, nextProcess=None, 
                 "lastPrice": lastPrice,
                 "lastProcess": lastProcess,
                 "nextProcess": nextProcess
+            },
+        "balance":
+            {
+                "userId": userId,
+                "symbol": symbol,
+                "amount": amount
             }
 
     }
