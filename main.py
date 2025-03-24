@@ -56,10 +56,18 @@ async def start(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         reply_markup=ForceReply(selective=True),
     )
 async def help(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
+    userId = update.effective_user.id
     await update.message.reply_text("Help")
 
+    logQuery = formatLogInsertQuery(userId=userId, func="help")
+    insert(col="Requesthistory", query=logQuery)
+
 async def echo(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
+    userId = update.effective_user.id
     await update.message.reply_text(update.message.text)
+
+    logQuery = formatLogInsertQuery(userId=userId, func="echo")
+    insert(col="Requesthistory", query=logQuery)
 
 
 
@@ -82,10 +90,10 @@ async def symbol_info(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
     user_arg = "".join(context.args)
     response = format_symbol_info(user_arg.upper())
 
+    await update.message.reply_text(response)
+
     logQuery = formatLogInsertQuery(userId=userId, symbol=user_arg, func="symbol_info")
     insert(col="Requesthistory", query=logQuery)
-
-    await update.message.reply_text(response)
 
 
 # Function for returning price chart for desired symbol
@@ -97,10 +105,10 @@ async def price_chart(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         period = int(context.args[1])
         graph = plot_price_in_time(symbol, period)
 
+        await update.message.reply_photo( photo = graph, caption=f"Price chart for {symbol} over {period} days.")
+
         logQuery = formatLogInsertQuery(userId=userId, symbol=symbol, func="price_chart", args=[period])
         insert(col="Requesthistory", query=logQuery)
-
-        await update.message.reply_photo( photo = graph, caption=f"Price chart for {symbol} over {period} days.")
     except Exception as e:
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
@@ -114,11 +122,11 @@ async def kdj(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         graph = plot_kdj(symbol, period)
         dataframe = get_kdj_dataframe(symbol, period)
 
-        logQuery = formatLogInsertQuery(userId=userId, symbol=symbol, func="kdj", args=[period])
-        insert(col="Requesthistory", query=logQuery)
-
         await update.message.reply_photo( photo = graph, caption=f"KDJ chart for {symbol} over {period} days.")
         await update.message.reply_text(f"Here is the KDJ data:\n```\n{dataframe}\n```", parse_mode="Markdown")
+
+        logQuery = formatLogInsertQuery(userId=userId, symbol=symbol, func="kdj", args=[period])
+        insert(col="Requesthistory", query=logQuery)
         #await update.message.reply_document(document=dataframe, filename="data.csv")
     except Exception as e:
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
@@ -132,11 +140,12 @@ async def ema(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         graph = plot_ema(symbol, period)
         dataframe = get_ema_dataframe(symbol, period)
 
-        logQuery = formatLogInsertQuery(userId=userId, symbol=symbol, func="ema", args=[period])
-        insert(col="Requesthistory", query=logQuery)
 
         await update.message.reply_photo( photo = graph, caption=f"EMA chart for {symbol} over {period} days.")
         await update.message.reply_text(f"Here is the EMA data:\n```\n{dataframe}\n```", parse_mode="Markdown")
+
+        logQuery = formatLogInsertQuery(userId=userId, symbol=symbol, func="ema", args=[period])
+        insert(col="Requesthistory", query=logQuery)
         #await update.message.reply_document(document=dataframe, filename="data.csv")
     except Exception as e:
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
@@ -163,14 +172,13 @@ async def indicators(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
                 "kdj": send_kdj,
             }
 
-            logQuery = formatLogInsertQuery(userId=userId, symbol=symbol, func="indicators", args=[indicator])
-            insert(col="Requesthistory", query=logQuery)
             # Trigger the correct function according to user picked indicator
             await indicatorDict.get(indicator, lambda: update.message.reply_text("Invalid indicator."))(update, symbol)
 
-        else:
-            logQuery = formatLogInsertQuery(userId=userId, symbol=symbol, func="indicators")
+            logQuery = formatLogInsertQuery(userId=userId, symbol=symbol, func="indicators", args=[indicator])
             insert(col="Requesthistory", query=logQuery)
+
+        else:
             # Simple indicator data
             await update.message.reply_text(f"Technical indicators for {symbol}\n\n The MFI for {symbol}: {get_mfi(symbol)}\n The ATR for {symbol}: {get_atr(symbol)}\n The RSI for {symbol} for the last 14 days: {get_rsi(symbol)}\n The AVL for {symbol} for the last 14 days: {get_avl(symbol)}\n The bollinger lines for {symbol}:\n  middle band: {get_boll(symbol, dictionary=True)['MB']}\n  lower band: {get_boll(symbol, dictionary=True)['LB']}\n  upper band: {get_boll(symbol, dictionary=True)['UB']}")
             # EMA data
@@ -181,6 +189,9 @@ async def indicators(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
             await update.message.reply_text(f"Here is the KDJ data:\n```\n{get_kdj_dataframe(symbol, 14)}\n```", parse_mode="Markdown")
             # CCI data
             await update.message.reply_photo(photo=plot_cci(symbol), caption=f"CCI chart for{symbol}.")
+
+            logQuery = formatLogInsertQuery(userId=userId, symbol=symbol, func="indicators")
+            insert(col="Requesthistory", query=logQuery)
     except Exception as e:
         await update.message.reply_text(e)
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
@@ -196,6 +207,9 @@ async def send(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
     id = update.effective_user.id
     text =f"dsmfsnd {id}"
     await send_msg_to_user( user_chat_id=id, text=text, bot = context.bot)
+
+    logQuery = formatLogInsertQuery(userId=id, func="send")
+    insert(col="Requesthistory", query=logQuery)
 
 
 # format:
@@ -238,10 +252,11 @@ async def setDigest(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         query = formatInsertQuery(format=func, userId=userId, func=func, interval=interval, lastProcess=curUnix, nextProcess=nextUnix, args=args)
         insert(col="Digest", query=query)
 
-        logQuery = formatLogInsertQuery(userId=userId, symbol=symbol, func="Digest", args={"interval": interval, "currentTimestamp": curUnix})
-        insert(col="Requesthistory", query=logQuery)
 
         await update.message.reply_text("Digest settings updated successfully.")
+
+        logQuery = formatLogInsertQuery(userId=userId, symbol=symbol, func="Digest", args={"interval": interval, "currentTimestamp": curUnix})
+        insert(col="Requesthistory", query=logQuery)
 
     except Exception as e:
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
@@ -259,10 +274,11 @@ async def priceMonitor(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         query = formatInsertQuery(format=func, userId=userId, func=func, margin=margin, lastPrice=lastPrice, symbol=symbol)
         insert(col="Pricemonitor", query=query)
 
-        logQuery = formatLogInsertQuery(userId=userId, symbol=symbol, func="priceMonitor", args={"margin": margin, "lastPrice": lastPrice})
-        insert(col="Requesthistory", query=logQuery)
 
         await update.message.reply_text("Price monitor set successfully.")
+
+        logQuery = formatLogInsertQuery(userId=userId, symbol=symbol, func="priceMonitor", args={"margin": margin, "lastPrice": lastPrice})
+        insert(col="Requesthistory", query=logQuery)
     except Exception as e:
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
@@ -303,10 +319,11 @@ async def cryptoUpdate(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         query = formatInsertQuery(format="cryptoUpdate", userId=userId, func=func, interval=interval, lastProcess=lastProcess, nextProcess=nextProcess, lastPrice=lastPrice, symbol=symbol)
         insert(col="Userfunctions", query=query)
 
-        logQuery = formatLogInsertQuery(userId=userId, symbol=symbol, func="cryptoUpdate", args={"interval": interval, "currentTimestamp": lastProcess, "lastPrice": lastPrice})
-        insert(col="Requesthistory", query=logQuery)
 
         await update.message.reply_text("Crypto update settings updated successfully.")
+
+        logQuery = formatLogInsertQuery(userId=userId, symbol=symbol, func="cryptoUpdate", args={"interval": interval, "currentTimestamp": lastProcess, "lastPrice": lastPrice})
+        insert(col="Requesthistory", query=logQuery)
     except Exception as e:
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
@@ -323,10 +340,11 @@ async def showUserFunctions(update:Update, context:ContextTypes.DEFAULT_TYPE)->N
         # Get the formated database response
         response = formatedDatabaseResponse(col, userId=userId, func=func )
 
-        logQuery = formatLogInsertQuery(userId=userId, func="showUserFunctions",args={"function": func})
-        insert(col="Requesthistory", query=logQuery)
 
         await update.message.reply_text(response)
+
+        logQuery = formatLogInsertQuery(userId=userId, func="showUserFunctions",args={"function": func})
+        insert(col="Requesthistory", query=logQuery)
     except Exception as e:
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
@@ -348,10 +366,11 @@ async def deleteFunction(update:Update, context:ContextTypes.DEFAULT_TYPE)->None
         query = formatDeleteQuery(userId, func, symbol, val)
         response = delete(col, query)
 
-        logQuery = formatLogInsertQuery(userId=userId, func="deleteFunction", args={"symbol": symbol, "value": val,"function": func})
-        insert(col="Requesthistory", query=logQuery)
 
         await update.message.reply_text(response)
+
+        logQuery = formatLogInsertQuery(userId=userId, func="deleteFunction", args={"symbol": symbol, "value": val,"function": func})
+        insert(col="Requesthistory", query=logQuery)
     except Exception as e:
         await update.message.reply_text(str(e))
         await update.message.reply_text("Problem in deleting. Check for any format mistakes.")
@@ -366,10 +385,11 @@ async def chatbot(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         msg = context.args[0]
         response = msgChatbot(msg)
 
-        logQuery = formatLogInsertQuery(userId=userId, func="chatbot", args={"message": msg})
-        insert(col="Requesthistory", query=logQuery)
 
         await update.message.reply_text(response)
+
+        logQuery = formatLogInsertQuery(userId=userId, func="chatbot", args={"message": msg})
+        insert(col="Requesthistory", query=logQuery)
     except Exception as e:
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
@@ -382,10 +402,11 @@ async def tradeAdvice(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         functionResponse = trade_advice(symbol, 14)
         aiResponse = get_gpt_trade_advice(symbol)
 
-        logQuery = formatLogInsertQuery(userId=userId, func="tradeAdvice", symbol=symbol)
-        insert(col="Requesthistory", query=logQuery)
 
         await update.message.reply_text(f'Here is your trading advice for {symbol}\n\n Calculated advice: {functionResponse}\n OpenAI advice: {aiResponse}')
+
+        logQuery = formatLogInsertQuery(userId=userId, func="tradeAdvice", symbol=symbol)
+        insert(col="Requesthistory", query=logQuery)
     except Exception as e:
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
