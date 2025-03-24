@@ -17,7 +17,17 @@ def get_dataframe(data):
     dataFrame = np.DataFrame(data)
     return dataFrame
 
-
+def is_number(val):
+    """
+    Function for checking if given value is a number
+    :param val: value to be checked
+    :return: boolean
+    """
+    try:
+        float(val)
+        return True
+    except ValueError:
+        return False
 
 
 
@@ -146,8 +156,17 @@ def formatDeleteQuery( userId, func, symbol, val):
         return "Invalid database"
     return query
 
-
+# Function for formating db update query
 def formatUpdateQuery( format, newPrice=None, lastProcess=None, nextProcess=None, amount=None):
+    """
+    Function for formating db update query
+    :param format: format
+    :param newPrice: new price
+    :param lastProcess: time of the last process
+    :param nextProcess: time of the next process
+    :param amount: amount
+    :return: formated query string
+    """
     formatDict={
         "digest":{ "$set": { "lastProcess": lastProcess, "nextProcess": nextProcess }},
         "priceMonitor": {"$set": {"lastPrice":newPrice}},
@@ -157,7 +176,23 @@ def formatUpdateQuery( format, newPrice=None, lastProcess=None, nextProcess=None
     query = formatDict[format]
     return query
 
+# Function for formating db insert query
 def formatInsertQuery(format, userId, func, lastProcess=None, nextProcess=None, interval=None, symbol=None, margin=None, lastPrice=None, args=None, amount=None):
+    """
+    Function for formating db insert query
+    :param format: format
+    :param userId: id of user
+    :param func: function
+    :param lastProcess: time of the last process
+    :param nextProcess: time of the next process
+    :param interval: interval between processes
+    :param symbol: symbol
+    :param margin: margin
+    :param lastPrice: last price
+    :param args: arguments
+    :param amount: amount
+    :return: formated query string
+    """
     formatDict={
         "digest":
             {
@@ -191,7 +226,15 @@ def formatInsertQuery(format, userId, func, lastProcess=None, nextProcess=None, 
                 "userId": userId,
                 "symbol": symbol,
                 "amount": amount
+            },
+        "log":
+            {
+                "userId": userId,
+                "function": func,
+                "symbol": symbol,
+                "args": args
             }
+
 
     }
 
@@ -203,11 +246,16 @@ def formatInsertQuery(format, userId, func, lastProcess=None, nextProcess=None, 
         return "Invalid set of arguments"
 
 
-def formatLogInsertQuery(userId, func, symbol=None, args=None):
-    query = {
-        "userId": userId,
-        "function": func,
-        "symbol": symbol,
-        "args": args
-    }
-    return query
+# Function for formating the balance response from mongo after running "/balance"
+def formatBalanceResponse(data):
+    """
+    Function for formating the balance response from mongo after running "/balance"
+    :param data: data to format
+    :return: formated data
+    """
+    formatedResponse = ""
+    for i in data:
+        formatedStr = f"\n{i['symbol']}: {i['amount']}"
+        formatedResponse = formatedResponse + formatedStr
+
+    return formatedResponse

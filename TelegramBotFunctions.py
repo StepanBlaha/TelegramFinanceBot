@@ -1,4 +1,4 @@
-from Demos.SystemParametersInfo import new_h
+
 from binance.client import Client
 import pandas as np
 import numpy as pd
@@ -1035,8 +1035,16 @@ def get_liquidity(symbol, period=1, dictionary=False):
 
 
 
-
+# Function for updating the state of users crypto balance in db
 def update_balance(symbol, userId, amount, action):
+    """
+    Function for updating the state of users crypto balance in db
+    :param symbol: symbol for choosing which record to update
+    :param userId: id of the user
+    :param amount: amount for the update
+    :param action: action to do
+    :return: response
+    """
     # Check for invalid action
     if action not in ["remove", "add"]:
         return "Invalid action"
@@ -1051,9 +1059,9 @@ def update_balance(symbol, userId, amount, action):
             return "No resources for given symbol"
         else:
             # If the record doesnt exist and the action is "add" create new record
-            insertQuery = formatInsertQuery(userId=userId, symbol=symbol, amount=amount)
+            insertQuery = formatInsertQuery(format="balance", func="baance", userId=userId, symbol=symbol, amount=amount)
             insertResponse = insert(col="Usercrypto", query=insertQuery)
-            return "Success"
+            return "Successfuly updated"
 
     # Get the record data
     currentAmount = selectResponse[0]["amount"]
@@ -1071,5 +1079,4 @@ def update_balance(symbol, userId, amount, action):
     # Update the record
     updateQuery = formatUpdateQuery(format="balance", amount=newAmount)
     updateResponse = update(col="Usercrypto", postId=recordId,values=updateQuery)
-
     return updateResponse

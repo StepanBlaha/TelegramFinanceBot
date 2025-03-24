@@ -54,13 +54,26 @@ def select(col, postId = None, time = None, userId = None, func = None, query = 
 
 
 def update(col, postId, values):
+    """
+    Function for updating data into mongo db
+    :param col: collection to update into
+    :param postId: post id to update
+    :param values: values to update
+    :return: response
+    """
     DB = db_connect()
     collection = DB[col]
     query = {"_id": ObjectId(postId)}
     collection.update_one(query, values)
-    print("Successfully updated")
+    return "Successfully updated"
 
 def delete(col, query):
+    """
+    Function for deleting data from mongo db
+    :param col: collection to delete from
+    :param query: query to delete
+    :return: response
+    """
     #Connect to db and delete
     DB = db_connect()
     collection = DB[col]
