@@ -262,15 +262,24 @@ def formatInsertQuery(format, userId, func, lastProcess=None, nextProcess=None, 
 
 
 # Function for formating the balance response from mongo after running "/balance"
-def formatBalanceResponse(data):
+def formatBalanceResponse(data, dictionary=False):
     """
     Function for formating the balance response from mongo after running "/balance"
     :param data: data to format
+    :param dictionary: if true returns dictionary with data
     :return: formated data
     """
     formatedResponse = ""
     for i in data:
         formatedStr = f"\n{i['symbol']}: {i['amount']}"
         formatedResponse = formatedResponse + formatedStr
+
+    if dictionary:
+        dataDict = {}
+
+        for i in data:
+            dataDict[i["symbol"]] = i["amount"]
+
+        return dataDict
 
     return formatedResponse

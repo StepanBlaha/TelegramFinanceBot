@@ -1080,3 +1080,25 @@ def update_balance(symbol, userId, amount, action):
     updateQuery = formatUpdateQuery(format="balance", amount=newAmount)
     updateResponse = update(col="Usercrypto", postId=recordId,values=updateQuery)
     return updateResponse
+
+def get_balance_worth(userId, symbol=None, dictionary=None):
+    if symbol:
+        selectQuery = {"userId": userId, "symbol": symbol}
+        response = list(select(userId=userId, query=selectQuery, col="Usercrypto"))
+    else:
+        selectQuery = {"userId": userId}
+        response = list(select(userId=userId, query=selectQuery, col="Usercrypto"))
+
+    if dictionary:
+        responseDict = formatBalanceResponse(data=response, dictionary=True)
+        return responseDict
+
+    formatedResponse = ""
+    for i in data:
+        formatedStr = f"\n{i['symbol']}: {i['amount']}"
+        #tady vezmu cenu symbolu a vynasobim amount
+        formatedResponse = formatedResponse + formatedStr
+
+
+
+
