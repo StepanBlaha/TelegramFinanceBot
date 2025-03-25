@@ -58,3 +58,38 @@ def insertPriceMonitor(col, user, margin, func, symbol, lastPrice):
 
     insertedId = collection.insert_one(data).inserted_id
     print(insertedId)
+
+
+
+
+def selec(col, postId = None, time = None, userId = None, func = None, query = None):
+    DB = db_connect()
+    collection = DB[col]
+    DatabaseResponse = []
+
+    #If the post id is set select only set post
+    if postId:
+        query = { "_id": ObjectId(postId) }
+        DatabaseResponse = collection.find(query)
+        return DatabaseResponse
+
+    # If time is sset select only the corresponding ones
+    if time:
+        query = { "nextProcess": time }
+        DatabaseResponse = collection.find(query)
+        return DatabaseResponse
+
+    # Used for checking users set automatic functions
+    if userId and func:
+        print(func)
+        query = { "userId": userId, "function": func }
+        DatabaseResponse = collection.find(query)
+        return DatabaseResponse
+
+    if query:
+        DatabaseResponse = collection.find(query)
+        return DatabaseResponse
+
+    for record in collection.find():
+        DatabaseResponse.append(record)
+    return DatabaseResponse

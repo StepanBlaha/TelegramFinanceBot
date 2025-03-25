@@ -18,7 +18,7 @@ functionDict = {
 #asyncio.run(func) dela to ze zpusti func v asynchronim rezimu
 async def main():
     while True:
-        digestRecords = select("Digest")
+        digestRecords = select(col="Digest")
         for record in digestRecords:
             #Get current unix time
             curTime = int(time.time())
@@ -52,7 +52,7 @@ async def main():
             update("Digest", recordId, query)
             print(f'Function {functionName} for user {userId} executed successfully.')
 
-        priceMonitorRecords = select("Pricemonitor")
+        priceMonitorRecords = select(col="Pricemonitor")
         for record in priceMonitorRecords:
             userId = record["userId"]
             recordId = str(record["_id"])
@@ -60,7 +60,6 @@ async def main():
             margin = record["margin"]
             lastPrice = float(record["lastPrice"])
             symbol = record["symbol"]
-            print(symbol)
             #calculate one percent of old price
             onePercent = lastPrice / 100
             # calculate margin price from margin percentage
@@ -83,8 +82,9 @@ async def main():
             query = formatUpdateQuery("priceMonitor", newPrice=curPrice)
             # Update
             update("Pricemonitor", recordId, query)
+            print(f'Function {functionName} for user {userId} executed successfully.')
 
-        functionRecords = select("Userfunctions")
+        functionRecords = select(col="Userfunctions")
         for record in functionRecords:
             # Get the record data
             recordId = str(record["_id"])

@@ -281,8 +281,6 @@ def plot_price_in_time(symbol, period):
 
     return IoStream
 
-print(plot_price_in_time("BTCUSDT", 7))
-
 # Function to extract closing prices from given kline list
 def get_closing_prices(klines):
     """
@@ -295,8 +293,6 @@ def get_closing_prices(klines):
         currentKline = klines[i]
         closingPrices.append(float(currentKline[4]))
     return closingPrices
-
-
 
 # Function for getting pandas dataframe of EMA
 def get_ema_dataframe(symbol, period):
@@ -440,8 +436,6 @@ def get_recent_trend(symbol, period):
     trend = get_price_trend(float(openingPrice[0]), float(closingPrice[0]))
     return trend
 
-
-
 def trade_advice(symbol, period):
     """
     Custom function for giving suggestions on whether o buy or sell
@@ -546,7 +540,6 @@ def plot_volatility(symbol, period):
     # Replace the timestamps with unix
     for i in range(len(timestamps)):
         timestamps[i] = unix_to_date(int(timestamps[i]))
-    print(f"TIMES:{timestamps}")
     # Calculate the timestamp stepsize
     num_ticks = 7
     step = len(timestamps) // num_ticks
@@ -708,7 +701,6 @@ def plot_cci(symbol, period=14):
     # Replace the timestamps with unix
     for i in range(len(timestamps)):
         timestamps[i] = unix_to_date(int(timestamps[i]))
-    print(f"TIMES:{timestamps}")
     # Calculate the timestamp stepsize
     num_ticks = 7
     step = len(timestamps) // num_ticks
@@ -1051,7 +1043,7 @@ def update_balance(symbol, userId, amount, action):
 
     # Get users data for given symbol
     selectQuery = {"userId": userId, "symbol": symbol}
-    selectResponse = list(select(userId=userId, query=selectQuery, col="Usercrypto"))
+    selectResponse = list(select(query=selectQuery, col="Usercrypto"))
 
     # Check if any record exists
     if len(selectResponse) == 0:
@@ -1091,12 +1083,12 @@ def get_balance_worth(userId, symbol=None, dictionary=None):
     """
     if symbol:
         selectQuery = {"userId": userId, "symbol": symbol.upper()}
-        response = list(select(userId=userId, query=selectQuery, col="Usercrypto"))
+        response = list(select(query=selectQuery, col="Usercrypto"))
         if len(response) == 0:
             return "No registered data for given symbol"
     else:
         selectQuery = {"userId": userId}
-        response = list(select(userId=userId, query=selectQuery, col="Usercrypto"))
+        response = list(select(query=selectQuery, col="Usercrypto"))
         if len(response) == 0:
             return "No registered data"
 

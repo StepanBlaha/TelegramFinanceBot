@@ -18,38 +18,24 @@ def insert(col, query):
 
 #insert("Digest",12323213,2133, "digest",("skibi","di"), lastProcess=2017-12-2,nextProcess=2021-1-1)
 
-def select(col, postId = None, time = None, userId = None, func = None, query = None):
+def select(col, query=None):
+    """
+    Function for selecting data from mongo db
+    :param col: collection to select from
+    :param query: query to select
+    :return: data from mongo db
+    """
     DB = db_connect()
     collection = DB[col]
     DatabaseResponse = []
 
-    #If the post id is set select only set post
-    if postId:
-        query = { "_id": ObjectId(postId) }
-        DatabaseResponse = collection.find(query)
-        return DatabaseResponse
-
-    # If time is sset select only the corresponding ones
-    if time:
-        query = { "nextProcess": time }
-        DatabaseResponse = collection.find(query)
-        return DatabaseResponse
-
-    # Used for checking users set automatic functions
-    if userId and func:
-        print(func)
-        query = { "userId": userId, "function": func }
-        DatabaseResponse = collection.find(query)
-        return DatabaseResponse
-
     if query:
         DatabaseResponse = collection.find(query)
-        return DatabaseResponse
+    else:
+        for record in collection.find():
+            DatabaseResponse.append(record)
 
-    for record in collection.find():
-        DatabaseResponse.append(record)
     return DatabaseResponse
-
 #print(select("Digest", userId= 8106126437, func = "digest"))
 
 

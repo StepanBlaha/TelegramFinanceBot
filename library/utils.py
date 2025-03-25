@@ -93,7 +93,8 @@ def formatedDatabaseResponse(col, userId=None, func=None):
     :return: formated database response
     """
     if func and userId:
-        response = select(col, userId=userId, func=func)
+        selectQuery = { "userId": userId, "function": func }
+        response = select(col=col, query=selectQuery)
         formatedResponse = "Here are your set functions:\n\n"
         for row in response:
             #Format  the response based on db

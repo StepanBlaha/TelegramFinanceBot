@@ -445,12 +445,12 @@ async def balance(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
             # Get the response based on if symbol is set or not
             if symbol:
                 query = {"userId": userId, "symbol": symbol}
-                response = list(select(userId=userId, query=query, col="Usercrypto"))
+                response = list(select(query=query, col="Usercrypto"))
                 # Turn the response to readable format
                 response = formatBalanceResponse(response)
             else:
                 query = {"userId": userId}
-                response = list(select(userId=userId, query=query, col="Usercrypto"))
+                response = list(select(query=query, col="Usercrypto"))
                 # Turn the response to readable format
                 response = formatBalanceResponse(response)
             await update.message.reply_text(f'Here is your account balance: {response}')
