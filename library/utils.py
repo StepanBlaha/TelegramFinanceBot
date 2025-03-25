@@ -29,6 +29,21 @@ def is_number(val):
     except ValueError:
         return False
 
+def is_symbol(symbol, client):
+    """
+    Function for checking if given symbol exists
+    :param symbol: symbol to be checked
+    :param client: client for binance api
+    :return: boolean
+    """
+    try:
+        info = client.get_symbol_info(symbol)
+        if not info:
+            return False
+        return True
+    except:
+        return False
+
 
 
 #Time conversion functions
