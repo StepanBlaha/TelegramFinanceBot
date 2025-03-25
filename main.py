@@ -418,6 +418,7 @@ async def balance(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
             "show":"show",
             "add": "add",
             "remove": "remove",
+            "value": "value"
         }
         # Get the data
         userId = update.effective_user.id
@@ -432,7 +433,7 @@ async def balance(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
 
         # Get the symbol
         if len(context.args) > 1:
-            symbol = context.args[1]
+            symbol = context.args[1].upper()
 
         # Error handling
         if (not symbol and action=="add") or (not symbol and action=="remove"):
@@ -440,7 +441,7 @@ async def balance(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
             return
 
         # Different actions
-        if action=="show":
+        if action == "show":
             # Get the response based on if symbol is set or not
             if symbol:
                 query = {"userId": userId, "symbol": symbol}
@@ -454,7 +455,7 @@ async def balance(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
                 response = formatBalanceResponse(response)
             await update.message.reply_text(f'Here is your account balance: {response}')
             return
-        elif action=="remove":
+        elif action == "remove":
             # Error handling
             if not len(context.args) > 2:
                 await update.message.reply_text("This action requires an amount")
@@ -468,7 +469,7 @@ async def balance(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
             # Return the response
             response = update_balance(symbol=symbol, userId=userId, amount=float(amount), action=action)
             await update.message.reply_text(f'{response} account balance for symbol {symbol}')
-        elif action=="add":
+        elif action == "add":
             # Error handling
             if not len(context.args) > 2:
                 await update.message.reply_text("This action requires an amount")
@@ -482,6 +483,10 @@ async def balance(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
             # Return the response
             response = update_balance(symbol=symbol, userId=userId, amount=float(amount), action=action)
             await update.message.reply_text(f'{response} account balance for symbol {symbol}')
+        elif action == "value":
+            response = get_balance_worth(userId=userId, symbol=symbol)
+            await update.message.reply_text(f'{response}')
+
 
 
         logQuery = formatInsertQuery(format="log",userId=userId, func="balance", args={"symbol": symbol, "amount": amount})

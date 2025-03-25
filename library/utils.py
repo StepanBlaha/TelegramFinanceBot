@@ -278,7 +278,10 @@ def formatBalanceResponse(data, dictionary=False):
         dataDict = {}
 
         for i in data:
-            dataDict[i["symbol"]] = i["amount"]
+            dataDict[i["symbol"]] = {
+                "symbol": i["symbol"],
+                "amount": i["amount"]
+            }
 
         return dataDict
 

@@ -1082,22 +1082,38 @@ def update_balance(symbol, userId, amount, action):
     return updateResponse
 
 def get_balance_worth(userId, symbol=None, dictionary=None):
+    """
+    Function for getting users wallet data and their worth
+    :param userId: id of user
+    :param symbol: optional symbol to look for
+    :param dictionary: if true returns dictionary with data
+    :return: formatted user wallet data
+    """
     if symbol:
-        selectQuery = {"userId": userId, "symbol": symbol}
+        selectQuery = {"userId": userId, "symbol": symbol.upper()}
         response = list(select(userId=userId, query=selectQuery, col="Usercrypto"))
+        if len(response) == 0:
+            return "No registered data for given symbol"
     else:
         selectQuery = {"userId": userId}
         response = list(select(userId=userId, query=selectQuery, col="Usercrypto"))
+        if len(response) == 0:
+            return "No registered data"
 
     if dictionary:
         responseDict = formatBalanceResponse(data=response, dictionary=True)
+        for i in responseDict.values():
+            currentPrice = current_price(i["symbol"])
+            i["value"] = float(currentPrice) * float(i["amount"])
         return responseDict
 
     formatedResponse = ""
-    for i in data:
-        formatedStr = f"\n{i['symbol']}: {i['amount']}"
-        #tady vezmu cenu symbolu a vynasobim amount
+    for i in response:
+        symbolPrice = current_price(i["symbol"])
+        formatedStr = f"Your wallet:\n\nsymbol: {i['symbol']}\namount: {i['amount']}\nvalue: {float(symbolPrice) * float(i['amount'])}"
         formatedResponse = formatedResponse + formatedStr
+
+    return formatedResponse
 
 
 
