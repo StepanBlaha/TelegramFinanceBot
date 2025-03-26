@@ -83,18 +83,23 @@ def admin_digest():
     response = f"Bot digest\n\nTotal users: {userCount}\nAdmins: {adminCount}\nMost used function: {mostUsedFunction} - {mostUsedFunctionCount} times\nMost used symbol: {mostUsedSymbol} - {mostUsedSymbolCount} times\nMost used monitor function: {mostMonitoredFunction} - {mostMonitoredFunctionCount} times\nMost monitored symbol: {mostMonitoredSymbol} - {mostMonitoredSymbolCount} times"
     return response
 
-def admin_users(IDs=False, funcData=False):
+def admin_users(IDs=False, funcData=False, monitorData=False):
     """
     Function for getting data about users
     :param IDs: if true returns string and list with all the user ids
     :param funcData: if true returns dictionary with the count of functions user used and what functions he used
+    :param monitorData: if true returns dictionary with the count of monitor functions user used and what functions he used
     :return: string with basic data about users
     """
     users = list(select(col="Users"))
     userCount = len(users)
     adminCount = len(list(select(col="Users", query={"role": "admin"})))
+
     avgFuncPerUser = len(list(select(col="Requesthistory"))) / userCount
     avgMonitorPerUser = len(list(select(col="Userfunctions"))) / userCount
+
+    functionUsedCount = len(list(select(col="Requesthistory")))
+    monitorSetCount = len(list(select(col="Userfunctions")))
 
     if IDs:
         # Get all the user ids
@@ -107,7 +112,7 @@ def admin_users(IDs=False, funcData=False):
         return userIDs, IDsMessage
 
     if funcData:
-        # Get dictionary with amount of functions user used and what functions he used
+        # Get dictionary with amount of functions user used and what functions he used and what symbols he used
         userUsedFuncs = {}
         requestHistory = list(select(col="Requesthistory"))
         for i in requestHistory:
@@ -116,13 +121,93 @@ def admin_users(IDs=False, funcData=False):
                 userUsedFuncs[i["userId"]] = {}
                 userUsedFuncs[i["userId"]]["functionCount"] = 1
                 userUsedFuncs[i["userId"]]["functions"] = []
+                userUsedFuncs[i["userId"]]["symbols"] = []
             elif i["userId"] is not None:
                 userUsedFuncs[i["userId"]]["functionCount"] += 1
-                if i["function"] not in userUsedFuncs[i["userId"]]["functions"]:
-                    userUsedFuncs[i["userId"]]["functions"].append(i["function"])
+
+            if i["function"] not in userUsedFuncs[i["userId"]]["functions"]:
+                userUsedFuncs[i["userId"]]["functions"].append(i["function"])
+            if i["symbol"] not in userUsedFuncs[i["userId"]]["symbols"] and i["symbol"] is not None:
+                userUsedFuncs[i["userId"]]["symbols"].append(i["symbol"])
+
         return userUsedFuncs
 
-    response = f"User data:\n\nTotal users: {userCount}\nAdmins: {adminCount}\nAverage amount of functions used per user: {avgFuncPerUser}\nAverage amount of monitors set by user: {avgMonitorPerUser}"
+    if monitorData:
+        # Get dictionary with amount of monitors user set and what monitors he set and what symbols he used
+        userSetMonitors = {}
+        monitorHistory = list(select(col="Userfunctions"))
+
+        for i in monitorHistory:
+            # Checks if user id is already in the dictionary
+            if i["userId"] not in userSetMonitors and i["userId"] is not None:
+                userSetMonitors[i["userId"]] = {}
+                userSetMonitors[i["userId"]]["monitorCount"] = 1
+                userSetMonitors[i["userId"]]["monitors"] = []
+                userSetMonitors[i["userId"]]["symbols"] = []
+            elif i["userId"] is not None:
+                userSetMonitors[i["userId"]]["monitorCount"] += 1
+
+            if i["function"] not in userSetMonitors[i["userId"]]["monitors"] and i["function"] is not None:
+                userSetMonitors[i["userId"]]["monitors"].append(i["function"])
+            if i["symbol"] not in userSetMonitors[i["userId"]]["symbols"] and i["symbol"] is not None:
+                userSetMonitors[i["userId"]]["symbols"].append(i["symbol"])
+
+        return userSetMonitors
+
+    response = f"User data:\n\nTotal users: {userCount}\nAdmins: {adminCount}\nNumber of functions used: {functionUsedCount}\nNumber of monitors set: {monitorSetCount}\nAverage amount of functions used per user: {avgFuncPerUser}\nAverage amount of monitors set by user: {avgMonitorPerUser}"
     return response
 
-print(admin_users())
+def admin_symbols(dictionary=False):
+    # Get the data
+    requestHistory = list(select(col="Requesthistory"))
+    monitoredSymbols = list(select(col="Userfunctions"))
+
+    # Get the number of uses in functions and monitors for each symbol
+    symbolDict = {}
+    differentSymbols = []
+    for i in requestHistory:
+        # Counter for usage of symbol
+        if i["symbol"] not in symbolDict and i["symbol"] is not None:
+            differentSymbols.append(i["symbol"])
+            symbolDict[i["symbol"]] = {}
+            symbolDict[i["symbol"]]["monitorCount"] = 0
+            symbolDict[i["symbol"]]["functionCount"] = 1
+        elif i["symbol"] is not None:
+            symbolDict[i["symbol"]]["functionCount"] += 1
+
+    # Get the most monitored symbol and function
+    for i in monitoredSymbols:
+        # Get the symbol
+        if i["function"] == "digest":
+            symbol = i["arguments"][0]
+        else:
+            symbol = i["symbol"]
+        # Counter for usage of symbol
+        if symbol not in symbolDict and symbol is not None:
+            differentSymbols.append(symbol)
+            symbolDict[i["symbol"]] = {}
+            symbolDict[i["symbol"]]["monitorCount"] = 1
+            symbolDict[i["symbol"]]["functionCount"] = 0
+        elif symbol is not None:
+            symbolDict[i["symbol"]]["monitorCount"] += 1
+
+    # Get the most used symbol and its count
+    mostUsedSymbol = max(symbolDict, key=lambda k: symbolDict[k]["functionCount"])
+    mostUsedSymbolCount = symbolDict[mostUsedSymbol]["functionCount"]
+    # Get the most monitored symbol and its count
+    mostMonitoredSymbol = max(symbolDict, key=lambda k: symbolDict[k]["monitorCount"])
+    mostMonitoredSymbolCount = symbolDict[mostMonitoredSymbol]["monitorCount"]
+
+    if dictionary:
+        data = {
+            "mostUsedSymbol": mostUsedSymbol,
+            "mostUsedSymbolCount": mostUsedSymbolCount,
+            "mostMonitoredSymbol": mostMonitoredSymbol,
+            "mostMonitoredSymbolCount": mostMonitoredSymbolCount,
+            "symbolData": symbolDict,
+            "symbols": differentSymbols
+        }
+        return data
+
+    response = f"Symbol data\n\nNumber of different symbols used: {len(symbolDict)}\nMost used symbol: {mostUsedSymbol} - {mostUsedSymbolCount} times\nMost monitored symbol: {mostMonitoredSymbol} - {mostMonitoredSymbolCount} times"
+    return response
