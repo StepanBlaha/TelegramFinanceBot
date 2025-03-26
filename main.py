@@ -500,16 +500,20 @@ async def balance(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
 async def admin(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
     try:
         actionDict = {
-            "digest": "digest",
-            "users": "users",
-            "symbols": "symbols",
-            "functions": "functions",
+            "digest": admin_digest,
+            "users": admin_users,
+            "symbols": admin_symbols,
+            "functions": admin_functions,
         }
         userId = update.effective_user.id
+
+        # Checks if user picked valid action
+        if len(context.args) < 1 or context.args[0].lower() not in actionDict:
+            await update.message.reply_text("Please choose a valid action: digest, users, symbols, functions.")
+            return
+
+        # Gets the user action
         action = context.args[0].lower()
-
-
-
 
         # Check if user has admin role
         selectQuery = {"userId": userId}
@@ -519,20 +523,11 @@ async def admin(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
             await update.message.reply_text("You need an admin role to use this command.")
             return
 
-        if action not in actionDict:
-            await update.message.reply_text("Please choose an action: show, remove, add.")
-            return
-
-        if action == "digest":
-            response = admin_digest()
-            await update.message.reply_text(response)
-
-
-
-
+        # Get the data
+        response = actionDict[action]()
+        await update.message.reply_text(response)
 
     except Exception as e:
-        await update.message.reply_text(str(e))
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
 def main():

@@ -21,6 +21,10 @@ from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandl
 
 client = Client()
 def admin_digest():
+    """
+    Function for getting basic admin info about the bot
+    :return: formatted info
+    """
     # Get the number of total users and number of admins
     userCount = len(list(select(col="Users")))
     adminCount = len(list(select(col="Users", query={"role": "admin"})))
@@ -158,6 +162,11 @@ def admin_users(IDs=False, funcData=False, monitorData=False):
     return response
 
 def admin_symbols(dictionary=False):
+    """
+    Function for getting data about usage of different bot symbols
+    :param dictionary: if true return dictionary with data
+    :return: formated string with symbol info
+    """
     # Get the data
     requestHistory = list(select(col="Requesthistory"))
     monitoredSymbols = list(select(col="Userfunctions"))
@@ -210,4 +219,69 @@ def admin_symbols(dictionary=False):
         return data
 
     response = f"Symbol data\n\nNumber of different symbols used: {len(symbolDict)}\nMost used symbol: {mostUsedSymbol} - {mostUsedSymbolCount} times\nMost monitored symbol: {mostMonitoredSymbol} - {mostMonitoredSymbolCount} times"
+    return response
+
+def admin_functions(dictionary=False):
+    """
+    Function for getting data about usage of different bot functions
+    :param dictionary: if true return dictionary with data
+    :return: formated string with function info
+    """
+    # Get the data
+    requestHistory = list(select(col="Requesthistory"))
+    monitoredFunctions = list(select(col="Userfunctions"))
+
+    functionDict = {}
+    differentFunctions = []
+
+
+    # Fill the dictionary with the function data
+    for i in requestHistory:
+        if i["function"] not in functionDict and i["function"] is not None:
+            differentFunctions.append(i["function"])
+            functionDict[i["function"]] = {}
+            functionDict[i["function"]]["monitorCount"] = 0
+            functionDict[i["function"]]["functionCount"] = 1
+            functionDict[i["function"]]["symbols"] = []
+        elif i["function"] is not None:
+            functionDict[i["function"]]["functionCount"] += 1
+
+        if i["symbol"] not in functionDict and i["symbol"] is not None:
+            functionDict[i["function"]]["symbols"].append(i["symbol"])
+
+    for i in monitoredFunctions:
+        if i["function"] not in functionDict and i["function"] is not None:
+            differentFunctions.append(i["function"])
+            functionDict[i["function"]] = {}
+            functionDict[i["function"]]["monitorCount"] = 1
+            functionDict[i["function"]]["functionCount"] = 0
+            functionDict[i["function"]]["symbols"] = []
+        elif i["function"] is not None:
+            functionDict[i["function"]]["monitorCount"] += 1
+
+        if i["symbol"] not in functionDict and i["symbol"] is not None:
+            functionDict[i["function"]]["symbols"].append(i["symbol"])
+
+    # Get the most used and most used monitor function
+    mostUsedFunction = max(functionDict, key=lambda k: functionDict[k]["functionCount"])
+    mostUsedFunctionCount = functionDict[mostUsedFunction]["functionCount"]
+
+    mostUsedMonitor = max(functionDict, key=lambda k: functionDict[k]["monitorCount"])
+    mostUsedMonitorCount = functionDict[mostUsedMonitor]["monitorCount"]
+
+    # Format the dictionary with data
+    if dictionary:
+        data = {
+            "mostUsedFunction": mostUsedFunction,
+            "mostUsedFunctionCount": mostUsedFunctionCount,
+            "mostUsedMonitor": mostUsedMonitor,
+            "mostUsedMonitorCount": mostUsedMonitorCount,
+            "functionData": functionDict,
+            "functions": differentFunctions
+        }
+
+        return data
+
+    # Format response
+    response = f"Function data\n\nNumber of different functions used: {len(differentFunctions)}\nMost used function: {mostUsedFunction} - {mostUsedFunctionCount} times\nMost used monitor function: {mostUsedMonitor} - {mostUsedMonitorCount} times"
     return response
