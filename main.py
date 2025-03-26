@@ -253,7 +253,7 @@ async def setDigest(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         nextUnix = unix_to_timestamp(nextUnix)
         # Get the query and insert data into db
         query = formatInsertQuery(format=func, userId=userId, func=func, interval=interval, lastProcess=curUnix, nextProcess=nextUnix, args=args)
-        insert(col="Digest", query=query)
+        insert(col="Userfunctions", query=query)
 
 
         await update.message.reply_text("Digest settings updated successfully.")
@@ -275,7 +275,7 @@ async def priceMonitor(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
         lastPrice = float(current_price(symbol))
         # Get the query and insert into db
         query = formatInsertQuery(format=func, userId=userId, func=func, margin=margin, lastPrice=lastPrice, symbol=symbol)
-        insert(col="Pricemonitor", query=query)
+        insert(col="Userfunctions", query=query)
 
 
         await update.message.reply_text("Price monitor set successfully.")
@@ -336,13 +336,10 @@ async def showUserFunctions(update:Update, context:ContextTypes.DEFAULT_TYPE)->N
     try:
         # Get the parameters
         func = context.args[0]
-        col = func.lower().capitalize()
-        if col == "Cryptoupdate":
-            col = "Userfunctions"
+        col = "Userfunctions"
         userId = update.effective_user.id
         # Get the formated database response
         response = formatedDatabaseResponse(col, userId=userId, func=func )
-
 
         await update.message.reply_text(response)
 
@@ -358,10 +355,7 @@ async def deleteFunction(update:Update, context:ContextTypes.DEFAULT_TYPE)->None
     try:
         #Get all the necessary data
         func = context.args[0]
-        col = func.lower().capitalize()
-        if col == "Cryptoupdate":
-            col = "Userfunctions"
-
+        col = "Userfunctions"
         userId = update.effective_user.id
         symbol = context.args[1]
         val = int(context.args[2])

@@ -96,9 +96,11 @@ def formatedDatabaseResponse(col, userId=None, func=None):
         selectQuery = { "userId": userId, "function": func }
         response = select(col=col, query=selectQuery)
         formatedResponse = "Here are your set functions:\n\n"
+        format = func.lower()
+
         for row in response:
             #Format  the response based on db
-            if col == "Digest":
+            if format == "digest":
                 # Format the interval
                 if row["interval"]>86400:
                     interval = str((row["interval"]/86400)) + " Days"
@@ -107,17 +109,17 @@ def formatedDatabaseResponse(col, userId=None, func=None):
                 # Format the record into a string
                 record = f'Function: {row["function"]}, Symbol: {row["arguments"][0]}, Interval: {interval}'
 
-            elif col == "Pricemonitor":
+            elif format == "pricemonitor":
                 record = f'Function: {row["function"]}, Symbol: {row["symbol"]}, Monitor change margin: {row["margin"]}%'
 
-            elif col == "Userfunctions":
+            elif format == "cryptoupdate":
                 # Format the interval
                 if row["interval"]>86400:
                     interval = str((row["interval"]/86400)) + " Days"
                 else:
                     interval = str((row["interval"]/3600)) + " Hours"
                 # Format the record into a string
-                record = f'Function: {row["function"]}, Symbol: {row["arguments"][0]}, Interval: {interval}'
+                record = f'Function: {row["function"]}, Symbol: {row["symbol"]}, Interval: {interval}'
 
             else:
                 record = "Invalid database"
