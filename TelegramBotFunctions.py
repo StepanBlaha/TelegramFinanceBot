@@ -1106,7 +1106,39 @@ def get_balance_worth(userId, symbol=None, dictionary=None):
         formatedResponse = formatedResponse + formatedStr
 
     return formatedResponse
+# Function for registering a new user
+def register_user(userId):
+    """
+    Function for registering a new user
+    :param userId: id of the user
+    :return:
+    """
+    # Check if user isnt already registered
+    selectQuery = {"userId": userId}
+    selectResponse = list(select(query=selectQuery, col="Users"))
+
+    # If he isnt register him
+    if len(selectResponse) == 0:
+        insertQuery = formatInsertQuery(format="user", userId=userId)
+        insert(col="Users", query=insertQuery)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#------------------------------------------------------Admin functions------------------------------------------------------------#
 
 

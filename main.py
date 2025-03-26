@@ -29,6 +29,7 @@ from ai.geminiBot import messageGemini
 from library.utils import *
 from mongoFunctions import *
 from library.indicatorMessages import *
+from library.adminFunctions import *
 from ai import *
 # ------------------------------------Nefunguje--------------------------------------------------------
 
@@ -48,13 +49,15 @@ logger = logging.getLogger(__name__)
 # V update jsous tornuty data o zprave napr i kdo to poslal, to potom beru pres update.effective_user
 # Context ma v sobe docasne bot a user data, neco jako session storage
 async def start(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
-    user = update.effective_user
+    userId = update.effective_user.id
     # ceka na message od usera a odpovi v text formatu
     await update.message.reply_text(
-        "hello my niuhah",
+        "Hello, im SBbot, your personal crypto assistant",
         # tohle nastavi at vyzaduje odpoved
         reply_markup=ForceReply(selective=True),
     )
+    register_user(userId=userId)
+
 async def help(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
     userId = update.effective_user.id
     await update.message.reply_text("Help")
@@ -488,18 +491,55 @@ async def balance(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
 
 
 
-        logQuery = formatInsertQuery(format="log",userId=userId, func="balance", args={"symbol": symbol, "amount": amount})
+        logQuery = formatInsertQuery(format="log",userId=userId, func="balance",symbol=symbol, args={"amount": amount})
         insert(col="Requesthistory", query=logQuery)
     except Exception as e:
         await update.message.reply_text(str(e))
         await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
+async def admin(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
+    try:
+        actionDict = {
+            "digest": "digest",
+            "users": "users",
+            "symbols": "symbols",
+            "functions": "functions",
+        }
+        userId = update.effective_user.id
+        action = context.args[0].lower()
+
+
+
+
+        # Check if user has admin role
+        selectQuery = {"userId": userId}
+        selectResponse = list(select(query=selectQuery, col="Users"))
+
+        if selectResponse[0]["role"] != "admin":
+            await update.message.reply_text("You need an admin role to use this command.")
+            return
+
+        if action not in actionDict:
+            await update.message.reply_text("Please choose an action: show, remove, add.")
+            return
+
+        if action == "digest":
+            response = admin_digest()
+            await update.message.reply_text(response)
+
+
+
+
+
+    except Exception as e:
+        await update.message.reply_text(str(e))
+        await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
 def main():
     # aplication.builder() ja na zakladni build bota .token() ma v sobe nas api key a .buiuld() build provede
     application = Application.builder().token("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU").build()
 
-    # zaregistruje comand (nazev komandu, callback funcke)
+    # zaregistruje comand (nazev komandu, callback funkce)
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help))
     application.add_handler(CommandHandler("commands", list_commands))
@@ -519,6 +559,7 @@ def main():
 
     application.add_handler(CommandHandler("indicators", indicators))
     application.add_handler(CommandHandler("balance", balance))
+    application.add_handler(CommandHandler("admin", admin))
 
 
 
@@ -533,6 +574,6 @@ def main():
 
 
 if __name__ == "__main__":
-    chat = messageChatgpt("is bitcon worth investing into")
-    print(chat)
+    #chat = messageChatgpt("is bitcon worth investing into")
+    #print(chat)
     main()

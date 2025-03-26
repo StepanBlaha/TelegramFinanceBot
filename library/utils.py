@@ -193,7 +193,7 @@ def formatUpdateQuery( format, newPrice=None, lastProcess=None, nextProcess=None
     return query
 
 # Function for formating db insert query
-def formatInsertQuery(format, userId, func, lastProcess=None, nextProcess=None, interval=None, symbol=None, margin=None, lastPrice=None, args=None, amount=None):
+def formatInsertQuery(format, userId, func=None, lastProcess=None, nextProcess=None, interval=None, symbol=None, margin=None, lastPrice=None, args=None, amount=None):
     """
     Function for formating db insert query
     :param format: format
@@ -249,6 +249,11 @@ def formatInsertQuery(format, userId, func, lastProcess=None, nextProcess=None, 
                 "function": func,
                 "symbol": symbol,
                 "args": args
+            },
+        "user":
+            {
+                "userId": userId,
+                "role": "user"
             }
 
 
