@@ -1085,12 +1085,12 @@ def get_balance_worth(userId, symbol=None, dictionary=None):
         selectQuery = {"userId": userId, "symbol": symbol.upper()}
         response = list(select(query=selectQuery, col="Usercrypto"))
         if len(response) == 0:
-            return "No registered data for given symbol"
+            return "No data found for given symbol"
     else:
         selectQuery = {"userId": userId}
         response = list(select(query=selectQuery, col="Usercrypto"))
         if len(response) == 0:
-            return "No registered data"
+            return "No data found"
 
     if dictionary:
         responseDict = formatBalanceResponse(data=response, dictionary=True)
