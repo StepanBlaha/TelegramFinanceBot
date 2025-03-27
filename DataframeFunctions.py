@@ -37,7 +37,7 @@ class Dataframe:
             "EMA": emas,
             "Timestamp": timestamps
         }
-        dataFrame = self.utils.get_dataframe(data)
+        dataFrame = self.get_dataframe(data)
         dataFrame = dataFrame.to_string(index=False)
         return dataFrame
 
@@ -56,13 +56,13 @@ class Dataframe:
             "J": Js,
             "Timestamp": closeTimes
         }
-        dataFrame = self.utils.get_dataframe(data)
+        dataFrame = self.get_dataframe(data)
         if df:
             return dataFrame
         dataFrame = dataFrame.to_string(index=False)
         return dataFrame
 
-    def get_dataframe(data):
+    def get_dataframe(self, data):
         """
         Function for getting dataframe from given data
         :param data:

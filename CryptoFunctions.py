@@ -12,12 +12,16 @@ from IndicatorFunctions import Indicators
 from AiFunctions import AI
 from UtilsFunctions import Utils
 from IndicatorFunctions import Indicators
+from DataframeFunctions import Dataframe
+from PlotFunctions import Plot
 class Crypto:
     def __int__(self):
         self.client = Client()
         self.ai = AI()
         self.utils = Utils()
         self.indicators = Indicators()
+        self.plot = Plot()
+        self.dataframe = Dataframe()
         pass
 
     # Function for getting specific data from given klines
@@ -262,7 +266,7 @@ class Crypto:
             buy += 1
 
         # Get buy/sell based od kdj
-        kdj = self.get_kdj_dataframe(symbol, period, df=True)
+        kdj = self.dataframe.get_kdj_dataframe(symbol, period, df=True)
         signals = []
 
         for i in range(1, len(kdj)):

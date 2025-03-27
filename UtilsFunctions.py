@@ -7,14 +7,6 @@ class Utils:
     def __init__(self):
         pass
 
-    def get_dataframe(self, data):
-        """
-        Function for getting dataframe from given data
-        :param data:
-        :return: dataFrame
-        """
-        dataFrame = np.DataFrame(data)
-        return dataFrame
 
     def is_number(self, val):
         """
