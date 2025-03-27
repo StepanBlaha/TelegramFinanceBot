@@ -13,7 +13,8 @@ from library.utils import *
 from mongoFunctions import *
 from library.indicatorMessages import *
 from library.adminFunctions import *
-from Crypto import Crypto
+from CryptoFunctions import Crypto
+
 from ai import *
 class Bot:
     def __int__(self):
@@ -53,14 +54,14 @@ class Bot:
         )
         register_user(userId=userId)
 
-    async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def help(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         userId = update.effective_user.id
         await update.message.reply_text("Help")
 
         logQuery = formatInsertQuery(format="log", userId=userId, func="help")
         insert(col="Requesthistory", query=logQuery)
 
-    async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def echo(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         userId = update.effective_user.id
         await update.message.reply_text(update.message.text)
 
@@ -69,7 +70,7 @@ class Bot:
 
     # Function for getting all the bot commands
     # ------------------------------------Nefunguje--------------------------------------------------------
-    async def list_commands(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def list_commands(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         commands = await context.bot.get_my_commands()
         if commands:
             for command in commands:
@@ -80,7 +81,7 @@ class Bot:
     # ------------------------------------Nefunguje--------------------------------------------------------
 
     # Function for getting base info about symbol
-    async def symbol_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def symbol_info(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         # Takes user given argument
         userId = update.effective_user.id
         user_arg = "".join(context.args)
@@ -92,7 +93,7 @@ class Bot:
         insert(col="Requesthistory", query=logQuery)
 
     # Function for returning price chart for desired symbol
-    async def price_chart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def price_chart(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         # Takes user given argument
         try:
             userId = update.effective_user.id
@@ -108,7 +109,7 @@ class Bot:
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
-    async def kdj(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def kdj(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         # Takes user given argument
         try:
             userId = update.effective_user.id
@@ -126,7 +127,7 @@ class Bot:
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
-    async def ema(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def ema(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         # Takes user given argument
         try:
             userId = update.effective_user.id
@@ -146,7 +147,7 @@ class Bot:
 
     # format:
     # /indicators symbol <indicator-optional>
-    async def indicators(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def indicators(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         try:
             userId = update.effective_user.id
             symbol = context.args[0]
@@ -197,21 +198,21 @@ class Bot:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
     # Example - usefull for future
-    async def send_msg_to_user(user_chat_id: int, text: str, bot):
+    async def send_msg_to_user(self, user_chat_id: int, text: str, bot):
         await bot.send_message(chat_id=user_chat_id, text=text)
 
-    async def send(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def send(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
         id = update.effective_user.id
         text = f"dsmfsnd {id}"
-        await send_msg_to_user(user_chat_id=id, text=text, bot=context.bot)
+        await self.send_msg_to_user(user_chat_id=id, text=text, bot=context.bot)
 
         logQuery = formatInsertQuery(format="log", userId=id, func="send")
         insert(col="Requesthistory", query=logQuery)
 
     # format:
     # /digest mena interval optional
-    async def setDigest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def setDigest(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         # dictionary for possible user intervals
         intervalDIct = {
             "daily": 86400,
@@ -261,7 +262,7 @@ class Bot:
 
     # format
     # /set_monitor mena margin
-    async def priceMonitor(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def priceMonitor(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         try:
             func = "priceMonitor"
             userId = update.effective_user.id
@@ -283,7 +284,7 @@ class Bot:
 
     # format
     # /crypto_update symbol interval
-    async def cryptoUpdate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def cryptoUpdate(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         intervalDIct = {
             "daily": 86400,
             "weekly": 604800,
@@ -330,7 +331,7 @@ class Bot:
 
     # format
     # /my_functions funkce
-    async def showUserFunctions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def showUserFunctions(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         try:
             # Get the parameters
             func = context.args[0]
@@ -350,7 +351,7 @@ class Bot:
     # format
     # /delete funkce symbol val(interval/margin)
     # interval psany v hodinach
-    async def deleteFunction(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def deleteFunction(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         try:
             # Get all the necessary data
             func = context.args[0]
@@ -374,7 +375,7 @@ class Bot:
     # format
     # /chatbot message
     # interval psany v hodinach
-    async def chatbot(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def chatbot(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         try:
             userId = update.effective_user.id
             msg = context.args[0]
@@ -389,7 +390,7 @@ class Bot:
 
     # format
     # /tradeAdvice symbol
-    async def tradeAdvice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def tradeAdvice(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         try:
             userId = update.effective_user.id
             symbol = context.args[0]
@@ -405,7 +406,7 @@ class Bot:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
     # /balance action symbol amount
-    async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def balance(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         try:
             actionDict = {
                 "show": "show",
@@ -486,7 +487,7 @@ class Bot:
             await update.message.reply_text(str(e))
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
-    async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def admin(self,  update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         try:
             actionDict = {
                 "digest": admin_digest,

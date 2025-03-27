@@ -8,14 +8,6 @@ from datetime import datetime
 from mongoFunctions import *
 
 
-def get_dataframe(data):
-    """
-    Function for getting dataframe from given data
-    :param data:
-    :return: dataFrame
-    """
-    dataFrame = np.DataFrame(data)
-    return dataFrame
 
 def is_number(val):
     """
