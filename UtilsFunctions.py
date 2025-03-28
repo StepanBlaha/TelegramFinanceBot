@@ -2,7 +2,7 @@ from binance.client import Client
 import pandas as np
 import time
 from datetime import datetime
-
+from DatabaseFunctions import MongoDB
 class Utils:
     def __init__(self):
         pass
@@ -48,7 +48,7 @@ class Utils:
             return datetime.fromtimestamp(unixTime / 1000).strftime('%Y-%d-%m')
         return datetime.fromtimestamp(unixTime / 1000).strftime('%Y-%m-%d %H:%M:%S')
 
-    def datetime_to_unix(datetime):
+    def datetime_to_unix(self, datetime):
         """
         Function that converts datetime to unix timestamp
         :param datetime: Datetime to convert
@@ -81,9 +81,11 @@ class Utils:
         :param func: function to select
         :return: formated database response
         """
+        db = MongoDB()
         if func and userId:
             selectQuery = {"userId": userId, "function": func}
-            response = select(col=col, query=selectQuery)
+            response = db.select(col=col, query=selectQuery)
+            db.close()
             formatedResponse = "Here are your set functions:\n\n"
             format = func.lower()
 

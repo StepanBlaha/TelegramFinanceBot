@@ -8,12 +8,15 @@ import math
 import io
 
 from binance.client import Client
+
 from IndicatorFunctions import Indicators
 from AiFunctions import AI
 from UtilsFunctions import Utils
 from IndicatorFunctions import Indicators
 from DataframeFunctions import Dataframe
 from PlotFunctions import Plot
+from DatabaseFunctions import MongoDB
+
 class Crypto:
     def __int__(self):
         self.client = Client()
@@ -22,7 +25,7 @@ class Crypto:
         self.indicators = Indicators()
         self.plot = Plot()
         self.dataframe = Dataframe()
-        pass
+
 
     # Function for getting specific data from given klines
     def get_data_from_klines(self, klines, desiredData):
@@ -356,9 +359,10 @@ class Crypto:
         if action not in ["remove", "add"]:
             return "Invalid action"
 
+        db = MongoDB()
         # Get users data for given symbol
         selectQuery = {"userId": userId, "symbol": symbol}
-        selectResponse = list(select(query=selectQuery, col="Usercrypto"))
+        selectResponse = list(db.select(query=selectQuery, col="Usercrypto"))
 
         # Check if any record exists
         if len(selectResponse) == 0:
@@ -368,7 +372,7 @@ class Crypto:
                 # If the record doesnt exist and the action is "add" create new record
                 insertQuery = self.utils.formatInsertQuery(format="balance", func="baance", userId=userId, symbol=symbol,
                                                 amount=amount)
-                insertResponse = insert(col="Usercrypto", query=insertQuery)
+                insertResponse = db.insert(col="Usercrypto", query=insertQuery)
                 return "Successfuly updated"
 
         # Get the record data
@@ -386,7 +390,8 @@ class Crypto:
 
         # Update the record
         updateQuery = self.utils.formatUpdateQuery(format="balance", amount=newAmount)
-        updateResponse = update(col="Usercrypto", postId=recordId, values=updateQuery)
+        updateResponse =db.update(col="Usercrypto", postId=recordId, values=updateQuery)
+        db.close()
         return updateResponse
 
     def get_balance_worth(self, userId, symbol=None, dictionary=None):
@@ -397,14 +402,15 @@ class Crypto:
         :param dictionary: if true returns dictionary with data
         :return: formatted user wallet data
         """
+        db = MongoDB()
         if symbol:
             selectQuery = {"userId": userId, "symbol": symbol.upper()}
-            response = list(select(query=selectQuery, col="Usercrypto"))
+            response = list(db.select(query=selectQuery, col="Usercrypto"))
             if len(response) == 0:
                 return "No data found for given symbol"
         else:
             selectQuery = {"userId": userId}
-            response = list(select(query=selectQuery, col="Usercrypto"))
+            response = list(db.select(query=selectQuery, col="Usercrypto"))
             if len(response) == 0:
                 return "No data found"
 
@@ -421,6 +427,7 @@ class Crypto:
             formatedStr = f"Your wallet:\n\nsymbol: {i['symbol']}\namount: {i['amount']}\nvalue: {float(symbolPrice) * float(i['amount'])}"
             formatedResponse = formatedResponse + formatedStr
 
+        db.close()
         return formatedResponse
 
     # Function for registering a new user
@@ -430,12 +437,14 @@ class Crypto:
         :param userId: id of the user
         :return:
         """
+        db = MongoDB()
         # Check if user isnt already registered
         selectQuery = {"userId": userId}
-        selectResponse = list(select(query=selectQuery, col="Users"))
+        selectResponse = list(db.select(query=selectQuery, col="Users"))
 
         # If he isnt register him
         if len(selectResponse) == 0:
             insertQuery = self.utils.formatInsertQuery(format="user", userId=userId)
-            insert(col="Users", query=insertQuery)
+            db.insert(col="Users", query=insertQuery)
+        db.close()
 
