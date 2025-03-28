@@ -7,17 +7,13 @@ import json
 import math
 import io
 
-from binance.client import Client
 
-from AiFunctions import AI
-from UtilsFunctions import Utils
 
-from DataframeFunctions import Dataframe
-from PlotFunctions import Plot
+
 from DatabaseFunctions import MongoDB
 
 class Crypto:
-    def __int__(self, Client, AI, Utils, Indicators, Plot, Dataframe):
+    def __init__(self, Client, AI, Utils, Plot, Dataframe):
         self.client = Client()
         self.ai = AI()
         self.utils = Utils()
@@ -447,8 +443,9 @@ class Crypto:
             db.insert(col="Users", query=insertQuery)
         db.close()
 
+
 class Indicators:
-    def __init__(self):
+    def __init__(self, Client, Utils):
         self.client = Client()
         self.crypto = Crypto()
         self.utils = Utils()

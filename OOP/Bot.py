@@ -6,6 +6,8 @@ from telegram import ForceReply, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 import time
 
+from binance.client import Client
+from websockets.protocol import CLIENT
 
 #from ai.chatgptFunctions import msgChatbot
 #from library.indicatorMessages import *
@@ -13,7 +15,7 @@ import time
 
 
 
-from CryptoIndicators import Crypto, Indicators
+from CryptoIndicators import Crypto
 from AdminFunctions import Admin
 from AiFunctions import AI
 from UtilsFunctions import Utils
@@ -21,6 +23,7 @@ from DatabaseFunctions import MongoDB
 from PlotFunctions import Plot
 from DataframeFunctions import Dataframe
 from IndicatorMessageFunctions import IndicatorMessage
+from IndicatorFunctions import Indicators
 
 class SBBot:
     def __init__(self):
@@ -48,14 +51,14 @@ class SBBot:
 
         self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.echo))
 
-        self.crypto = Crypto()
+        self.crypto = Crypto(Client=Client, AI=AI, Utils=Utils, Indicators=Indicators, Plot=Plot, Dataframe=Dataframe)
         self.ai = AI()
         self.admin = Admin()
         self.utils = Utils()
-        self.plot = Plot()
-        self.dataframe = Dataframe()
-        self.indicator_msg = IndicatorMessage()
-        self.indicators = Indicators()
+        self.plot = Plot(Client=Client, Utils=Utils, Indicators=Indicators)
+        self.dataframe = Dataframe(Client=Client, Utils=Utils, Indicators=Indicators)
+        self.indicator_msg = IndicatorMessage(Crypto=Crypto, AI=AI, Utils=Utils, Indicators=Indicators, Plot=Plot, Dataframe=Dataframe, Admin=Admin)
+        self.indicators = Indicators(Client=Client, Crypto=Crypto, Utils=Utils)
 
     def run(self):
         self.application.run_polling(allowed_updates=Update.ALL_TYPES)

@@ -1,16 +1,7 @@
 
 
-from CryptoIndicators import Crypto
-from AdminFunctions import Admin
-from AiFunctions import AI
-from UtilsFunctions import Utils
-from DatabaseFunctions import MongoDB
-from PlotFunctions import Plot
-from DataframeFunctions import Dataframe
-from IndicatorFunctions import Indicators
-
 class IndicatorMessage:
-    def __init__(self):
+    def __init__(self, Crypto, AI, Utils, Indicators, Plot, Dataframe, Admin):
         self.crypto = Crypto()
         self.ai = AI()
         self.admin = Admin()

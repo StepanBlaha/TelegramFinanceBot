@@ -14,7 +14,7 @@ from UtilsFunctions import Utils
 from IndicatorFunctions import Indicators
 
 class Dataframe:
-    def __init__(self):
+    def __init__(self, Client, Utils, Indicators):
         self.client = Client()
         self.utils = Utils()
         self.indicators = Indicators()

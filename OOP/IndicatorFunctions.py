@@ -1,13 +1,8 @@
 import numpy as pd
 import math
-from binance.client import Client
-
-from OOP.CryptoIndicators import Crypto
-from UtilsFunctions import Utils
-
 
 class Indicators:
-    def __init__(self):
+    def __init__(self, Client, Crypto, Utils):
         self.client = Client()
         self.crypto = Crypto()
         self.utils = Utils()
