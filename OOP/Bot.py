@@ -25,6 +25,8 @@ from DataframeFunctions import Dataframe
 from IndicatorMessageFunctions import IndicatorMessage
 from IndicatorFunctions import Indicators
 
+from DependencyContainer import DependencyContainer
+
 class SBBot:
     def __init__(self):
         self.application = Application.builder().token("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU").build()

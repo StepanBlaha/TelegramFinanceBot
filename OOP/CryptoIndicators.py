@@ -14,10 +14,10 @@ from DatabaseFunctions import MongoDB
 
 class Crypto:
     def __init__(self, Client, AI, Utils, Plot, Dataframe):
-        self.client = Client()
+        self.client = dependencies.get('Client')(self)
         self.ai = AI()
         self.utils = Utils()
-        self.indicators = Indicators()
+        self.indicators = Indicators(Client=Client, Utils=Utils, AI=AI, Plot=Plot, Dataframe=Dataframe)
         self.plot = Plot()
         self.dataframe = Dataframe()
 
@@ -445,9 +445,9 @@ class Crypto:
 
 
 class Indicators:
-    def __init__(self, Client, Utils):
+    def __init__(self, Client, AI, Utils, Plot, Dataframe):
         self.client = Client()
-        self.crypto = Crypto()
+        self.crypto = Crypto(Client=Client, Utils=Utils, AI=AI, Plot=Plot, Dataframe=Dataframe)
         self.utils = Utils()
 
     # Function for getting mfi of given symbol
