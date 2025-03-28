@@ -1,16 +1,10 @@
-import numpy as pd
-import matplotlib
 import matplotlib.pyplot as plt
-from datetime import datetime
-import json
-import math
 import io
 
 from binance.client import Client
-from IndicatorFunctions import Indicators
-from AiFunctions import AI
+from OOP.AiFunctions import AI
 from UtilsFunctions import Utils
-from IndicatorFunctions import Indicators
+from OOP.IndicatorFunctions import Indicators
 class Plot:
     def __init__(self):
         self.client = Client()

@@ -1,8 +1,6 @@
-from binance.client import Client
-import pandas as np
 import time
 from datetime import datetime
-from DatabaseFunctions import MongoDB
+from OOP.DatabaseFunctions import MongoDB
 class Utils:
     def __init__(self):
         pass

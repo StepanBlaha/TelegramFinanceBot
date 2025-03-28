@@ -1,11 +1,7 @@
-from binance.client import Client
-
-from CryptoFunctions import Crypto
-from UtilsFunctions import Utils
-
 from openai import OpenAI
 import os
-from dotenv import load_dotenv, dotenv_values
+from dotenv import load_dotenv
+
 load_dotenv()
 
 

@@ -1,15 +1,8 @@
-
-
-import pandas as np
 import numpy as pd
-import matplotlib
-import matplotlib.pyplot as plt
-from datetime import datetime
-import json
 import math
 from binance.client import Client
 
-from CryptoFunctions import Crypto
+from OOP.CryptoFunctions import Crypto
 from UtilsFunctions import Utils
 
 

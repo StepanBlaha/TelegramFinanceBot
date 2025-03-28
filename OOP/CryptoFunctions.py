@@ -448,3 +448,4 @@ class Crypto:
             db.insert(col="Users", query=insertQuery)
         db.close()
 
+db = MongoDB()

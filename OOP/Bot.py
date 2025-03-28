@@ -1,22 +1,29 @@
-
 import logging
 
 from telegram import Bot, BotCommand
 import asyncio
 from telegram import ForceReply, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
-from TelegramBotFunctions import *
-from ai.chatgptBot import messageChatgpt
-from ai.chatgptFunctions import msgChatbot
-from ai.geminiBot import messageGemini
-from library.utils import *
-from mongoFunctions import *
-from library.indicatorMessages import *
-from library.adminFunctions import *
-from CryptoFunctions import Crypto
+import time
 
-from ai import *
-class Bot:
+
+#from ai.chatgptFunctions import msgChatbot
+#from library.indicatorMessages import *
+#from library.adminFunctions import *
+#from OOP.CryptoFunctions import Crypto
+
+
+from CryptoFunctions import Crypto
+from AdminFunctions import Admin
+from AiFunctions import AI
+from UtilsFunctions import Utils
+from DatabaseFunctions import MongoDB
+from PlotFunctions import Plot
+from DataframeFunctions import Dataframe
+from IndicatorMessageFunctions import IndicatorMessage
+from IndicatorFunctions import Indicators
+
+class SBBot:
     def __int__(self):
         self.application = Application.builder().token("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU").build()
         self.application.add_handler(CommandHandler("start", self.start))
@@ -43,6 +50,13 @@ class Bot:
         self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.echo))
 
         self.crypto = Crypto()
+        self.ai = AI()
+        self.admin = Admin()
+        self.utils = Utils()
+        self.plot = Plot()
+        self.dataframe = Dataframe()
+        self.indicator_msg = IndicatorMessage()
+        self.indicators = Indicators()
 
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         userId = update.effective_user.id
@@ -52,21 +66,25 @@ class Bot:
             # tohle nastavi at vyzaduje odpoved
             reply_markup=ForceReply(selective=True),
         )
-        register_user(userId=userId)
+        self.crypto.register_user(userId=userId)
 
     async def help(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         userId = update.effective_user.id
         await update.message.reply_text("Help")
 
-        logQuery = formatInsertQuery(format="log", userId=userId, func="help")
-        insert(col="Requesthistory", query=logQuery)
+        logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="help")
+        db = MongoDB()
+        db.insert(col="Requesthistory", query=logQuery)
+        db.close()
 
     async def echo(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         userId = update.effective_user.id
         await update.message.reply_text(update.message.text)
 
-        logQuery = formatInsertQuery(format="log", userId=userId, func="echo")
-        insert(col="Requesthistory", query=logQuery)
+        logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="echo")
+        db = MongoDB()
+        db.insert(col="Requesthistory", query=logQuery)
+        db.close()
 
     # Function for getting all the bot commands
     # ------------------------------------Nefunguje--------------------------------------------------------
@@ -85,12 +103,14 @@ class Bot:
         # Takes user given argument
         userId = update.effective_user.id
         user_arg = "".join(context.args)
-        response = format_symbol_info(user_arg.upper())
+        response = self.crypto.format_symbol_info(user_arg.upper())
 
         await update.message.reply_text(response)
 
-        logQuery = formatInsertQuery(format="log", userId=userId, symbol=user_arg, func="symbol_info")
-        insert(col="Requesthistory", query=logQuery)
+        logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=user_arg, func="symbol_info")
+        db = MongoDB()
+        db.insert(col="Requesthistory", query=logQuery)
+        db.close()
 
     # Function for returning price chart for desired symbol
     async def price_chart(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -99,13 +119,15 @@ class Bot:
             userId = update.effective_user.id
             symbol = context.args[0]
             period = int(context.args[1])
-            graph = plot_price_in_time(symbol, period)
+            graph = self.plot.plot_price_in_time(symbol, period)
 
             await update.message.reply_photo(photo=graph, caption=f"Price chart for {symbol} over {period} days.")
 
-            logQuery = formatInsertQuery(format="log", userId=userId, symbol=symbol, func="price_chart",
+            logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="price_chart",
                                          args=[period])
-            insert(col="Requesthistory", query=logQuery)
+            db = MongoDB()
+            db.insert(col="Requesthistory", query=logQuery)
+            db.close()
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
@@ -115,14 +137,16 @@ class Bot:
             userId = update.effective_user.id
             symbol = context.args[0]
             period = int(context.args[1])
-            graph = plot_kdj(symbol, period)
-            dataframe = get_kdj_dataframe(symbol, period)
+            graph = self.plot.plot_kdj(symbol, period)
+            dataframe = self.dataframe.get_kdj_dataframe(symbol, period)
 
             await update.message.reply_photo(photo=graph, caption=f"KDJ chart for {symbol} over {period} days.")
             await update.message.reply_text(f"Here is the KDJ data:\n```\n{dataframe}\n```", parse_mode="Markdown")
 
-            logQuery = formatInsertQuery(format="log", userId=userId, symbol=symbol, func="kdj", args=[period])
-            insert(col="Requesthistory", query=logQuery)
+            logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="kdj", args=[period])
+            db = MongoDB()
+            db.insert(col="Requesthistory", query=logQuery)
+            db.close()
             # await update.message.reply_document(document=dataframe, filename="data.csv")
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
@@ -133,14 +157,16 @@ class Bot:
             userId = update.effective_user.id
             symbol = context.args[0]
             period = int(context.args[1])
-            graph = plot_ema(symbol, period)
-            dataframe = get_ema_dataframe(symbol, period)
+            graph = self.plot.plot_ema(symbol, period)
+            dataframe = self.dataframe.get_ema_dataframe(symbol, period)
 
             await update.message.reply_photo(photo=graph, caption=f"EMA chart for {symbol} over {period} days.")
             await update.message.reply_text(f"Here is the EMA data:\n```\n{dataframe}\n```", parse_mode="Markdown")
 
-            logQuery = formatInsertQuery(format="log", userId=userId, symbol=symbol, func="ema", args=[period])
-            insert(col="Requesthistory", query=logQuery)
+            logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="ema", args=[period])
+            db = MongoDB()
+            db.insert(col="Requesthistory", query=logQuery)
+            db.close()
             # await update.message.reply_document(document=dataframe, filename="data.csv")
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
@@ -156,45 +182,48 @@ class Bot:
                 indicator = context.args[1].lower()
                 # Dictionary with different functions
                 indicatorDict = {
-                    "cci": send_cci,
-                    "mfi": send_mfi,
-                    "atr": send_atr,
-                    "rsi": send_rsi,
-                    "avl": send_avl,
-                    "boll": send_boll,
-                    "ema": send_ema,
-                    "kdj": send_kdj,
+                    "cci": self.indicator_msg.send_cci,
+                    "mfi": self.indicator_msg.send_mfi,
+                    "atr": self.indicator_msg.send_atr,
+                    "rsi": self.indicator_msg.send_rsi,
+                    "avl": self.indicator_msg.send_avl,
+                    "boll": self.indicator_msg.send_boll,
+                    "ema": self.indicator_msg.send_ema,
+                    "kdj": self.indicator_msg.send_kdj,
                 }
 
                 # Trigger the correct function according to user picked indicator
-                await indicatorDict.get(indicator, lambda: update.message.reply_text("Invalid indicator."))(update,
-                                                                                                            symbol)
+                await indicatorDict.get(indicator, lambda update, symbol: update.message.reply_text("Invalid indicator."))(update, symbol)
 
-                logQuery = formatInsertQuery(format="log", userId=userId, symbol=symbol, func="indicators",
+                logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="indicators",
                                              args=[indicator])
-                insert(col="Requesthistory", query=logQuery)
+                db = MongoDB()
+                db.insert(col="Requesthistory", query=logQuery)
+                db.close()
 
             else:
                 # Simple indicator data
                 await update.message.reply_text(
-                    f"Technical indicators for {symbol}\n\n The MFI for {symbol}: {get_mfi(symbol)}\n The ATR for {symbol}: {get_atr(symbol)}\n The RSI for {symbol} for the last 14 days: {get_rsi(symbol)}\n The AVL for {symbol} for the last 14 days: {get_avl(symbol)}\n The bollinger lines for {symbol}:\n  middle band: {get_boll(symbol, dictionary=True)['MB']}\n  lower band: {get_boll(symbol, dictionary=True)['LB']}\n  upper band: {get_boll(symbol, dictionary=True)['UB']}")
+                    f"Technical indicators for {symbol}\n\n The MFI for {symbol}: {self.indicators.get_mfi(symbol)}\n The ATR for {symbol}: {self.indicators.get_atr(symbol)}\n The RSI for {symbol} for the last 14 days: {self.indicators.get_rsi(symbol)}\n The AVL for {symbol} for the last 14 days: {self.indicators.get_avl(symbol)}\n The bollinger lines for {symbol}:\n  middle band: {self.indicators.get_boll(symbol, dictionary=True)['MB']}\n  lower band: {self.indicators.get_boll(symbol, dictionary=True)['LB']}\n  upper band: {self.indicators.get_boll(symbol, dictionary=True)['UB']}")
                 # EMA data
-                await update.message.reply_photo(photo=plot_ema(symbol, 14),
+                await update.message.reply_photo(photo=self.plot.plot_ema(symbol, 14),
                                                  caption=f"EMA chart for {symbol} over 14 days."),
-                await update.message.reply_text(f"Here is the EMA data:\n```\n{get_ema_dataframe(symbol, 14)}\n```",
+                await update.message.reply_text(f"Here is the EMA data:\n```\n{self.dataframe.get_ema_dataframe(symbol, 14)}\n```",
                                                 parse_mode="Markdown")
                 # KDJ data
-                await update.message.reply_photo(photo=plot_kdj(symbol, 14),
+                await update.message.reply_photo(photo=self.plot.plot_kdj(symbol, 14),
                                                  caption=f"KDJ chart for {symbol} over 14 days."),
-                await update.message.reply_text(f"Here is the KDJ data:\n```\n{get_kdj_dataframe(symbol, 14)}\n```",
+                await update.message.reply_text(f"Here is the KDJ data:\n```\n{self.dataframe.get_kdj_dataframe(symbol, 14)}\n```",
                                                 parse_mode="Markdown")
                 # CCI data
-                await update.message.reply_photo(photo=plot_cci(symbol), caption=f"CCI chart for{symbol}.")
+                await update.message.reply_photo(photo=self.plot.plot_cci(symbol), caption=f"CCI chart for{symbol}.")
 
-                logQuery = formatInsertQuery(format="log", userId=userId, symbol=symbol, func="indicators")
-                insert(col="Requesthistory", query=logQuery)
+                logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="indicators")
+                db = MongoDB()
+                db.insert(col="Requesthistory", query=logQuery)
+                db.close()
         except Exception as e:
-            await update.message.reply_text(e)
+            await update.message.reply_text(str(e))
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
     # Example - usefull for future
@@ -207,8 +236,10 @@ class Bot:
         text = f"dsmfsnd {id}"
         await self.send_msg_to_user(user_chat_id=id, text=text, bot=context.bot)
 
-        logQuery = formatInsertQuery(format="log", userId=id, func="send")
-        insert(col="Requesthistory", query=logQuery)
+        logQuery = self.utils.formatInsertQuery(format="log", userId=id, func="send")
+        db = MongoDB()
+        db.insert(col="Requesthistory", query=logQuery)
+        db.close()
 
     # format:
     # /digest mena interval optional
@@ -241,21 +272,23 @@ class Bot:
 
             # Get current last proces
             curUnix = int(time.time())
-            curUnix = unix_to_timestamp(curUnix)
+            curUnix = self.utils.unix_to_timestamp(curUnix)
 
             # Get next process
-            nextUnix = seconds_to_unix(interval)
-            nextUnix = unix_to_timestamp(nextUnix)
+            nextUnix = self.utils.seconds_to_unix(interval)
+            nextUnix = self.utils.unix_to_timestamp(nextUnix)
             # Get the query and insert data into db
-            query = formatInsertQuery(format=func, userId=userId, func=func, interval=interval, lastProcess=curUnix,
+            db = MongoDB()
+            query = self.utils.formatInsertQuery(format=func, userId=userId, func=func, interval=interval, lastProcess=curUnix,
                                       nextProcess=nextUnix, args=args)
-            insert(col="Userfunctions", query=query)
+            db.insert(col="Userfunctions", query=query)
 
             await update.message.reply_text("Digest settings updated successfully.")
 
-            logQuery = formatInsertQuery(format="log", userId=userId, symbol=symbol, func="Digest",
+            logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="Digest",
                                          args={"interval": interval, "currentTimestamp": curUnix})
-            insert(col="Requesthistory", query=logQuery)
+            db.insert(col="Requesthistory", query=logQuery)
+            db.close()
 
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
@@ -268,17 +301,19 @@ class Bot:
             userId = update.effective_user.id
             symbol = context.args[0].upper()
             margin = float(context.args[1])
-            lastPrice = float(current_price(symbol))
+            lastPrice = float(self.crypto.current_price(symbol))
             # Get the query and insert into db
-            query = formatInsertQuery(format=func, userId=userId, func=func, margin=margin, lastPrice=lastPrice,
+            db = MongoDB()
+            query = self.utils.formatInsertQuery(format=func, userId=userId, func=func, margin=margin, lastPrice=lastPrice,
                                       symbol=symbol)
-            insert(col="Userfunctions", query=query)
+            db.insert(col="Userfunctions", query=query)
 
             await update.message.reply_text("Price monitor set successfully.")
 
-            logQuery = formatInsertQuery(format="log", userId=userId, symbol=symbol, func="priceMonitor",
+            logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="priceMonitor",
                                          args={"margin": margin, "lastPrice": lastPrice})
-            insert(col="Requesthistory", query=logQuery)
+            db.insert(col="Requesthistory", query=logQuery)
+            db.close()
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
@@ -306,26 +341,28 @@ class Bot:
 
             # Get current last proces
             lastProcess = int(time.time())
-            lastProcess = unix_to_timestamp(lastProcess)
+            lastProcess = self.utils.unix_to_timestamp(lastProcess)
 
             # Get next process
-            nextProcess = seconds_to_unix(interval)
-            nextProcess = unix_to_timestamp(nextProcess)
+            nextProcess = self.utils.seconds_to_unix(interval)
+            nextProcess = self.utils.unix_to_timestamp(nextProcess)
 
             # Get current price
-            lastPrice = float(current_price(symbol))
+            lastPrice = float(self.crypto.current_price(symbol))
 
-            query = formatInsertQuery(format="cryptoUpdate", userId=userId, func=func, interval=interval,
+            db = MongoDB()
+            query = self.utils.formatInsertQuery(format="cryptoUpdate", userId=userId, func=func, interval=interval,
                                       lastProcess=lastProcess, nextProcess=nextProcess, lastPrice=lastPrice,
                                       symbol=symbol)
-            insert(col="Userfunctions", query=query)
+            db.insert(col="Userfunctions", query=query)
 
             await update.message.reply_text("Crypto update settings updated successfully.")
 
-            logQuery = formatInsertQuery(format="log", userId=userId, symbol=symbol, func="cryptoUpdate",
+            logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="cryptoUpdate",
                                          args={"interval": interval, "currentTimestamp": lastProcess,
                                                "lastPrice": lastPrice})
-            insert(col="Requesthistory", query=logQuery)
+            db.insert(col="Requesthistory", query=logQuery)
+            db.close()
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
@@ -338,13 +375,15 @@ class Bot:
             col = "Userfunctions"
             userId = update.effective_user.id
             # Get the formated database response
-            response = formatedDatabaseResponse(col, userId=userId, func=func)
+            db = MongoDB()
+            response = self.utils.formatedDatabaseResponse(col, userId=userId, func=func)
 
             await update.message.reply_text(response)
 
-            logQuery = formatInsertQuery(format="log", userId=userId, func="showUserFunctions",
+            logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="showUserFunctions",
                                          args={"function": func})
-            insert(col="Requesthistory", query=logQuery)
+            db.insert(col="Requesthistory", query=logQuery)
+            db.close()
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
@@ -360,14 +399,17 @@ class Bot:
             symbol = context.args[1]
             val = int(context.args[2])
             # Format the delete query and delete
-            query = formatDeleteQuery(userId, func, symbol, val)
-            response = delete(col, query)
+            db = MongoDB()
+            query = self.utils.formatDeleteQuery(userId, func, symbol, val)
+            response = db.delete(col, query)
 
             await update.message.reply_text(response)
 
-            logQuery = formatInsertQuery(format="log", userId=userId, func="deleteFunction",
+            logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="deleteFunction",
                                          args={"symbol": symbol, "value": val, "function": func})
-            insert(col="Requesthistory", query=logQuery)
+            db.insert(col="Requesthistory", query=logQuery)
+            db.close()
+
         except Exception as e:
             await update.message.reply_text(str(e))
             await update.message.reply_text("Problem in deleting. Check for any format mistakes.")
@@ -379,12 +421,14 @@ class Bot:
         try:
             userId = update.effective_user.id
             msg = context.args[0]
-            response = msgChatbot(msg)
+            response = self.ai.msgChatbot(msg)
 
             await update.message.reply_text(response)
 
-            logQuery = formatInsertQuery(format="log", userId=userId, func="chatbot", args={"message": msg})
-            insert(col="Requesthistory", query=logQuery)
+            logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="chatbot", args={"message": msg})
+            db = MongoDB()
+            db.insert(col="Requesthistory", query=logQuery)
+            db.close()
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
@@ -394,14 +438,16 @@ class Bot:
         try:
             userId = update.effective_user.id
             symbol = context.args[0]
-            functionResponse = trade_advice(symbol, 14)
-            aiResponse = get_gpt_trade_advice(symbol)
+            functionResponse = self.crypto.trade_advice(symbol, 14)
+            aiResponse = self.crypto.get_gpt_trade_advice(symbol)
 
             await update.message.reply_text(
                 f'Here is your trading advice for {symbol}\n\n Calculated advice: {functionResponse}\n OpenAI advice: {aiResponse}')
 
-            logQuery = formatInsertQuery(format="log", userId=userId, func="tradeAdvice", symbol=symbol)
-            insert(col="Requesthistory", query=logQuery)
+            logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="tradeAdvice", symbol=symbol)
+            db = MongoDB()
+            db.insert(col="Requesthistory", query=logQuery)
+            db.close()
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
@@ -435,54 +481,61 @@ class Bot:
                 return
 
             # Different actions
+            db = MongoDB()
             if action == "show":
                 # Get the response based on if symbol is set or not
                 if symbol:
                     query = {"userId": userId, "symbol": symbol}
-                    response = list(select(query=query, col="Usercrypto"))
+                    response = list(db.select(query=query, col="Usercrypto"))
                     # Turn the response to readable format
-                    response = formatBalanceResponse(response)
+                    response = self.utils.formatBalanceResponse(response)
                 else:
                     query = {"userId": userId}
-                    response = list(select(query=query, col="Usercrypto"))
+                    response = list(db.select(query=query, col="Usercrypto"))
                     # Turn the response to readable format
-                    response = formatBalanceResponse(response)
+                    response = self.utils.formatBalanceResponse(response)
                 await update.message.reply_text(f'Here is your account balance:\n\n {response}')
             elif action == "remove":
                 # Error handling
                 if not len(context.args) > 2:
                     await update.message.reply_text("This action requires an amount")
+                    db.close()
                     return
                 # Get the amount
                 amount = context.args[2]
                 # Error handling
-                if not is_number(amount):
+                if not self.utils.is_number(amount):
                     await update.message.reply_text("Please enter a number")
+                    db.close()
                     return
                 # Return the response
-                response = update_balance(symbol=symbol, userId=userId, amount=float(amount), action=action)
+                response = self.crypto.update_balance(symbol=symbol, userId=userId, amount=float(amount), action=action)
                 await update.message.reply_text(f'{response} account balance for symbol {symbol}')
             elif action == "add":
                 # Error handling
                 if not len(context.args) > 2:
                     await update.message.reply_text("This action requires an amount")
+                    db.close()
                     return
                 # Get the amount
                 amount = context.args[2]
                 # Error handling
-                if not is_number(amount):
+                if not self.utils.is_number(amount):
                     await update.message.reply_text("Please enter a number")
+                    db.close()
                     return
                 # Return the response
-                response = update_balance(symbol=symbol, userId=userId, amount=float(amount), action=action)
+                response = self.crypto.update_balance(symbol=symbol, userId=userId, amount=float(amount), action=action)
                 await update.message.reply_text(f'{response} account balance for symbol {symbol}')
             elif action == "value":
-                response = get_balance_worth(userId=userId, symbol=symbol)
+                response = self.crypto.get_balance_worth(userId=userId, symbol=symbol)
                 await update.message.reply_text(f'{response}')
 
-            logQuery = formatInsertQuery(format="log", userId=userId, func="balance", symbol=symbol,
+            logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="balance", symbol=symbol,
                                          args={"amount": amount})
-            insert(col="Requesthistory", query=logQuery)
+
+            db.insert(col="Requesthistory", query=logQuery)
+            db.close()
         except Exception as e:
             await update.message.reply_text(str(e))
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
@@ -490,10 +543,10 @@ class Bot:
     async def admin(self,  update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         try:
             actionDict = {
-                "digest": admin_digest,
-                "users": admin_users,
-                "symbols": admin_symbols,
-                "functions": admin_functions,
+                "digest": self.admin.admin_digest,
+                "users": self.admin.admin_users,
+                "symbols": self.admin.admin_symbols,
+                "functions": self.admin.admin_functions,
             }
             userId = update.effective_user.id
 
@@ -506,8 +559,10 @@ class Bot:
             action = context.args[0].lower()
 
             # Check if user has admin role
+            db = MongoDB()
             selectQuery = {"userId": userId}
-            selectResponse = list(select(query=selectQuery, col="Users"))
+            selectResponse = list(db.select(query=selectQuery, col="Users"))
+            db.close()
 
             if selectResponse[0]["role"] != "admin":
                 await update.message.reply_text("You need an admin role to use this command.")
