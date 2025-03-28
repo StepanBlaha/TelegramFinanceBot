@@ -1,6 +1,7 @@
 import time
 from datetime import datetime
-from OOP.DatabaseFunctions import MongoDB
+from DatabaseFunctions import MongoDB
+
 class Utils:
     def __init__(self):
         pass

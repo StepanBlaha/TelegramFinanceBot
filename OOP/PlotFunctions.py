@@ -2,13 +2,13 @@ import matplotlib.pyplot as plt
 import io
 
 from binance.client import Client
-from OOP.AiFunctions import AI
 from UtilsFunctions import Utils
-from OOP.IndicatorFunctions import Indicators
+from CryptoIndicators import Indicators
+
 class Plot:
     def __init__(self):
         self.client = Client()
-        self.ai = AI()
+
         self.utils = Utils()
         self.indicators = Indicators()
 

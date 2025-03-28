@@ -10,10 +10,10 @@ import time
 #from ai.chatgptFunctions import msgChatbot
 #from library.indicatorMessages import *
 #from library.adminFunctions import *
-#from OOP.CryptoFunctions import Crypto
 
 
-from CryptoFunctions import Crypto
+
+from CryptoIndicators import Crypto, Indicators
 from AdminFunctions import Admin
 from AiFunctions import AI
 from UtilsFunctions import Utils
@@ -21,10 +21,9 @@ from DatabaseFunctions import MongoDB
 from PlotFunctions import Plot
 from DataframeFunctions import Dataframe
 from IndicatorMessageFunctions import IndicatorMessage
-from IndicatorFunctions import Indicators
 
 class SBBot:
-    def __int__(self):
+    def __init__(self):
         self.application = Application.builder().token("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU").build()
         self.application.add_handler(CommandHandler("start", self.start))
         self.application.add_handler(CommandHandler("help", self.help))
@@ -57,6 +56,9 @@ class SBBot:
         self.dataframe = Dataframe()
         self.indicator_msg = IndicatorMessage()
         self.indicators = Indicators()
+
+    def run(self):
+        self.application.run_polling(allowed_updates=Update.ALL_TYPES)
 
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         userId = update.effective_user.id
@@ -574,3 +576,9 @@ class SBBot:
 
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
+
+
+
+if __name__ == "__main__":
+    bot = SBBot()
+    bot.run()

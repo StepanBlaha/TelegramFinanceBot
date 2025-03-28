@@ -1,6 +1,6 @@
 
 
-from CryptoFunctions import Crypto
+from CryptoIndicators import Crypto
 from AdminFunctions import Admin
 from AiFunctions import AI
 from UtilsFunctions import Utils
