@@ -43,8 +43,25 @@ pip install google-genai
 pip install -q -U google-genai
 pip install openai
 pip install python-dotenv
-pip install tensorflow
-pip install tensor
+
 
 pip install -U "steam[client]"
+
+
+
+
+Tests:
+
+/price_chart BTCUSDT 14
+/balance add BTCUSDT 13
+/indicators BTCUSDT
+/chatbot hello
+/symbol_info BTCUSDT
+/digest BTCUSDT 1 6
+/ema BTCUSDT 14
+
+
+
+
+
 """

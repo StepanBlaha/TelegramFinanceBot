@@ -15,9 +15,9 @@ from IndicatorFunctions import Indicators
 
 class Dataframe:
     def __init__(self, Client, Utils, Indicators):
-        self.client = Client()
-        self.utils = Utils()
-        self.indicators = Indicators()
+        self.client = Client
+        self.utils = Utils
+        self.indicators = Indicators
 
     # Function for getting pandas dataframe of EMA
     def get_ema_dataframe(self, symbol, period):

@@ -5,10 +5,10 @@ import io
 
 class Plot:
     def __init__(self, Client, Utils, Indicators):
-        self.client = Client()
+        self.client = Client
 
-        self.utils = Utils()
-        self.indicators = Indicators()
+        self.utils = Utils
+        self.indicators = Indicators
 
     # Function for generating graph of prices of symbol over specified period
     def plot_price_in_time(self, symbol, period):

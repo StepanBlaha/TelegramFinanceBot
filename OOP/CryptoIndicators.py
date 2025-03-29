@@ -13,13 +13,13 @@ import io
 from DatabaseFunctions import MongoDB
 
 class Crypto:
-    def __init__(self, Client, AI, Utils, Plot, Dataframe):
-        self.client = dependencies.get('Client')(self)
-        self.ai = AI()
-        self.utils = Utils()
-        self.indicators = Indicators(Client=Client, Utils=Utils, AI=AI, Plot=Plot, Dataframe=Dataframe)
-        self.plot = Plot()
-        self.dataframe = Dataframe()
+    def __init__(self, Client, AI, Utils, Indicators, Plot, Dataframe):
+        self.client = Client
+        self.ai = AI
+        self.utils = Utils
+        self.indicators = Indicators
+        self.plot = Plot
+        self.dataframe = Dataframe
 
 
     # Function for getting specific data from given klines

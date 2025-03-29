@@ -7,7 +7,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandl
 import time
 
 from binance.client import Client
-from websockets.protocol import CLIENT
+
 
 #from ai.chatgptFunctions import msgChatbot
 #from library.indicatorMessages import *
@@ -53,17 +53,47 @@ class SBBot:
 
         self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.echo))
 
-        self.crypto = Crypto(Client=Client, AI=AI, Utils=Utils, Indicators=Indicators, Plot=Plot, Dataframe=Dataframe)
-        self.ai = AI()
-        self.admin = Admin()
-        self.utils = Utils()
-        self.plot = Plot(Client=Client, Utils=Utils, Indicators=Indicators)
-        self.dataframe = Dataframe(Client=Client, Utils=Utils, Indicators=Indicators)
-        self.indicator_msg = IndicatorMessage(Crypto=Crypto, AI=AI, Utils=Utils, Indicators=Indicators, Plot=Plot, Dataframe=Dataframe, Admin=Admin)
-        self.indicators = Indicators(Client=Client, Crypto=Crypto, Utils=Utils)
+        objects = self.create_objects()
+        self.client = objects["client"]
+        self.crypto = objects["crypto"]
+        self.ai = objects["ai"]
+        self.admin = objects["admin"]
+        self.utils = objects["utils"]
+        self.plot = objects["plot"]
+        self.dataframe = objects["dataframe"]
+        self.indicator_msg = objects["indicator_message"]
+        self.indicators = objects["indicators"]
+
+    def create_objects(self):
+        ai = AI()
+        admin = Admin()
+        utils = Utils()
+        client = Client()
+        # Crypto je none, prida se potom
+        indicators = Indicators(client, None, utils)
+        dataframe = Dataframe(client, utils, indicators)
+        plot = Plot(client, utils, indicators)
+        crypto = Crypto(client, ai, utils, indicators, plot, dataframe)
+
+        indicators.crypto = crypto  # Now set crypto in Indicators
+
+        indicator_message = IndicatorMessage(crypto, ai, utils, indicators, plot, dataframe, admin)
+
+        return {
+            "ai": ai,
+            "admin": admin,
+            "utils": utils,
+            "client": client,
+            "indicators": indicators,
+            "dataframe": dataframe,
+            "plot": plot,
+            "crypto": crypto,
+            "indicator_message": indicator_message,
+        }
 
     def run(self):
         self.application.run_polling(allowed_updates=Update.ALL_TYPES)
+        print("running")
 
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         userId = update.effective_user.id
@@ -162,7 +192,7 @@ class SBBot:
         # Takes user given argument
         try:
             userId = update.effective_user.id
-            symbol = context.args[0]
+            symbol = context.args[0].upper()
             period = int(context.args[1])
             graph = self.plot.plot_ema(symbol, period)
             dataframe = self.dataframe.get_ema_dataframe(symbol, period)

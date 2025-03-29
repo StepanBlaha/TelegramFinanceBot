@@ -3,9 +3,9 @@ import math
 
 class Indicators:
     def __init__(self, Client, Crypto, Utils):
-        self.client = Client()
-        self.crypto = Crypto()
-        self.utils = Utils()
+        self.client = Client
+        self.crypto = Crypto
+        self.utils = Utils
 
     # Function for getting mfi of given symbol
     def get_mfi(self, symbol, period=14):

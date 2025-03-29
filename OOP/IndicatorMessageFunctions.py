@@ -2,13 +2,13 @@
 
 class IndicatorMessage:
     def __init__(self, Crypto, AI, Utils, Indicators, Plot, Dataframe, Admin):
-        self.crypto = Crypto()
-        self.ai = AI()
-        self.admin = Admin()
-        self.utils = Utils()
-        self.plot = Plot()
-        self.dataframe = Dataframe()
-        self.indicators = Indicators()
+        self.crypto = Crypto
+        self.ai = AI
+        self.admin = Admin
+        self.utils = Utils
+        self.plot = Plot
+        self.dataframe = Dataframe
+        self.indicators = Indicators
 
     async def send_cci(self, update, symbol):
         await update.message.reply_photo(photo=self.plot.plot_cci(symbol), caption=f"CCI chart for {symbol}.")

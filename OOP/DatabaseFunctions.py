@@ -129,7 +129,7 @@ class MongoDB(DBInsert, DBSelect, DBUpdate, DBDelete):
     def close(self):
         """ Closes the MongoDB connection """
         self.client.close()
-        print("🔒 Connection closed.")
+        print("Connection closed.")
 
 
 if __name__ == "__main__":
