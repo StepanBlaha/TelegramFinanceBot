@@ -2,7 +2,6 @@ from autoload import *
 class Plot:
     def __init__(self, Client, Utils, Indicators):
         self.client = Client
-
         self.utils = Utils
         self.indicators = Indicators
 

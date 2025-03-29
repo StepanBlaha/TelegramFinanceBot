@@ -7,9 +7,9 @@ class Crypto:
         self.plot = Plot
         self.dataframe = Dataframe
 
-
+    @staticmethod
     # Function for getting specific data from given klines
-    def get_data_from_klines(self, klines, desiredData):
+    def get_data_from_klines(klines, desiredData):
         """
         Function for getting specific data from given klines
         :param klines: List with kline data
@@ -35,6 +35,42 @@ class Crypto:
             currentKline = klines[i]
             dataList.append(float(currentKline[dataIndex]))
         return dataList
+
+    @staticmethod
+    # Function to extract closing prices from given kline list
+    def get_closing_prices(klines):
+        """
+        Function to extract closing prices from given kline list
+        :param klines: List of kline data
+        :return: List of closing prices
+        """
+        closingPrices = []
+        for i in range(len(klines)):
+            currentKline = klines[i]
+            closingPrices.append(float(currentKline[4]))
+        return closingPrices
+
+    @staticmethod
+    # Function for calculating weighted average
+    def calculate_weighted_average(data):
+        """
+        Function for calculating weighted average
+        :param data: data to calculate weighted average of
+        :return: weighted average
+        """
+        totalValue = 0
+        totalQuantity = 0
+
+        for price, quantity in data:
+            price = float(price)
+            quantity = float(quantity)
+            totalValue += price * quantity
+            totalQuantity += quantity
+
+        if totalQuantity == 0:
+            return 0
+
+        return totalValue / totalQuantity
 
     # Function for calculating the average order values for given symbol
     def get_average_order_values(self, symbol, limit=20, dictionary=False):
@@ -166,19 +202,6 @@ class Crypto:
         response = f"Symbol: {symbol['symbol']}\n Status: {symbol['status']}\n Price: {last_price['price']}\n Trade advice: {tradeAdvice}\n\n Current market: \n {market_depth}\n\n Recent trades: \n {recent_trades}\n "
         return response
 
-    # Function to extract closing prices from given kline list
-    def get_closing_prices(self, klines):
-        """
-        Function to extract closing prices from given kline list
-        :param klines: List of kline data
-        :return: List of closing prices
-        """
-        closingPrices = []
-        for i in range(len(klines)):
-            currentKline = klines[i]
-            closingPrices.append(float(currentKline[4]))
-        return closingPrices
-
     # Function for getting the current price of given symbol
     def current_price(self, symbol):
         """
@@ -303,27 +326,3 @@ class Crypto:
         tradeAdvice = self.ai.gptTradeAdvice(symbol["symbol"], period, recent_prices, recent_trades, market_depth).capitalize()
 
         return tradeAdvice
-
-    # Function for calculating weighted average
-    def calculate_weighted_average(self, data):
-        """
-        Function for calculating weighted average
-        :param data: data to calculate weighted average of
-        :return: weighted average
-        """
-        totalValue = 0
-        totalQuantity = 0
-
-        for price, quantity in data:
-            price = float(price)
-            quantity = float(quantity)
-            totalValue += price * quantity
-            totalQuantity += quantity
-
-        if totalQuantity == 0:
-            return 0
-
-        return totalValue / totalQuantity
-
-
-

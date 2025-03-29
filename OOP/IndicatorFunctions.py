@@ -6,6 +6,23 @@ class Indicators:
         self.crypto = Crypto
         self.utils = Utils
 
+    @staticmethod
+    # Function for getting the market pattern base on the opening and closing price
+    def get_price_trend(openingPrice, closingPrice):
+        """
+        Function for getting the market pattern base on the opening and closing price
+        :param openingPrice: The opening price of current kline
+        :param closingPrice: The closing price of current kline
+        :return: Type of trend
+        """
+        acceptableMargin = openingPrice / 100
+        if closingPrice - openingPrice > acceptableMargin:
+            return "bullish"
+        elif closingPrice - openingPrice < acceptableMargin:
+            return "bearish"
+        else:
+            return "neutral"
+
     # Function for getting mfi of given symbol
     def get_mfi(self, symbol, period=14):
         """
@@ -442,19 +459,3 @@ class Indicators:
             return percentageVolatilities, timestamps
 
         return percentageVolatilities
-
-    # Function for getting the market pattern base on the opening and closing price
-    def get_price_trend(self, openingPrice, closingPrice):
-        """
-        Function for getting the market pattern base on the opening and closing price
-        :param openingPrice: The opening price of current kline
-        :param closingPrice: The closing price of current kline
-        :return: Type of trend
-        """
-        acceptableMargin = openingPrice / 100
-        if closingPrice - openingPrice > acceptableMargin:
-            return "bullish"
-        elif closingPrice - openingPrice < acceptableMargin:
-            return "bearish"
-        else:
-            return "neutral"

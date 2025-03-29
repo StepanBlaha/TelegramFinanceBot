@@ -2,8 +2,8 @@ from autoload import *
 
 
 class Admin:
-    def __init__(self):
-        pass
+    def __init__(self, MongoDB):
+        self.db = MongoDB
 
     def admin_digest(self):
         """
@@ -11,12 +11,11 @@ class Admin:
         :return: formatted info
         """
         # Get the number of total users and number of admins
-        db = MongoDB()
-        userCount = len(list(db.select(col="Users")))
-        adminCount = len(list(db.select(col="Users", query={"role": "admin"})))
+        userCount = len(list(self.db.select(col="Users")))
+        adminCount = len(list(self.db.select(col="Users", query={"role": "admin"})))
 
         # Get the request history
-        requestHistory = list(db.select(col="Requesthistory"))
+        requestHistory = list(self.db.select(col="Requesthistory"))
 
         # Get the most used function and symbol
         symbolDict = {}
@@ -41,7 +40,7 @@ class Admin:
         mostUsedFunctionCount = functionDict[mostUsedFunction]
 
         # Get the most monitored symbol and function
-        monitoredSymbols = list(db.select(col="Userfunctions"))
+        monitoredSymbols = list(self.db.select(col="Userfunctions"))
         monitoredSymbolsDict = {}
         monitoredFunctionsDict = {}
         for i in monitoredSymbols:
@@ -69,7 +68,7 @@ class Admin:
         mostMonitoredFunctionCount = monitoredFunctionsDict[mostMonitoredFunction]
 
         response = f"Bot digest\n\nTotal users: {userCount}\nAdmins: {adminCount}\nMost used function: {mostUsedFunction} - {mostUsedFunctionCount} times\nMost used symbol: {mostUsedSymbol} - {mostUsedSymbolCount} times\nMost used monitor function: {mostMonitoredFunction} - {mostMonitoredFunctionCount} times\nMost monitored symbol: {mostMonitoredSymbol} - {mostMonitoredSymbolCount} times"
-        db.close()
+        self.db.close()
         return response
 
     def admin_users(self, IDs=False, funcData=False, monitorData=False):
@@ -80,16 +79,15 @@ class Admin:
         :param monitorData: if true returns dictionary with the count of monitor functions user used and what functions he used
         :return: string with basic data about users
         """
-        db = MongoDB()
-        users = list(db.select(col="Users"))
+        users = list(self.db.select(col="Users"))
         userCount = len(users)
-        adminCount = len(list(db.select(col="Users", query={"role": "admin"})))
+        adminCount = len(list(self.db.select(col="Users", query={"role": "admin"})))
 
-        avgFuncPerUser = len(list(db.select(col="Requesthistory"))) / userCount
-        avgMonitorPerUser = len(list(db.select(col="Userfunctions"))) / userCount
+        avgFuncPerUser = len(list(self.db.select(col="Requesthistory"))) / userCount
+        avgMonitorPerUser = len(list(self.db.select(col="Userfunctions"))) / userCount
 
-        functionUsedCount = len(list(db.select(col="Requesthistory")))
-        monitorSetCount = len(list(db.select(col="Userfunctions")))
+        functionUsedCount = len(list(self.db.select(col="Requesthistory")))
+        monitorSetCount = len(list(self.db.select(col="Userfunctions")))
 
         if IDs:
             # Get all the user ids
@@ -98,13 +96,13 @@ class Admin:
             for i in users:
                 userIDs.append(i["userId"])
                 IDsMessage += f"\n{i + 1}: {i['userId']}"
-            db.close()
+            self.db.close()
             return userIDs, IDsMessage
 
         if funcData:
             # Get dictionary with amount of functions user used and what functions he used and what symbols he used
             userUsedFuncs = {}
-            requestHistory = list(db.select(col="Requesthistory"))
+            requestHistory = list(self.db.select(col="Requesthistory"))
             for i in requestHistory:
                 # Checks if user id is already in the dictionary
                 if i["userId"] not in userUsedFuncs and i["userId"] is not None:
@@ -119,13 +117,13 @@ class Admin:
                     userUsedFuncs[i["userId"]]["functions"].append(i["function"])
                 if i["symbol"] not in userUsedFuncs[i["userId"]]["symbols"] and i["symbol"] is not None:
                     userUsedFuncs[i["userId"]]["symbols"].append(i["symbol"])
-            db.close()
+            self.db.close()
             return userUsedFuncs
 
         if monitorData:
             # Get dictionary with amount of monitors user set and what monitors he set and what symbols he used
             userSetMonitors = {}
-            monitorHistory = list(db.select(col="Userfunctions"))
+            monitorHistory = list(self.db.select(col="Userfunctions"))
 
             for i in monitorHistory:
                 # Checks if user id is already in the dictionary
@@ -141,11 +139,11 @@ class Admin:
                     userSetMonitors[i["userId"]]["monitors"].append(i["function"])
                 if i["symbol"] not in userSetMonitors[i["userId"]]["symbols"] and i["symbol"] is not None:
                     userSetMonitors[i["userId"]]["symbols"].append(i["symbol"])
-            db.close()
+            self.db.close()
             return userSetMonitors
 
         response = f"User data:\n\nTotal users: {userCount}\nAdmins: {adminCount}\nNumber of functions used: {functionUsedCount}\nNumber of monitors set: {monitorSetCount}\nAverage amount of functions used per user: {avgFuncPerUser}\nAverage amount of monitors set by user: {avgMonitorPerUser}"
-        db.close()
+        self.db.close()
         return response
 
     def admin_symbols(self, dictionary=False):
@@ -155,10 +153,9 @@ class Admin:
         :return: formated string with symbol info
         """
         # Get the data
-        db = MongoDB()
-        requestHistory = list(db.select(col="Requesthistory"))
-        monitoredSymbols = list(db.select(col="Userfunctions"))
-        db.close()
+        requestHistory = list(self.db.select(col="Requesthistory"))
+        monitoredSymbols = list(self.db.select(col="Userfunctions"))
+        self.db.close()
         # Get the number of uses in functions and monitors for each symbol
         symbolDict = {}
         differentSymbols = []
@@ -216,10 +213,9 @@ class Admin:
         :return: formated string with function info
         """
         # Get the data
-        db = MongoDB()
-        requestHistory = list(db.select(col="Requesthistory"))
-        monitoredFunctions = list(db.select(col="Userfunctions"))
-        db.close()
+        requestHistory = list(self.db.select(col="Requesthistory"))
+        monitoredFunctions = list(self.db.select(col="Userfunctions"))
+        self.db.close()
         functionDict = {}
         differentFunctions = []
 

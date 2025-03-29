@@ -1,5 +1,6 @@
-
-
+"""
+Version with global connection and using class variables
+"""
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 from bson import ObjectId
@@ -7,6 +8,8 @@ import abc
 
 # Base class with abstract methods for MongoDB operations
 class DBBase(abc.ABC):
+    _client = None
+    _db = None
     def __init__(self, uri=None, db_name="TelegramFinance"):
         """
         Initializes the MongoDB connection.
@@ -15,24 +18,23 @@ class DBBase(abc.ABC):
             uri = "mongodb+srv://stepa15b:VIHctgxlrjBB45io@firstcluster.fbyfb.mongodb.net/?retryWrites=true&w=majority&appName=firstCluster"
         self.uri = uri
         self.db_name = db_name
-        self.client = None
-        self.db = None
 
     def connect(self):
         """
         Connects to the MongoDB database.
         :return:
         """
-        if self.db is None:
-            self.client = MongoClient(self.uri, server_api=ServerApi('1'))
+        if DBBase._db is None:
+            DBBase._client = MongoClient(self.uri, server_api=ServerApi('1'))
+
             try:
-                self.client.admin.command('ping')
+                DBBase._client.admin.command('ping')
                 print("Connected to MongoDB successfully!")
-                self.db = self.client[self.db_name]
+                DBBase._db = DBBase._client[self.db_name]
             except Exception as e:
                 print(f"Connection failed: {e}")
-                self.db = None
-        return self.db
+                DBBase._db = None
+        return DBBase._db
 
     def fetch(self, col, query=None):
         """
@@ -137,21 +139,22 @@ class DBDelete(DBBase):
 class MongoDB(DBInsert, DBSelect, DBUpdate, DBDelete):
     def __init__(self):
         super().__init__()
-
+    # @classmethod
     def close(self):
         """
         Closes the MongoDB connection.
+        :return:
         """
-        if self.client:
-            self.client.close()
-            self.client = None
-            self.db = None
-            print("Connection closed.")
+        if DBBase._client:
+            DBBase._client.close()
+            DBBase._client = None
+            DBBase._db = None
+        print("Connection closed.")
 
 
 if __name__ == "__main__":
     """
-    
+
     db = MongoDB()
 
     db.close()

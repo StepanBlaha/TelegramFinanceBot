@@ -1,10 +1,10 @@
 from autoload import *
 class Utils:
-    def __init__(self):
-        pass
+    def __init__(self, MongoDB):
+        self.db = MongoDB
 
-
-    def is_number(self, val):
+    @staticmethod
+    def is_number(val):
         """
         Function for checking if given value is a number
         :param val: value to be checked
@@ -16,7 +16,8 @@ class Utils:
         except ValueError:
             return False
 
-    def is_symbol(self, symbol, client):
+    @staticmethod
+    def is_symbol(symbol, client):
         """
         Function for checking if given symbol exists
         :param symbol: symbol to be checked
@@ -31,8 +32,9 @@ class Utils:
         except:
             return False
 
+    @staticmethod
     # Time conversion functions
-    def unix_to_date(self, unix, day=False):
+    def unix_to_date(unix, day=False):
         """
         Function that converts unix timestamp to datetime object
         :param unix: Unix timestamp
@@ -44,7 +46,8 @@ class Utils:
             return datetime.fromtimestamp(unixTime / 1000).strftime('%Y-%d-%m')
         return datetime.fromtimestamp(unixTime / 1000).strftime('%Y-%m-%d %H:%M:%S')
 
-    def datetime_to_unix(self, datetime):
+    @staticmethod
+    def datetime_to_unix(datetime):
         """
         Function that converts datetime to unix timestamp
         :param datetime: Datetime to convert
@@ -52,7 +55,8 @@ class Utils:
         """
         return int(datetime.timestamp())
 
-    def seconds_to_unix(self, seconds):
+    @staticmethod
+    def seconds_to_unix(seconds):
         """
         Function that adds seconds to unix timestamp
         :param seconds: Seconds to convert
@@ -60,7 +64,8 @@ class Utils:
         """
         return int(time.time()) + seconds
 
-    def unix_to_timestamp(self, unix):
+    @staticmethod
+    def unix_to_timestamp(unix):
         """
         Function that converts unix timestamp to datetime object
         :param unix: Unix timestamp
@@ -69,54 +74,9 @@ class Utils:
         timestamp = datetime.fromtimestamp(unix)
         return timestamp.strftime('%Y-%m-%d %H:%M:%S')
 
-    def formatedDatabaseResponse(self, col, userId=None, func=None):
-        """
-        Function that formats database's response into a message
-        :param col: Collection to select from
-        :param userId: id of user to select
-        :param func: function to select
-        :return: formated database response
-        """
-        db = MongoDB()
-        if func and userId:
-            selectQuery = {"userId": userId, "function": func}
-            response = db.select(col=col, query=selectQuery)
-            db.close()
-            formatedResponse = "Here are your set functions:\n\n"
-            format = func.lower()
-
-            for row in response:
-                # Format  the response based on db
-                if format == "digest":
-                    # Format the interval
-                    if row["interval"] > 86400:
-                        interval = str((row["interval"] / 86400)) + " Days"
-                    else:
-                        interval = str((row["interval"] / 3600)) + " Hours"
-                    # Format the record into a string
-                    record = f'Function: {row["function"]}, Symbol: {row["arguments"][0]}, Interval: {interval}'
-
-                elif format == "pricemonitor":
-                    record = f'Function: {row["function"]}, Symbol: {row["symbol"]}, Monitor change margin: {row["margin"]}%'
-
-                elif format == "cryptoupdate":
-                    # Format the interval
-                    if row["interval"] > 86400:
-                        interval = str((row["interval"] / 86400)) + " Days"
-                    else:
-                        interval = str((row["interval"] / 3600)) + " Hours"
-                    # Format the record into a string
-                    record = f'Function: {row["function"]}, Symbol: {row["symbol"]}, Interval: {interval}'
-
-                else:
-                    record = "Invalid database"
-                formatedResponse = formatedResponse + record
-                formatedResponse = formatedResponse + '\n'
-            return formatedResponse
-        return "Not enough data"
-
+    @staticmethod
     # Function that formats database delete query
-    def formatDeleteQuery(self, userId, func, symbol, val):
+    def formatDeleteQuery(userId, func, symbol, val):
         """
         Function that formats database delete query
         :param userId: id of user
@@ -159,8 +119,9 @@ class Utils:
             return "Invalid database"
         return query
 
+    @staticmethod
     # Function for formating db update query
-    def formatUpdateQuery(self, format, newPrice=None, lastProcess=None, nextProcess=None, amount=None):
+    def formatUpdateQuery(format, newPrice=None, lastProcess=None, nextProcess=None, amount=None):
         """
         Function for formating db update query
         :param format: format
@@ -179,8 +140,9 @@ class Utils:
         query = formatDict[format]
         return query
 
+    @staticmethod
     # Function for formating db insert query
-    def formatInsertQuery(self, format, userId, func=None, lastProcess=None, nextProcess=None, interval=None, symbol=None,
+    def formatInsertQuery(format, userId, func=None, lastProcess=None, nextProcess=None, interval=None, symbol=None,
                           margin=None, lastPrice=None, args=None, amount=None):
         """
         Function for formating db insert query
@@ -252,8 +214,9 @@ class Utils:
         except Exception as e:
             return "Invalid set of arguments"
 
+    @staticmethod
     # Function for formating the balance response from mongo after running "/balance"
-    def formatBalanceResponse(self, data, dictionary=False):
+    def formatBalanceResponse(data, dictionary=False):
         """
         Function for formating the balance response from mongo after running "/balance"
         :param data: data to format
@@ -277,3 +240,49 @@ class Utils:
             return dataDict
 
         return formatedResponse
+
+    def formatedDatabaseResponse(self, col, userId=None, func=None):
+        """
+        Function that formats database's response into a message
+        :param col: Collection to select from
+        :param userId: id of user to select
+        :param func: function to select
+        :return: formated database response
+        """
+
+        if func and userId:
+            selectQuery = {"userId": userId, "function": func}
+            response = self.db.select(col=col, query=selectQuery)
+            self.db.close()
+            formatedResponse = "Here are your set functions:\n\n"
+            format = func.lower()
+
+            for row in response:
+                # Format  the response based on db
+                if format == "digest":
+                    # Format the interval
+                    if row["interval"] > 86400:
+                        interval = str((row["interval"] / 86400)) + " Days"
+                    else:
+                        interval = str((row["interval"] / 3600)) + " Hours"
+                    # Format the record into a string
+                    record = f'Function: {row["function"]}, Symbol: {row["arguments"][0]}, Interval: {interval}'
+
+                elif format == "pricemonitor":
+                    record = f'Function: {row["function"]}, Symbol: {row["symbol"]}, Monitor change margin: {row["margin"]}%'
+
+                elif format == "cryptoupdate":
+                    # Format the interval
+                    if row["interval"] > 86400:
+                        interval = str((row["interval"] / 86400)) + " Days"
+                    else:
+                        interval = str((row["interval"] / 3600)) + " Hours"
+                    # Format the record into a string
+                    record = f'Function: {row["function"]}, Symbol: {row["symbol"]}, Interval: {interval}'
+
+                else:
+                    record = "Invalid database"
+                formatedResponse = formatedResponse + record
+                formatedResponse = formatedResponse + '\n'
+            return formatedResponse
+        return "Not enough data"

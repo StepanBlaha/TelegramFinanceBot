@@ -42,6 +42,7 @@ class SBBot:
         self.indicator_msg = objects["indicator_message"]
         self.indicators = objects["indicators"]
         self.user = objects["user"]
+        self.mongo = objects["mongo"]
 
     def add_handlers(self):
         """
@@ -76,16 +77,17 @@ class SBBot:
         Function to create the objects
         :return: dictionary with created objects
         """
+        mongo = MongoDB()
         ai = AI()
-        admin = Admin()
-        utils = Utils()
+        admin = Admin(mongo)
+        utils = Utils(mongo)
         client = Client()
         # Crypto je none, prida se potom
         indicators = Indicators(client, None, utils)
         dataframe = Dataframe(client, utils, indicators)
         plot = Plot(client, utils, indicators)
         crypto = Crypto(client, ai, utils, indicators, plot, dataframe)
-        user = User(crypto, utils)
+        user = User(crypto, utils, mongo)
         #nevadi mi setovat crypto u indicatoru az potom
         # kdyz predam necemu objekt v pythonu nevytvari kopii ale jakoby dam access k tomu pr.
         # indicators.crypto.status = active tak crypto.status bude taky active
@@ -104,6 +106,7 @@ class SBBot:
             "crypto": crypto,
             "indicator_message": indicator_message,
             "user": user,
+            "mongo": mongo,
         }
 
     def run(self):
@@ -129,18 +132,16 @@ class SBBot:
         await update.message.reply_text("Help")
 
         logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="help")
-        db = MongoDB()
-        db.insert(col="Requesthistory", query=logQuery)
-        db.close()
+        self.mongo.insert(col="Requesthistory", query=logQuery)
+        self.mongo.close()
 
     async def echo(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         userId = update.effective_user.id
         await update.message.reply_text(update.message.text)
 
         logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="echo")
-        db = MongoDB()
-        db.insert(col="Requesthistory", query=logQuery)
-        db.close()
+        self.mongo.insert(col="Requesthistory", query=logQuery)
+        self.mongo.close()
 
     # Function for getting all the bot commands
     # ------------------------------------Nefunguje--------------------------------------------------------
@@ -164,9 +165,8 @@ class SBBot:
         await update.message.reply_text(response)
 
         logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=user_arg, func="symbol_info")
-        db = MongoDB()
-        db.insert(col="Requesthistory", query=logQuery)
-        db.close()
+        self.mongo.insert(col="Requesthistory", query=logQuery)
+        self.mongo.close()
 
     # Function for returning price chart for desired symbol
     async def price_chart(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -181,9 +181,9 @@ class SBBot:
 
             logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="price_chart",
                                          args=[period])
-            db = MongoDB()
-            db.insert(col="Requesthistory", query=logQuery)
-            db.close()
+
+            self.mongo.insert(col="Requesthistory", query=logQuery)
+            self.mongo.close()
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
@@ -200,9 +200,9 @@ class SBBot:
             await update.message.reply_text(f"Here is the KDJ data:\n```\n{dataframe}\n```", parse_mode="Markdown")
 
             logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="kdj", args=[period])
-            db = MongoDB()
-            db.insert(col="Requesthistory", query=logQuery)
-            db.close()
+
+            self.mongo.insert(col="Requesthistory", query=logQuery)
+            self.mongo.close()
             # await update.message.reply_document(document=dataframe, filename="data.csv")
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
@@ -220,9 +220,9 @@ class SBBot:
             await update.message.reply_text(f"Here is the EMA data:\n```\n{dataframe}\n```", parse_mode="Markdown")
 
             logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="ema", args=[period])
-            db = MongoDB()
-            db.insert(col="Requesthistory", query=logQuery)
-            db.close()
+
+            self.mongo.insert(col="Requesthistory", query=logQuery)
+            self.mongo.close()
             # await update.message.reply_document(document=dataframe, filename="data.csv")
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
@@ -253,9 +253,9 @@ class SBBot:
 
                 logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="indicators",
                                              args=[indicator])
-                db = MongoDB()
-                db.insert(col="Requesthistory", query=logQuery)
-                db.close()
+
+                self.mongo.insert(col="Requesthistory", query=logQuery)
+                self.mongo.close()
 
             else:
                 # Simple indicator data
@@ -275,9 +275,9 @@ class SBBot:
                 await update.message.reply_photo(photo=self.plot.plot_cci(symbol), caption=f"CCI chart for{symbol}.")
 
                 logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="indicators")
-                db = MongoDB()
-                db.insert(col="Requesthistory", query=logQuery)
-                db.close()
+
+                self.mongo.insert(col="Requesthistory", query=logQuery)
+                self.mongo.close()
         except Exception as e:
             await update.message.reply_text(str(e))
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
@@ -293,9 +293,8 @@ class SBBot:
         await self.send_msg_to_user(user_chat_id=id, text=text, bot=context.bot)
 
         logQuery = self.utils.formatInsertQuery(format="log", userId=id, func="send")
-        db = MongoDB()
-        db.insert(col="Requesthistory", query=logQuery)
-        db.close()
+        self.mongo.insert(col="Requesthistory", query=logQuery)
+        self.mongo.close()
 
     # format:
     # /digest mena interval optional
@@ -334,17 +333,17 @@ class SBBot:
             nextUnix = self.utils.seconds_to_unix(interval)
             nextUnix = self.utils.unix_to_timestamp(nextUnix)
             # Get the query and insert data into db
-            db = MongoDB()
+
             query = self.utils.formatInsertQuery(format=func, userId=userId, func=func, interval=interval, lastProcess=curUnix,
                                       nextProcess=nextUnix, args=args)
-            db.insert(col="Userfunctions", query=query)
+            self.mongo.insert(col="Userfunctions", query=query)
 
             await update.message.reply_text("Digest settings updated successfully.")
 
             logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="Digest",
                                          args={"interval": interval, "currentTimestamp": curUnix})
-            db.insert(col="Requesthistory", query=logQuery)
-            db.close()
+            self.mongo.insert(col="Requesthistory", query=logQuery)
+            self.mongo.close()
 
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
@@ -359,17 +358,17 @@ class SBBot:
             margin = float(context.args[1])
             lastPrice = float(self.crypto.current_price(symbol))
             # Get the query and insert into db
-            db = MongoDB()
+
             query = self.utils.formatInsertQuery(format=func, userId=userId, func=func, margin=margin, lastPrice=lastPrice,
                                       symbol=symbol)
-            db.insert(col="Userfunctions", query=query)
+            self.mongo.insert(col="Userfunctions", query=query)
 
             await update.message.reply_text("Price monitor set successfully.")
 
             logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="priceMonitor",
                                          args={"margin": margin, "lastPrice": lastPrice})
-            db.insert(col="Requesthistory", query=logQuery)
-            db.close()
+            self.mongo.insert(col="Requesthistory", query=logQuery)
+            self.mongo.close()
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
@@ -406,19 +405,19 @@ class SBBot:
             # Get current price
             lastPrice = float(self.crypto.current_price(symbol))
 
-            db = MongoDB()
+
             query = self.utils.formatInsertQuery(format="cryptoUpdate", userId=userId, func=func, interval=interval,
                                       lastProcess=lastProcess, nextProcess=nextProcess, lastPrice=lastPrice,
                                       symbol=symbol)
-            db.insert(col="Userfunctions", query=query)
+            self.mongo.insert(col="Userfunctions", query=query)
 
             await update.message.reply_text("Crypto update settings updated successfully.")
 
             logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="cryptoUpdate",
                                          args={"interval": interval, "currentTimestamp": lastProcess,
                                                "lastPrice": lastPrice})
-            db.insert(col="Requesthistory", query=logQuery)
-            db.close()
+            self.mongo.insert(col="Requesthistory", query=logQuery)
+            self.mongo.close()
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
@@ -431,15 +430,15 @@ class SBBot:
             col = "Userfunctions"
             userId = update.effective_user.id
             # Get the formated database response
-            db = MongoDB()
+
             response = self.utils.formatedDatabaseResponse(col, userId=userId, func=func)
 
             await update.message.reply_text(response)
 
             logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="showUserFunctions",
                                          args={"function": func})
-            db.insert(col="Requesthistory", query=logQuery)
-            db.close()
+            self.mongo.insert(col="Requesthistory", query=logQuery)
+            self.mongo.close()
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
@@ -455,16 +454,16 @@ class SBBot:
             symbol = context.args[1]
             val = int(context.args[2])
             # Format the delete query and delete
-            db = MongoDB()
+
             query = self.utils.formatDeleteQuery(userId, func, symbol, val)
-            response = db.delete(col, query)
+            response = self.mongo.delete(col, query)
 
             await update.message.reply_text(response)
 
             logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="deleteFunction",
                                          args={"symbol": symbol, "value": val, "function": func})
-            db.insert(col="Requesthistory", query=logQuery)
-            db.close()
+            self.mongo.insert(col="Requesthistory", query=logQuery)
+            self.mongo.close()
 
         except Exception as e:
             await update.message.reply_text(str(e))
@@ -482,9 +481,9 @@ class SBBot:
             await update.message.reply_text(response)
 
             logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="chatbot", args={"message": msg})
-            db = MongoDB()
-            db.insert(col="Requesthistory", query=logQuery)
-            db.close()
+
+            self.mongo.insert(col="Requesthistory", query=logQuery)
+            self.mongo.close()
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
@@ -501,9 +500,9 @@ class SBBot:
                 f'Here is your trading advice for {symbol}\n\n Calculated advice: {functionResponse}\n OpenAI advice: {aiResponse}')
 
             logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="tradeAdvice", symbol=symbol)
-            db = MongoDB()
-            db.insert(col="Requesthistory", query=logQuery)
-            db.close()
+
+            self.mongo.insert(col="Requesthistory", query=logQuery)
+            self.mongo.close()
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
@@ -537,17 +536,17 @@ class SBBot:
                 return
 
             # Different actions
-            db = MongoDB()
+
             if action == "show":
                 # Get the response based on if symbol is set or not
                 if symbol:
                     query = {"userId": userId, "symbol": symbol}
-                    response = list(db.select(query=query, col="Usercrypto"))
+                    response = list(self.mongo.select(query=query, col="Usercrypto"))
                     # Turn the response to readable format
                     response = self.utils.formatBalanceResponse(response)
                 else:
                     query = {"userId": userId}
-                    response = list(db.select(query=query, col="Usercrypto"))
+                    response = list(self.mongo.select(query=query, col="Usercrypto"))
                     # Turn the response to readable format
                     response = self.utils.formatBalanceResponse(response)
                 await update.message.reply_text(f'Here is your account balance:\n\n {response}')
@@ -555,14 +554,14 @@ class SBBot:
                 # Error handling
                 if not len(context.args) > 2:
                     await update.message.reply_text("This action requires an amount")
-                    db.close()
+                    self.mongo.close()
                     return
                 # Get the amount
                 amount = context.args[2]
                 # Error handling
                 if not self.utils.is_number(amount):
                     await update.message.reply_text("Please enter a number")
-                    db.close()
+                    self.mongo.close()
                     return
                 # Return the response
                 response = self.user.update_balance(symbol=symbol, userId=userId, amount=float(amount), action=action)
@@ -571,14 +570,14 @@ class SBBot:
                 # Error handling
                 if not len(context.args) > 2:
                     await update.message.reply_text("This action requires an amount")
-                    db.close()
+                    self.mongo.close()
                     return
                 # Get the amount
                 amount = context.args[2]
                 # Error handling
                 if not self.utils.is_number(amount):
                     await update.message.reply_text("Please enter a number")
-                    db.close()
+                    self.mongo.close()
                     return
                 # Return the response
                 response = self.user.update_balance(symbol=symbol, userId=userId, amount=float(amount), action=action)
@@ -590,8 +589,8 @@ class SBBot:
             logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="balance", symbol=symbol,
                                          args={"amount": amount})
 
-            db.insert(col="Requesthistory", query=logQuery)
-            db.close()
+            self.mongo.insert(col="Requesthistory", query=logQuery)
+            self.mongo.close()
         except Exception as e:
             await update.message.reply_text(str(e))
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
@@ -615,10 +614,10 @@ class SBBot:
             action = context.args[0].lower()
 
             # Check if user has admin role
-            db = MongoDB()
+
             selectQuery = {"userId": userId}
-            selectResponse = list(db.select(query=selectQuery, col="Users"))
-            db.close()
+            selectResponse = list(self.mongo.select(query=selectQuery, col="Users"))
+            self.mongo.close()
 
             if selectResponse[0]["role"] != "admin":
                 await update.message.reply_text("You need an admin role to use this command.")

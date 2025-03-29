@@ -6,6 +6,17 @@ class Dataframe:
         self.utils = Utils
         self.indicators = Indicators
 
+    @staticmethod
+    # Function for getting dataframe from given data
+    def get_dataframe(data):
+        """
+        Function for getting dataframe from given data
+        :param data:
+        :return: dataFrame
+        """
+        dataFrame = np.DataFrame(data)
+        return dataFrame
+
     # Function for getting pandas dataframe of EMA
     def get_ema_dataframe(self, symbol, period):
         """
@@ -49,11 +60,3 @@ class Dataframe:
         dataFrame = dataFrame.to_string(index=False)
         return dataFrame
 
-    def get_dataframe(self, data):
-        """
-        Function for getting dataframe from given data
-        :param data:
-        :return: dataFrame
-        """
-        dataFrame = np.DataFrame(data)
-        return dataFrame

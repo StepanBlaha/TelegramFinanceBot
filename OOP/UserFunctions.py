@@ -1,8 +1,8 @@
-from autoload import *
 class User:
-    def __init__(self, Crypto, Utils):
+    def __init__(self, Crypto, Utils, MongoDB):
         self.crypto = Crypto
         self.utils = Utils
+        self.db = MongoDB
 
     # Function for updating the state of users crypto balance in db
     def update_balance(self, symbol, userId, amount, action):
@@ -18,10 +18,9 @@ class User:
         if action not in ["remove", "add"]:
             return "Invalid action"
 
-        db = MongoDB()
         # Get users data for given symbol
         selectQuery = {"userId": userId, "symbol": symbol}
-        selectResponse = list(db.select(query=selectQuery, col="Usercrypto"))
+        selectResponse = list(self.db.select(query=selectQuery, col="Usercrypto"))
 
         # Check if any record exists
         if len(selectResponse) == 0:
@@ -32,7 +31,7 @@ class User:
                 insertQuery = self.utils.formatInsertQuery(format="balance", func="baance", userId=userId,
                                                            symbol=symbol,
                                                            amount=amount)
-                insertResponse = db.insert(col="Usercrypto", query=insertQuery)
+                insertResponse = self.db.insert(col="Usercrypto", query=insertQuery)
                 return "Successfuly updated"
 
         # Get the record data
@@ -50,8 +49,8 @@ class User:
 
         # Update the record
         updateQuery = self.utils.formatUpdateQuery(format="balance", amount=newAmount)
-        updateResponse = db.update(col="Usercrypto", postId=recordId, values=updateQuery)
-        db.close()
+        updateResponse = self.db.update(col="Usercrypto", postId=recordId, values=updateQuery)
+        self.db.close()
         return updateResponse
 
     # Function for getting users wallet data and their worth
@@ -63,16 +62,17 @@ class User:
         :param dictionary: if true returns dictionary with data
         :return: formatted user wallet data
         """
-        db = MongoDB()
         if symbol:
             selectQuery = {"userId": userId, "symbol": symbol.upper()}
-            response = list(db.select(query=selectQuery, col="Usercrypto"))
+            response = list(self.db.select(query=selectQuery, col="Usercrypto"))
             if len(response) == 0:
+                self.db.close()
                 return "No data found for given symbol"
         else:
             selectQuery = {"userId": userId}
-            response = list(db.select(query=selectQuery, col="Usercrypto"))
+            response = list(self.db.select(query=selectQuery, col="Usercrypto"))
             if len(response) == 0:
+                self.db.close()
                 return "No data found"
 
         if dictionary:
@@ -80,6 +80,7 @@ class User:
             for i in responseDict.values():
                 currentPrice = self.crypto.current_price(i["symbol"])
                 i["value"] = float(currentPrice) * float(i["amount"])
+            self.db.close()
             return responseDict
 
         formatedResponse = ""
@@ -88,7 +89,7 @@ class User:
             formatedStr = f"Your wallet:\n\nsymbol: {i['symbol']}\namount: {i['amount']}\nvalue: {float(symbolPrice) * float(i['amount'])}"
             formatedResponse = formatedResponse + formatedStr
 
-        db.close()
+        self.db.close()
         return formatedResponse
 
     # Function for registering a new user
@@ -98,13 +99,12 @@ class User:
         :param userId: id of the user
         :return:
         """
-        db = MongoDB()
         # Check if user isnt already registered
         selectQuery = {"userId": userId}
-        selectResponse = list(db.select(query=selectQuery, col="Users"))
+        selectResponse = list(self.db.select(query=selectQuery, col="Users"))
 
         # If he isnt register him
         if len(selectResponse) == 0:
             insertQuery = self.utils.formatInsertQuery(format="user", userId=userId)
-            db.insert(col="Users", query=insertQuery)
-        db.close()
+            self.db.insert(col="Users", query=insertQuery)
+        self.db.close()
