@@ -1,4 +1,4 @@
-from TelegramBotFunctions import *
+from Functional.TelegramBotFunctions import *
 
 async def send_cci(update, symbol):
     await update.message.reply_photo(photo=plot_cci(symbol), caption=f"CCI chart for {symbol}.")

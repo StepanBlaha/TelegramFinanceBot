@@ -1,11 +1,7 @@
-from binance.client import Client
 import pandas as np
-import numpy as pd
-import matplotlib
-import matplotlib.pyplot as plt
 import time
 from datetime import datetime
-from mongoFunctions import *
+from Functional.mongoFunctions import *
 
 
 def get_dataframe(data):
