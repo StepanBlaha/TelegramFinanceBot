@@ -1,14 +1,12 @@
 import logging
 
-from telegram import Bot, BotCommand
-import asyncio
 from telegram import ForceReply, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
-import time
+from telegram import Bot, BotCommand
 
 from binance.client import Client
 
-
+from autoload import *
 
 
 
@@ -23,13 +21,13 @@ from DataframeFunctions import Dataframe
 from IndicatorMessageFunctions import IndicatorMessage
 from IndicatorFunctions import Indicators
 from UserFunctions import User
-
-from DependencyContainer import DependencyContainer
+from AutomaticFunctions import AutoFunc
 
 class SBBot:
     def __init__(self):
         self.application = Application.builder().token("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU").build()
         self.add_handlers()
+        self.bot = Bot("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU")
 
         objects = self.create_objects()
         self.client = objects["client"]
@@ -43,6 +41,53 @@ class SBBot:
         self.indicators = objects["indicators"]
         self.user = objects["user"]
         self.mongo = objects["mongo"]
+
+        self.auto_funcs = objects["auto_funcs"]
+        self.auto_func_dict = {
+            "digest": self.auto_funcs.digest,
+            "priceMonitor": self.auto_funcs.priceMonitor,
+            "cryptoUpdate": self.auto_funcs.cryptoUpdate,
+        }
+
+    @staticmethod
+    def create_objects():
+        """
+        Function to create the objects
+        :return: dictionary with created objects
+        """
+        mongo = MongoDB()
+        ai = AI()
+        admin = Admin(mongo)
+        utils = Utils(mongo)
+        client = Client()
+        # Crypto je none, prida se potom
+        indicators = Indicators(client, None, utils)
+        dataframe = Dataframe(client, utils, indicators)
+        plot = Plot(client, utils, indicators)
+        crypto = Crypto(client, ai, utils, indicators, plot, dataframe)
+        user = User(crypto, utils, mongo)
+        auto_funcs = AutoFunc(client, crypto, plot, dataframe, indicators)
+        # nevadi mi setovat crypto u indicatoru az potom
+        # kdyz predam necemu objekt v pythonu nevytvari kopii ale jakoby dam access k tomu pr.
+        # indicators.crypto.status = active tak crypto.status bude taky active
+        indicators.crypto = crypto
+
+        indicator_message = IndicatorMessage(crypto, ai, utils, indicators, plot, dataframe, admin)
+
+        return {
+            "ai": ai,
+            "admin": admin,
+            "utils": utils,
+            "client": client,
+            "indicators": indicators,
+            "dataframe": dataframe,
+            "plot": plot,
+            "crypto": crypto,
+            "indicator_message": indicator_message,
+            "user": user,
+            "mongo": mongo,
+            "auto_funcs": auto_funcs
+        }
 
     def add_handlers(self):
         """
@@ -72,50 +117,119 @@ class SBBot:
 
         self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.echo))
 
-    def create_objects(self):
-        """
-        Function to create the objects
-        :return: dictionary with created objects
-        """
-        mongo = MongoDB()
-        ai = AI()
-        admin = Admin(mongo)
-        utils = Utils(mongo)
-        client = Client()
-        # Crypto je none, prida se potom
-        indicators = Indicators(client, None, utils)
-        dataframe = Dataframe(client, utils, indicators)
-        plot = Plot(client, utils, indicators)
-        crypto = Crypto(client, ai, utils, indicators, plot, dataframe)
-        user = User(crypto, utils, mongo)
-        #nevadi mi setovat crypto u indicatoru az potom
-        # kdyz predam necemu objekt v pythonu nevytvari kopii ale jakoby dam access k tomu pr.
-        # indicators.crypto.status = active tak crypto.status bude taky active
-        indicators.crypto = crypto
-
-        indicator_message = IndicatorMessage(crypto, ai, utils, indicators, plot, dataframe, admin)
-
-        return {
-            "ai": ai,
-            "admin": admin,
-            "utils": utils,
-            "client": client,
-            "indicators": indicators,
-            "dataframe": dataframe,
-            "plot": plot,
-            "crypto": crypto,
-            "indicator_message": indicator_message,
-            "user": user,
-            "mongo": mongo,
-        }
-
     def run(self):
         """
         Run the bot
         :return:
         """
+        loop = asyncio.get_event_loop()
+        loop.create_task(self.loop())
         self.application.run_polling(allowed_updates=Update.ALL_TYPES)
         print("Bot closing..")
+
+    async def loop(self):
+        """
+        Run the automatic function loop
+        :return:
+        """
+        while True:
+            #nesmim zapomenout closenout mongo
+            digestRecords = self.mongo.select(col="Userfunctions")
+            for record in digestRecords:
+                if record["function"] == "digest":
+                    # Get current unix time
+                    curTime = int(time.time())
+                    # Get the next process time
+                    nextProcess = record["nextProcess"]
+                    # convert to date object
+                    nextProcess = datetime.strptime(nextProcess, '%Y-%m-%d %H:%M:%S')
+                    # convert to unix
+                    nextProcess = self.utils.datetime_to_unix(nextProcess)
+                    # If the next process time is more than 60 seconds later than now continue next cycle iteration
+                    if nextProcess - curTime > 60:
+                        continue
+                    # Get the other values
+                    interval = record["interval"]
+                    functionName = record["function"]
+                    args = record["arguments"]
+                    userId = record["userId"]
+                    recordId = str(record["_id"])
+                    # Call the function
+                    await self.auto_func_dict[functionName](args, userId, self.bot)
+                    # Get the last process
+                    newLastProcess = self.utils.unix_to_timestamp(nextProcess)
+                    # Get the new next process
+                    newNextProcess = self.utils.seconds_to_unix(interval)
+                    newNextProcess = self.utils.unix_to_timestamp(newNextProcess)
+                    # old update func
+                    # updateDigest("Digest", recordId, newLastProcess, newNextProcess)
+                    # Get the update query
+                    query = self.utils.formatUpdateQuery("digest", lastProcess=newLastProcess, nextProcess=newNextProcess)
+                    # Update
+                    self.mongo.update("Userfunctions", recordId, query)
+                    print(f'Function {functionName} for user {userId} executed successfully.')
+                elif record["function"] == "priceMonitor":
+                    userId = record["userId"]
+                    recordId = str(record["_id"])
+                    functionName = record["function"]
+                    margin = record["margin"]
+                    lastPrice = float(record["lastPrice"])
+                    symbol = record["symbol"]
+                    # calculate one percent of old price
+                    onePercent = lastPrice / 100
+                    # calculate margin price from margin percentage
+                    marginPrice = onePercent * margin
+                    # Get current price
+                    curPrice = float(self.crypto.current_price(symbol))
+
+                    # Get price difference
+                    priceDifference = curPrice - lastPrice
+                    percentageDifference = priceDifference / onePercent
+                    # check if price is within margin of change
+                    if (abs(priceDifference) < marginPrice):
+                        continue
+
+                    formatedArguments = [symbol, priceDifference, percentageDifference, lastPrice]
+                    await self.auto_func_dict[functionName](formatedArguments, userId, self.bot)
+                    # Old update func
+                    # updatePriceMonitor("priceMonitor", recordId, curPrice)
+                    # Get the update query
+                    query = self.utils.formatUpdateQuery("priceMonitor", newPrice=curPrice)
+                    # Update
+                    self.mongo.update("Userfunctions", recordId, query)
+                    print(f'Function {functionName} for user {userId} executed successfully.')
+                elif record["function"] == "cryptoUpdate":
+                    # Get the record data
+                    recordId = str(record["_id"])
+                    userId = record["userId"]
+                    symbol = record["symbol"]
+                    functionName = record["function"]
+                    interval = record["interval"]
+                    lastPrice = float(record["lastPrice"])
+
+                    lastProcess = int(time.time())
+                    nextProcess = record["nextProcess"]
+                    nextProcess = datetime.strptime(nextProcess, '%Y-%m-%d %H:%M:%S')
+                    # convert to unix
+                    nextProcess = self.utils.datetime_to_unix(nextProcess)
+                    # If the next process time is more than 60 seconds later than now continue next cycle iteration
+                    if nextProcess - lastProcess > 60:
+                        continue
+                    # Run the function
+                    await  self.auto_func_dict[functionName](userId=userId, symbol=symbol, bot=self.bot, lastPrice=lastPrice,
+                                                      interval=interval)
+                    # Get the changed values
+                    newLastProcess = self.utils.unix_to_timestamp(nextProcess)
+                    newNextProcess = self.utils.seconds_to_unix(interval)
+                    newNextProcess = self.utils.unix_to_timestamp(newNextProcess)
+                    currentPrice = float(self.crypto.current_price(symbol))
+                    # Update the values
+                    query = self.utils.formatUpdateQuery("cryptoUpdate", lastProcess=newLastProcess, nextProcess=newNextProcess,
+                                              newPrice=currentPrice)
+                    self.mongo.update("Userfunctions", recordId, query)
+                    print(f'Function {functionName} for user {userId} executed successfully.')
+
+            await asyncio.sleep(10)
 
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         userId = update.effective_user.id
@@ -475,7 +589,7 @@ class SBBot:
     async def chatbot(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         try:
             userId = update.effective_user.id
-            msg = context.args[0]
+            msg = " ".join(context.args)
             response = self.ai.msgChatbot(msg)
 
             await update.message.reply_text(response)

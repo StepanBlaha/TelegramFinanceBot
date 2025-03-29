@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import io
 import time
 from datetime import datetime
+import asyncio
+import logging
 
 from dotenv import load_dotenv
 load_dotenv()
