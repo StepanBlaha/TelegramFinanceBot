@@ -65,6 +65,10 @@ class SBBot:
         self.indicators = objects["indicators"]
 
     def create_objects(self):
+        """
+        Function to create the objects
+        :return: dictionary with created objects
+        """
         ai = AI()
         admin = Admin()
         utils = Utils()
@@ -74,8 +78,10 @@ class SBBot:
         dataframe = Dataframe(client, utils, indicators)
         plot = Plot(client, utils, indicators)
         crypto = Crypto(client, ai, utils, indicators, plot, dataframe)
-
-        indicators.crypto = crypto  # Now set crypto in Indicators
+        #nevadi mi setovat crypto u indicatoru az potom
+        # kdyz predam necemu objekt v pythonu nevytvari kopii ale jakoby dam access k tomu pr.
+        # indicators.crypto.status = active tak crypto.status bude taky active
+        indicators.crypto = crypto
 
         indicator_message = IndicatorMessage(crypto, ai, utils, indicators, plot, dataframe, admin)
 
