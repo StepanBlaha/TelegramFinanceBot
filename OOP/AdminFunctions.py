@@ -1,4 +1,4 @@
-from DatabaseFunctions import MongoDB
+from autoload import *
 
 
 class Admin:

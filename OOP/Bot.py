@@ -9,13 +9,11 @@ import time
 from binance.client import Client
 
 
-#from ai.chatgptFunctions import msgChatbot
-#from library.indicatorMessages import *
-#from library.adminFunctions import *
 
 
 
-from CryptoIndicators import Crypto
+
+from CryptoFunctions import Crypto
 from AdminFunctions import Admin
 from AiFunctions import AI
 from UtilsFunctions import Utils
@@ -24,12 +22,32 @@ from PlotFunctions import Plot
 from DataframeFunctions import Dataframe
 from IndicatorMessageFunctions import IndicatorMessage
 from IndicatorFunctions import Indicators
+from UserFunctions import User
 
 from DependencyContainer import DependencyContainer
 
 class SBBot:
     def __init__(self):
         self.application = Application.builder().token("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU").build()
+        self.add_handlers()
+
+        objects = self.create_objects()
+        self.client = objects["client"]
+        self.crypto = objects["crypto"]
+        self.ai = objects["ai"]
+        self.admin = objects["admin"]
+        self.utils = objects["utils"]
+        self.plot = objects["plot"]
+        self.dataframe = objects["dataframe"]
+        self.indicator_msg = objects["indicator_message"]
+        self.indicators = objects["indicators"]
+        self.user = objects["user"]
+
+    def add_handlers(self):
+        """
+        Function to add handlers
+        :return:
+        """
         self.application.add_handler(CommandHandler("start", self.start))
         self.application.add_handler(CommandHandler("help", self.help))
         self.application.add_handler(CommandHandler("commands", self.list_commands))
@@ -47,22 +65,11 @@ class SBBot:
         self.application.add_handler(CommandHandler("trade_advice", self.tradeAdvice))
         self.application.add_handler(CommandHandler("crypto_update", self.cryptoUpdate))
 
-        self.application.add_handler(CommandHandler("indicators", self.indicators))
+        self.application.add_handler(CommandHandler("indicators", self.indicators_func))
         self.application.add_handler(CommandHandler("balance", self.balance))
-        self.application.add_handler(CommandHandler("admin", self.admin))
+        self.application.add_handler(CommandHandler("admin", self.admin_func))
 
         self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.echo))
-
-        objects = self.create_objects()
-        self.client = objects["client"]
-        self.crypto = objects["crypto"]
-        self.ai = objects["ai"]
-        self.admin = objects["admin"]
-        self.utils = objects["utils"]
-        self.plot = objects["plot"]
-        self.dataframe = objects["dataframe"]
-        self.indicator_msg = objects["indicator_message"]
-        self.indicators = objects["indicators"]
 
     def create_objects(self):
         """
@@ -78,6 +85,7 @@ class SBBot:
         dataframe = Dataframe(client, utils, indicators)
         plot = Plot(client, utils, indicators)
         crypto = Crypto(client, ai, utils, indicators, plot, dataframe)
+        user = User(crypto, utils)
         #nevadi mi setovat crypto u indicatoru az potom
         # kdyz predam necemu objekt v pythonu nevytvari kopii ale jakoby dam access k tomu pr.
         # indicators.crypto.status = active tak crypto.status bude taky active
@@ -95,11 +103,16 @@ class SBBot:
             "plot": plot,
             "crypto": crypto,
             "indicator_message": indicator_message,
+            "user": user,
         }
 
     def run(self):
+        """
+        Run the bot
+        :return:
+        """
         self.application.run_polling(allowed_updates=Update.ALL_TYPES)
-        print("running")
+        print("Bot closing..")
 
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         userId = update.effective_user.id
@@ -109,7 +122,7 @@ class SBBot:
             # tohle nastavi at vyzaduje odpoved
             reply_markup=ForceReply(selective=True),
         )
-        self.crypto.register_user(userId=userId)
+        self.user.register_user(userId=userId)
 
     async def help(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         userId = update.effective_user.id
@@ -216,7 +229,7 @@ class SBBot:
 
     # format:
     # /indicators symbol <indicator-optional>
-    async def indicators(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def indicators_func(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         try:
             userId = update.effective_user.id
             symbol = context.args[0]
@@ -552,7 +565,7 @@ class SBBot:
                     db.close()
                     return
                 # Return the response
-                response = self.crypto.update_balance(symbol=symbol, userId=userId, amount=float(amount), action=action)
+                response = self.user.update_balance(symbol=symbol, userId=userId, amount=float(amount), action=action)
                 await update.message.reply_text(f'{response} account balance for symbol {symbol}')
             elif action == "add":
                 # Error handling
@@ -568,10 +581,10 @@ class SBBot:
                     db.close()
                     return
                 # Return the response
-                response = self.crypto.update_balance(symbol=symbol, userId=userId, amount=float(amount), action=action)
+                response = self.user.update_balance(symbol=symbol, userId=userId, amount=float(amount), action=action)
                 await update.message.reply_text(f'{response} account balance for symbol {symbol}')
             elif action == "value":
-                response = self.crypto.get_balance_worth(userId=userId, symbol=symbol)
+                response = self.user.get_balance_worth(userId=userId, symbol=symbol)
                 await update.message.reply_text(f'{response}')
 
             logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="balance", symbol=symbol,
@@ -583,7 +596,7 @@ class SBBot:
             await update.message.reply_text(str(e))
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
-    async def admin(self,  update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def admin_func(self,  update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         try:
             actionDict = {
                 "digest": self.admin.admin_digest,

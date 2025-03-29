@@ -1,5 +1,4 @@
-import numpy as pd
-import math
+from autoload import *
 
 class Indicators:
     def __init__(self, Client, Crypto, Utils):

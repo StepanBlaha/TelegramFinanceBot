@@ -1,17 +1,4 @@
-import numpy as pd
-import matplotlib
-import matplotlib.pyplot as plt
-from datetime import datetime
-import json
-import math
-import io
-import pandas as np
-
-from binance.client import Client
-from IndicatorFunctions import Indicators
-from AiFunctions import AI
-from UtilsFunctions import Utils
-from IndicatorFunctions import Indicators
+from autoload import *
 
 class Dataframe:
     def __init__(self, Client, Utils, Indicators):

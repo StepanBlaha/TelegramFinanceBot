@@ -1,8 +1,4 @@
-import matplotlib.pyplot as plt
-import io
-
-
-
+from autoload import *
 class Plot:
     def __init__(self, Client, Utils, Indicators):
         self.client = Client
