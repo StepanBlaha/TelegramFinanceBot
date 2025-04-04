@@ -2,8 +2,9 @@ from autoload import *
 
 
 class Admin:
-    def __init__(self, MongoDB):
+    def __init__(self, MongoDB, Utils):
         self.db = MongoDB
+        self.utils = Utils
 
     def admin_digest(self):
         """
@@ -100,47 +101,11 @@ class Admin:
             return userIDs, IDsMessage
 
         if funcData:
-            # Get dictionary with amount of functions user used and what functions he used and what symbols he used
-            userUsedFuncs = {}
-            requestHistory = list(self.db.select(col="Requesthistory"))
-            for i in requestHistory:
-                # Checks if user id is already in the dictionary
-                if i["userId"] not in userUsedFuncs and i["userId"] is not None:
-                    userUsedFuncs[i["userId"]] = {}
-                    userUsedFuncs[i["userId"]]["functionCount"] = 1
-                    userUsedFuncs[i["userId"]]["functions"] = []
-                    userUsedFuncs[i["userId"]]["symbols"] = []
-                elif i["userId"] is not None:
-                    userUsedFuncs[i["userId"]]["functionCount"] += 1
-
-                if i["function"] not in userUsedFuncs[i["userId"]]["functions"]:
-                    userUsedFuncs[i["userId"]]["functions"].append(i["function"])
-                if i["symbol"] not in userUsedFuncs[i["userId"]]["symbols"] and i["symbol"] is not None:
-                    userUsedFuncs[i["userId"]]["symbols"].append(i["symbol"])
-            self.db.close()
-            return userUsedFuncs
+            return self.utils.format_admin_user_data(collection="Requesthistory", entriesIndex="functions", counterIndex="functionCount")
 
         if monitorData:
-            # Get dictionary with amount of monitors user set and what monitors he set and what symbols he used
-            userSetMonitors = {}
-            monitorHistory = list(self.db.select(col="Userfunctions"))
-
-            for i in monitorHistory:
-                # Checks if user id is already in the dictionary
-                if i["userId"] not in userSetMonitors and i["userId"] is not None:
-                    userSetMonitors[i["userId"]] = {}
-                    userSetMonitors[i["userId"]]["monitorCount"] = 1
-                    userSetMonitors[i["userId"]]["monitors"] = []
-                    userSetMonitors[i["userId"]]["symbols"] = []
-                elif i["userId"] is not None:
-                    userSetMonitors[i["userId"]]["monitorCount"] += 1
-
-                if i["function"] not in userSetMonitors[i["userId"]]["monitors"] and i["function"] is not None:
-                    userSetMonitors[i["userId"]]["monitors"].append(i["function"])
-                if i["symbol"] not in userSetMonitors[i["userId"]]["symbols"] and i["symbol"] is not None:
-                    userSetMonitors[i["userId"]]["symbols"].append(i["symbol"])
-            self.db.close()
-            return userSetMonitors
+            data = self.utils.format_admin_user_data(collection="Userfunctions", entriesIndex="monitors", counterIndex="monitorCount")
+            return data
 
         response = f"User data:\n\nTotal users: {userCount}\nAdmins: {adminCount}\nNumber of functions used: {functionUsedCount}\nNumber of monitors set: {monitorSetCount}\nAverage amount of functions used per user: {avgFuncPerUser}\nAverage amount of monitors set by user: {avgMonitorPerUser}"
         self.db.close()
@@ -269,3 +234,4 @@ class Admin:
         # Format response
         response = f"Function data\n\nNumber of different functions used: {len(differentFunctions)}\nMost used function: {mostUsedFunction} - {mostUsedFunctionCount} times\nMost used monitor function: {mostUsedMonitor} - {mostUsedMonitorCount} times"
         return response
+

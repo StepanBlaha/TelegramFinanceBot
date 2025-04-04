@@ -28,36 +28,16 @@ class SBBot:
         self.application = Application.builder().token("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU").build()
         self.add_handlers()
         self.bot = Bot("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU")
+        self.create_objects()
 
-        objects = self.create_objects()
-        self.client = objects["client"]
-        self.crypto = objects["crypto"]
-        self.ai = objects["ai"]
-        self.admin = objects["admin"]
-        self.utils = objects["utils"]
-        self.plot = objects["plot"]
-        self.dataframe = objects["dataframe"]
-        self.indicator_msg = objects["indicator_message"]
-        self.indicators = objects["indicators"]
-        self.user = objects["user"]
-        self.mongo = objects["mongo"]
 
-        self.auto_funcs = objects["auto_funcs"]
-        self.auto_func_dict = {
-            "digest": self.auto_funcs.digest,
-            "priceMonitor": self.auto_funcs.priceMonitor,
-            "cryptoUpdate": self.auto_funcs.cryptoUpdate,
-        }
-
-    @staticmethod
-    def create_objects():
+    def create_objects(self):
         """
         Function to create the objects
-        :return: dictionary with created objects
         """
         mongo = MongoDB()
         ai = AI()
-        admin = Admin(mongo)
+        admin = Admin(mongo, None)
         utils = Utils(mongo)
         client = Client()
         # Crypto je none, prida se potom
@@ -71,22 +51,25 @@ class SBBot:
         # kdyz predam necemu objekt v pythonu nevytvari kopii ale jakoby dam access k tomu pr.
         # indicators.crypto.status = active tak crypto.status bude taky active
         indicators.crypto = crypto
+        admin.utils = utils
 
         indicator_message = IndicatorMessage(crypto, ai, utils, indicators, plot, dataframe, admin)
-
-        return {
-            "ai": ai,
-            "admin": admin,
-            "utils": utils,
-            "client": client,
-            "indicators": indicators,
-            "dataframe": dataframe,
-            "plot": plot,
-            "crypto": crypto,
-            "indicator_message": indicator_message,
-            "user": user,
-            "mongo": mongo,
-            "auto_funcs": auto_funcs
+        self.client = client
+        self.crypto = crypto
+        self.ai = ai
+        self.admin = admin
+        self.utils = utils
+        self.plot = plot
+        self.dataframe = dataframe
+        self.indicator_msg = indicator_message
+        self.indicators = indicators
+        self.user = user
+        self.mongo = mongo
+        self.auto_funcs = auto_funcs
+        self.auto_func_dict = {
+            "digest": self.auto_funcs.digest,
+            "priceMonitor": self.auto_funcs.priceMonitor,
+            "cryptoUpdate": self.auto_funcs.cryptoUpdate,
         }
 
     def add_handlers(self):
@@ -709,6 +692,7 @@ class SBBot:
             await update.message.reply_text(str(e))
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
+    # /admin action
     async def admin_func(self,  update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         try:
             actionDict = {
@@ -742,6 +726,7 @@ class SBBot:
             await update.message.reply_text(response)
 
         except Exception as e:
+            await update.message.reply_text(str(e))
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
 

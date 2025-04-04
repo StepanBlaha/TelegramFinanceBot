@@ -286,3 +286,33 @@ class Utils:
                 formatedResponse = formatedResponse + '\n'
             return formatedResponse
         return "Not enough data"
+
+    def format_admin_user_data(self, collection, entriesIndex, counterIndex):
+        """
+        Function for formatting admin user data
+        :param collection: collection to select from
+        :param entriesIndex: index for different entries in the return dictionary
+        :param counterIndex: index for the counter in the return dictionary
+        :return: dictionary with admin user data
+        """
+        # Get dictionary with wanted data
+        userData = {}
+        dataHistory = list(self.db.select(col=collection))
+
+        for i in dataHistory:
+            # Checks if user id is already in the dictionary
+            if i["userId"] not in userData and i["userId"] is not None:
+                userData[i["userId"]] = {}
+                userData[i["userId"]][counterIndex] = 1
+                userData[i["userId"]][entriesIndex] = []
+                userData[i["userId"]]["symbols"] = []
+            elif i["userId"] is not None:
+                userData[i["userId"]][counterIndex] += 1
+
+            if i["function"] not in userData[i["userId"]][entriesIndex] and i["function"] is not None:
+                userData[i["userId"]][entriesIndex].append(i["function"])
+
+            if i.get("symbol") and i["symbol"] not in userData[i["userId"]]["symbols"]:
+                userData[i["userId"]]["symbols"].append(i["symbol"])
+        self.db.close()
+        return userData
