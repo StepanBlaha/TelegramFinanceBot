@@ -33,7 +33,6 @@ class Utils:
             return False
 
     @staticmethod
-    # Time conversion functions
     def unix_to_date(unix, day=False):
         """
         Function that converts unix timestamp to datetime object
@@ -75,7 +74,21 @@ class Utils:
         return timestamp.strftime('%Y-%m-%d %H:%M:%S')
 
     @staticmethod
-    # Function that formats database delete query
+    def get_dict_max(dictionary, val, key=False):
+        """
+        Function for getting max of desired value from a dictionary
+        :param dictionary: dict to get data from
+        :param val: data you want to get max of
+        :param key: if true returns also the key of the value
+        :return: max value
+        """
+        maxVal = max(dictionary, key=lambda k: dictionary[k][val])
+        if key:
+            maxKey = dictionary[maxVal][val]
+            return maxVal, maxKey
+        return maxVal
+
+    @staticmethod
     def formatDeleteQuery(userId, func, symbol, val):
         """
         Function that formats database delete query
@@ -120,7 +133,6 @@ class Utils:
         return query
 
     @staticmethod
-    # Function for formating db update query
     def formatUpdateQuery(format, newPrice=None, lastProcess=None, nextProcess=None, amount=None):
         """
         Function for formating db update query
@@ -141,7 +153,6 @@ class Utils:
         return query
 
     @staticmethod
-    # Function for formating db insert query
     def formatInsertQuery(format, userId, func=None, lastProcess=None, nextProcess=None, interval=None, symbol=None,
                           margin=None, lastPrice=None, args=None, amount=None):
         """
@@ -215,7 +226,6 @@ class Utils:
             return "Invalid set of arguments"
 
     @staticmethod
-    # Function for formating the balance response from mongo after running "/balance"
     def formatBalanceResponse(data, dictionary=False):
         """
         Function for formating the balance response from mongo after running "/balance"
@@ -316,3 +326,36 @@ class Utils:
                 userData[i["userId"]]["symbols"].append(i["symbol"])
         self.db.close()
         return userData
+
+    @staticmethod
+    def format_admin_symbol_data(data, mainIndex, secondaryIndex, dataType = None, entriesList = None, dataDict = None):
+        """
+        Function for formatting admin symbol data
+        :param data: data to format
+        :param dataType: type of data
+        :param entriesList: list of entries
+        :param dataDict: dictionary for adding data into
+        :param mainIndex: main dictionary index to add to
+        :param secondaryIndex: secondary index to instantiate
+        :return: dictionary with admin symbol data, list with entries
+        """
+        if not dataDict:
+            dataDict = {}
+        if not entriesList:
+            entriesList = []
+
+        for i in data:
+            if i["function"] == "digest" and dataType == "monitoredSymbols":
+                symbol = i["arguments"][0]
+            else:
+                symbol = i["symbol"]
+            # Counter for usage of symbol
+            if symbol not in dataDict and symbol is not None:
+                entriesList.append(symbol)
+                dataDict[symbol] = {}
+                dataDict[symbol][secondaryIndex] = 0
+                dataDict[symbol][mainIndex] = 1
+            elif symbol is not None:
+                dataDict[symbol][mainIndex] += 1
+
+        return dataDict, entriesList

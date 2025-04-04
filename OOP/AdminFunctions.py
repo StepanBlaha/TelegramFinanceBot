@@ -72,6 +72,7 @@ class Admin:
         self.db.close()
         return response
 
+#fixed
     def admin_users(self, IDs=False, funcData=False, monitorData=False):
         """
         Function for getting data about users
@@ -84,11 +85,11 @@ class Admin:
         userCount = len(users)
         adminCount = len(list(self.db.select(col="Users", query={"role": "admin"})))
 
-        avgFuncPerUser = len(list(self.db.select(col="Requesthistory"))) / userCount
-        avgMonitorPerUser = len(list(self.db.select(col="Userfunctions"))) / userCount
-
         functionUsedCount = len(list(self.db.select(col="Requesthistory")))
         monitorSetCount = len(list(self.db.select(col="Userfunctions")))
+
+        avgFuncPerUser = functionUsedCount / userCount
+        avgMonitorPerUser = monitorSetCount / userCount
 
         if IDs:
             # Get all the user ids
@@ -104,13 +105,12 @@ class Admin:
             return self.utils.format_admin_user_data(collection="Requesthistory", entriesIndex="functions", counterIndex="functionCount")
 
         if monitorData:
-            data = self.utils.format_admin_user_data(collection="Userfunctions", entriesIndex="monitors", counterIndex="monitorCount")
-            return data
+            return self.utils.format_admin_user_data(collection="Userfunctions", entriesIndex="monitors", counterIndex="monitorCount")
 
         response = f"User data:\n\nTotal users: {userCount}\nAdmins: {adminCount}\nNumber of functions used: {functionUsedCount}\nNumber of monitors set: {monitorSetCount}\nAverage amount of functions used per user: {avgFuncPerUser}\nAverage amount of monitors set by user: {avgMonitorPerUser}"
         self.db.close()
         return response
-
+#fixed
     def admin_symbols(self, dictionary=False):
         """
         Function for getting data about usage of different bot symbols
@@ -124,38 +124,15 @@ class Admin:
         # Get the number of uses in functions and monitors for each symbol
         symbolDict = {}
         differentSymbols = []
-        for i in requestHistory:
-            # Counter for usage of symbol
-            if i["symbol"] not in symbolDict and i["symbol"] is not None:
-                differentSymbols.append(i["symbol"])
-                symbolDict[i["symbol"]] = {}
-                symbolDict[i["symbol"]]["monitorCount"] = 0
-                symbolDict[i["symbol"]]["functionCount"] = 1
-            elif i["symbol"] is not None:
-                symbolDict[i["symbol"]]["functionCount"] += 1
 
-        # Get the most monitored symbol and function
-        for i in monitoredSymbols:
-            # Get the symbol
-            if i["function"] == "digest":
-                symbol = i["arguments"][0]
-            else:
-                symbol = i["symbol"]
-            # Counter for usage of symbol
-            if symbol not in symbolDict and symbol is not None:
-                differentSymbols.append(symbol)
-                symbolDict[i["symbol"]] = {}
-                symbolDict[i["symbol"]]["monitorCount"] = 1
-                symbolDict[i["symbol"]]["functionCount"] = 0
-            elif symbol is not None:
-                symbolDict[i["symbol"]]["monitorCount"] += 1
+        # Get the formatted request history and monitor data
+        symbolDict, differentSymbolsDict = self.utils.format_admin_symbol_data(data=requestHistory, mainIndex="functionCount", secondaryIndex="monitorCount", entriesList=differentSymbols, dataDict=symbolDict)
+        symbolDict, differentSymbolsDict = self.utils.format_admin_symbol_data(data=monitoredSymbols, dataType="monitoredSymbols", mainIndex="monitorCount", secondaryIndex="functionCount", entriesList=differentSymbols, dataDict=symbolDict)
 
         # Get the most used symbol and its count
-        mostUsedSymbol = max(symbolDict, key=lambda k: symbolDict[k]["functionCount"])
-        mostUsedSymbolCount = symbolDict[mostUsedSymbol]["functionCount"]
+        mostUsedSymbol, mostUsedSymbolCount = self.utils.get_dict_max(dictionary=symbolDict, val="functionCount", key=True)
         # Get the most monitored symbol and its count
-        mostMonitoredSymbol = max(symbolDict, key=lambda k: symbolDict[k]["monitorCount"])
-        mostMonitoredSymbolCount = symbolDict[mostMonitoredSymbol]["monitorCount"]
+        mostMonitoredSymbol, mostMonitoredSymbolCount = self.utils.get_dict_max(dictionary=symbolDict, val="monitorCount", key=True)
 
         if dictionary:
             data = {
