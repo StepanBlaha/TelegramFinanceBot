@@ -79,23 +79,14 @@ class AutoFunc:
         :param interval: interval between updates
         :return:
         """
-        # rozdil ceny normalne a procentualne, done
-        # tradenuto volume done
-        # volatilitu done
-        # bid-ask spread done
-        # order book imbalance done
-        #
-
         currentPrice = float(self.crypto.current_price(symbol))
         priceChange = currentPrice - lastPrice
         percentualChange = (currentPrice - lastPrice) / lastPrice * 100
-        await bot.send_message(chat_id=userId,
-                               text=f"The latest price for {symbol} is: {currentPrice}.\n Last recorded price: {lastPrice}\n Raw price change: {priceChange}.\n Percentual price change: {percentualChange}%")
+        await bot.send_message(chat_id=userId, text=f"The latest price for {symbol} is: {currentPrice}.\n Last recorded price: {lastPrice}\n Raw price change: {priceChange}.\n Percentual price change: {percentualChange}%")
 
         # Get the recent trade data and format them
         tradeData = self.crypto.get_recent_trade_info(symbol=symbol, limit=200, dictionary=True)
-        await bot.send_message(chat_id=userId,
-                               text=f"Data about recent trades\n\n Total trade volume: {tradeData['tradeVolume']}\n Total trade price: {tradeData['priceVolume']}\n Max trade price: {tradeData['maxTradePrice']}\n Min trade price: {tradeData['minTradePrice']}\n Max trade volume: {tradeData['maxTradeQuantity']}\n Min trade volume: {tradeData['minTradeQuantity']}\n Average trade price: {tradeData['averageTradePrice']}\n Average trade volume: {tradeData['averageTradeQuantity']}")
+        await bot.send_message(chat_id=userId, text=f"Data about recent trades\n\n Total trade volume: {tradeData['tradeVolume']}\n Total trade price: {tradeData['priceVolume']}\n Max trade price: {tradeData['maxTradePrice']}\n Min trade price: {tradeData['minTradePrice']}\n Max trade volume: {tradeData['maxTradeQuantity']}\n Min trade volume: {tradeData['minTradeQuantity']}\n Average trade price: {tradeData['averageTradePrice']}\n Average trade volume: {tradeData['averageTradeQuantity']}")
 
         # Format the period for volatility into days
         period = interval / 86400
@@ -108,8 +99,7 @@ class AutoFunc:
         await bot.send_photo(chat_id=userId, photo=graphVolatilities)
 
         bidAskSpreadData = self.indicators.get_bid_ask_spread(symbol=symbol, dictionary=True)
-        await bot.send_message(chat_id=userId,
-                               text=f"The average bid-ask spread: {bidAskSpreadData['spread']}\n Average bid price: {bidAskSpreadData['averageBid']}\n Average ask price: {bidAskSpreadData['averageAsk']}")
+        await bot.send_message(chat_id=userId, text=f"The average bid-ask spread: {bidAskSpreadData['spread']}\n Average bid price: {bidAskSpreadData['averageBid']}\n Average ask price: {bidAskSpreadData['averageAsk']}")
 
         orderBookImbalance = self.indicators.get_order_book_imbalance(symbol=symbol)
         await bot.send_message(chat_id=userId, text=f"The order book imbalance: {orderBookImbalance}%")

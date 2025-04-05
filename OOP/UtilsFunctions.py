@@ -408,7 +408,14 @@ class Utils:
 
     @staticmethod
     def format_admin_digest_data(data, symbolDict=None, functionDict=None, dataType=None):
-
+        """
+        Function for formatting admin digest data
+        :param data: info to format
+        :param symbolDict: dictionary for symbol data
+        :param functionDict: dictionary for function data
+        :param dataType: optional type of data
+        :return: dictionaries with symbol and function data
+        """
 
         if not symbolDict:
             symbolDict = {}
@@ -433,3 +440,22 @@ class Utils:
                 functionDict[i["function"]] += 1
 
         return symbolDict, functionDict
+
+    @staticmethod
+    def format_order_data(data):
+        """
+        Function for formatting order data
+        :param data: list with order data
+        :return: average price, average quantity
+        """
+        averagePrice = 0
+        averageQuantity = 0
+
+        for i in range(len(data)):
+            averagePrice = averagePrice + float(data[i][0])
+            averageQuantity = averageQuantity + float(data[i][1])
+
+        averagePrice = averagePrice / len(data)
+        averageQuantity = averageQuantity / len(data)
+
+        return averagePrice, averageQuantity

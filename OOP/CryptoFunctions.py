@@ -40,7 +40,7 @@ class Crypto:
     # Function to extract closing prices from given kline list
     def get_closing_prices(klines):
         """
-        Function to extract closing prices from given kline list
+        Function to extract closing prices from given klines
         :param klines: List of kline data
         :return: List of closing prices
         """
@@ -75,8 +75,10 @@ class Crypto:
     # Function for calculating the average order values for given symbol
     def get_average_order_values(self, symbol, limit=20, dictionary=False):
         """
-        Function for calculating the average order values for given symbol
-        :param symbol:
+        Function for calculating the average order values
+        :param symbol: Symbol to calculate order values of
+        :param limit: Limit of order values
+        :param dictionary: Boolean to use dictionary or not
         :return : Average prices and quantities of bids and asks
         """
         orders = self.client.get_order_book(symbol=symbol, limit=limit)
@@ -84,21 +86,8 @@ class Crypto:
         asks = orders['asks']  # sell order
 
         # Calulate the averages
-        averageSellQuantity = 0
-        averageBuyQuantity = 0
-        averageSellPrice = 0
-        averageBuyPrice = 0
-        for i in range(len(bids)):
-            averageBuyPrice = averageBuyPrice + float(bids[i][0])
-            averageBuyQuantity = averageBuyQuantity + float(bids[i][1])
-        for i in range(len(asks)):
-            averageSellPrice = averageSellPrice + float(asks[i][0])
-            averageSellQuantity = averageSellQuantity + float(asks[i][1])
-
-        averageSellQuantity = averageSellQuantity / len(asks)
-        averageBuyQuantity = averageBuyQuantity / len(bids)
-        averageSellPrice = averageSellPrice / len(asks)
-        averageBuyPrice = averageBuyPrice / len(bids)
+        averageBuyPrice, averageBuyQuantity = self.utils.format_order_data(data=bids)
+        averageSellPrice, averageSellQuantity = self.utils.format_order_data(data=asks)
 
         if dictionary:
             data = {
@@ -142,7 +131,6 @@ class Crypto:
         MinTradeQuantity = min(tradeQuantities)
         MinTradeQuantity = f"{MinTradeQuantity:.8f}"
         totalTradeQuantity = sum(tradeQuantities)
-        listTradePrice = sum(tradePrices)
 
         if dictionary:
             data = {
@@ -176,8 +164,9 @@ class Crypto:
     # Function for showing basic info about given symbol
     def format_symbol_info(self, symbol_name, period=14):
         """
-        Function for showing basic info about given symbol
-        :param symbol_name:
+        Function for showing basic info
+        :param symbol_name: symbol to get info about
+        :param period: span of days to track
         :return: Info
         """
         # Gets all the exchange pairs
@@ -205,8 +194,8 @@ class Crypto:
     # Function for getting the current price of given symbol
     def current_price(self, symbol):
         """
-        Function for getting the current price of given symbol
-        :param symbol: Symbol to calculate current price
+        Function for getting the current price
+        :param symbol: Symbol to calculate price of
         :return: Current price
         """
         symbolPrice = self.client.get_symbol_ticker(symbol=symbol)
@@ -215,13 +204,12 @@ class Crypto:
     # Function for getting the recent traded volume of given symbol
     def get_recent_traded_volume(self, symbol, period):
         """
-        Function for getting the recent traded volume of given symbol
+        Function for getting the recent traded volume
         :param symbol: Symbol to calculate recent traded volume
         :param period: Period of time for calculation
         :return: Traded volume
         """
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1HOUR,
-                                              start_str=f"{period} days ago")
+        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1HOUR, start_str=f"{period} days ago")
         volumes = self.get_data_from_klines(klines, "Volume")
         volume = sum(volumes)
         return volume
@@ -229,13 +217,12 @@ class Crypto:
     # Function for getting the number of recent trades of given symbol
     def get_number_of_recent_trades(self, symbol, period):
         """
-        Function for getting the number of recent trades of given symbol
+        Function for getting the number of recent trades
         :param symbol: Symbol to calculate number of recent trades
         :param period: Period of time for calculation
         :return: Number of recent trades
         """
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1HOUR,
-                                              start_str=f"{period} days ago")
+        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1HOUR, start_str=f"{period} days ago")
         Trades = self.get_data_from_klines(klines, "Number of trades")
         tradeNumber = sum(Trades)
         return tradeNumber
@@ -243,7 +230,7 @@ class Crypto:
     # Function for getting the latest price trend
     def get_recent_trend(self, symbol, period):
         """
-        Function for getting the recent trend of given symbol
+        Function for getting the recent trend
         :param symbol: Symbol to calculate recent trend
         :param period: Period of time for calculation
         :return: Trend
@@ -254,7 +241,7 @@ class Crypto:
         closingPrice = self.get_data_from_klines(klines, "Close price")
         trend = self.indicators.get_price_trend(float(openingPrice[0]), float(closingPrice[0]))
         return trend
-
+#-----------------------------dodelat a fixnout----------------------------
     def trade_advice(self, symbol, period):
         """
         Custom function for giving suggestions on whether o buy or sell
@@ -307,6 +294,7 @@ class Crypto:
         """
         Function for getting openai advice on whether to sell or buy
         :param symbol_name: Symbol to calculate advice
+        :param period: Period of time for calculation
         :return: Buy/Sell suggestions
         """
         # Gets all the exchange pairs
