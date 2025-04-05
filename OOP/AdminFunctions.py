@@ -5,7 +5,7 @@ class Admin:
     def __init__(self, MongoDB, Utils):
         self.db = MongoDB
         self.utils = Utils
-
+#fixed
     def admin_digest(self):
         """
         Function for getting basic admin info about the bot
@@ -14,59 +14,29 @@ class Admin:
         # Get the number of total users and number of admins
         userCount = len(list(self.db.select(col="Users")))
         adminCount = len(list(self.db.select(col="Users", query={"role": "admin"})))
-
         # Get the request history
         requestHistory = list(self.db.select(col="Requesthistory"))
 
         # Get the most used function and symbol
         symbolDict = {}
         functionDict = {}
-        for i in requestHistory:
-            # Counter for usage of function
-            if i["function"] not in functionDict and i["function"] is not None:
-                functionDict[i["function"]] = 1
-            elif i["function"] is not None:
-                functionDict[i["function"]] += 1
-            # Counter for usage of symbol
-            if i["symbol"] not in symbolDict and i["symbol"] is not None:
-                symbolDict[i["symbol"]] = 1
-            elif i["symbol"] is not None:
-                symbolDict[i["symbol"]] += 1
+        symbolDict, functionDict = self.utils.format_admin_digest_data(data=requestHistory, symbolDict=symbolDict, functionDict=functionDict)
 
         # Get the most used symbol and its count
-        mostUsedSymbol = max(symbolDict, key=symbolDict.get)
-        mostUsedSymbolCount = symbolDict[mostUsedSymbol]
+        mostUsedSymbol, mostUsedSymbolCount = self.utils.get_dict_max(dictionary=symbolDict, key=True)
         # Get the most used symbol and its count
-        mostUsedFunction = max(functionDict, key=functionDict.get)
-        mostUsedFunctionCount = functionDict[mostUsedFunction]
+        mostUsedFunction, mostUsedFunctionCount = self.utils.get_dict_max(dictionary=functionDict, key=True)
 
         # Get the most monitored symbol and function
         monitoredSymbols = list(self.db.select(col="Userfunctions"))
         monitoredSymbolsDict = {}
         monitoredFunctionsDict = {}
-        for i in monitoredSymbols:
-            # Get the symbol
-            if i["function"] == "digest":
-                symbol = i["arguments"][0]
-            else:
-                symbol = i["symbol"]
-            # Counter for usage of symbol
-            if symbol not in monitoredSymbolsDict and symbol is not None:
-                monitoredSymbolsDict[symbol] = 1
-            elif symbol is not None:
-                monitoredSymbolsDict[symbol] += 1
-            # Counter for usage of function
-            if i["function"] not in monitoredFunctionsDict and i["function"] is not None:
-                monitoredFunctionsDict[i["function"]] = 1
-            elif i["function"] is not None:
-                monitoredFunctionsDict[i["function"]] += 1
+        monitoredSymbolsDict, monitoredFunctionsDict = self.utils.format_admin_digest_data(data=monitoredSymbols, symbolDict=monitoredSymbolsDict, functionDict=monitoredFunctionsDict, dataType="monitoredSymbols")
 
         # Get the most monitored symbol and its count
-        mostMonitoredSymbol = max(monitoredSymbolsDict, key=monitoredSymbolsDict.get)
-        mostMonitoredSymbolCount = monitoredSymbolsDict[mostMonitoredSymbol]
+        mostMonitoredSymbol, mostMonitoredSymbolCount = self.utils.get_dict_max(dictionary=monitoredSymbolsDict, key=True)
         # Get the most monitored symbol and its count
-        mostMonitoredFunction = max(monitoredFunctionsDict, key=monitoredFunctionsDict.get)
-        mostMonitoredFunctionCount = monitoredFunctionsDict[mostMonitoredFunction]
+        mostMonitoredFunction, mostMonitoredFunctionCount = self.utils.get_dict_max(dictionary=monitoredFunctionsDict, key=True)
 
         response = f"Bot digest\n\nTotal users: {userCount}\nAdmins: {adminCount}\nMost used function: {mostUsedFunction} - {mostUsedFunctionCount} times\nMost used symbol: {mostUsedSymbol} - {mostUsedSymbolCount} times\nMost used monitor function: {mostMonitoredFunction} - {mostMonitoredFunctionCount} times\nMost monitored symbol: {mostMonitoredSymbol} - {mostMonitoredSymbolCount} times"
         self.db.close()
@@ -130,9 +100,9 @@ class Admin:
         symbolDict, differentSymbolsDict = self.utils.format_admin_symbol_data(data=monitoredSymbols, dataType="monitoredSymbols", mainIndex="monitorCount", secondaryIndex="functionCount", entriesList=differentSymbols, dataDict=symbolDict)
 
         # Get the most used symbol and its count
-        mostUsedSymbol, mostUsedSymbolCount = self.utils.get_dict_max(dictionary=symbolDict, val="functionCount", key=True)
+        mostUsedSymbol, mostUsedSymbolCount = self.utils.get_2D_dict_max(dictionary=symbolDict, val="functionCount", key=True)
         # Get the most monitored symbol and its count
-        mostMonitoredSymbol, mostMonitoredSymbolCount = self.utils.get_dict_max(dictionary=symbolDict, val="monitorCount", key=True)
+        mostMonitoredSymbol, mostMonitoredSymbolCount = self.utils.get_2D_dict_max(dictionary=symbolDict, val="monitorCount", key=True)
 
         if dictionary:
             data = {
@@ -147,7 +117,7 @@ class Admin:
 
         response = f"Symbol data\n\nNumber of different symbols used: {len(symbolDict)}\nMost used symbol: {mostUsedSymbol} - {mostUsedSymbolCount} times\nMost monitored symbol: {mostMonitoredSymbol} - {mostMonitoredSymbolCount} times"
         return response
-
+#fixed
     def admin_functions(self, dictionary=False):
         """
         Function for getting data about usage of different bot functions
@@ -162,38 +132,12 @@ class Admin:
         differentFunctions = []
 
         # Fill the dictionary with the function data
-        for i in requestHistory:
-            if i["function"] not in functionDict and i["function"] is not None:
-                differentFunctions.append(i["function"])
-                functionDict[i["function"]] = {}
-                functionDict[i["function"]]["monitorCount"] = 0
-                functionDict[i["function"]]["functionCount"] = 1
-                functionDict[i["function"]]["symbols"] = []
-            elif i["function"] is not None:
-                functionDict[i["function"]]["functionCount"] += 1
-
-            if i["symbol"] not in functionDict and i["symbol"] is not None:
-                functionDict[i["function"]]["symbols"].append(i["symbol"])
-
-        for i in monitoredFunctions:
-            if i["function"] not in functionDict and i["function"] is not None:
-                differentFunctions.append(i["function"])
-                functionDict[i["function"]] = {}
-                functionDict[i["function"]]["monitorCount"] = 1
-                functionDict[i["function"]]["functionCount"] = 0
-                functionDict[i["function"]]["symbols"] = []
-            elif i["function"] is not None:
-                functionDict[i["function"]]["monitorCount"] += 1
-
-            if i["symbol"] not in functionDict and i["symbol"] is not None:
-                functionDict[i["function"]]["symbols"].append(i["symbol"])
+        functionDict, differentFunctions = self.utils.format_admin_function_data(data=requestHistory, mainIndex="functionCount", secondaryIndex="monitorCount", entriesList=differentFunctions, dataDict=functionDict)
+        functionDict, differentFunctions = self.utils.format_admin_function_data(data=monitoredFunctions, mainIndex="monitorCount", secondaryIndex="functionCount", entriesList=differentFunctions, dataDict=functionDict)
 
         # Get the most used and most used monitor function
-        mostUsedFunction = max(functionDict, key=lambda k: functionDict[k]["functionCount"])
-        mostUsedFunctionCount = functionDict[mostUsedFunction]["functionCount"]
-
-        mostUsedMonitor = max(functionDict, key=lambda k: functionDict[k]["monitorCount"])
-        mostUsedMonitorCount = functionDict[mostUsedMonitor]["monitorCount"]
+        mostUsedFunction, mostUsedFunctionCount = self.utils.get_2D_dict_max(dictionary=functionDict, val="functionCount", key=True)
+        mostUsedMonitor, mostUsedMonitorCount = self.utils.get_2D_dict_max(dictionary=functionDict, val="monitorCount", key=True)
 
         # Format the dictionary with data
         if dictionary:
@@ -205,10 +149,8 @@ class Admin:
                 "functionData": functionDict,
                 "functions": differentFunctions
             }
-
             return data
 
         # Format response
         response = f"Function data\n\nNumber of different functions used: {len(differentFunctions)}\nMost used function: {mostUsedFunction} - {mostUsedFunctionCount} times\nMost used monitor function: {mostUsedMonitor} - {mostUsedMonitorCount} times"
         return response
-

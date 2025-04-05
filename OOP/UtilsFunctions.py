@@ -74,9 +74,9 @@ class Utils:
         return timestamp.strftime('%Y-%m-%d %H:%M:%S')
 
     @staticmethod
-    def get_dict_max(dictionary, val, key=False):
+    def get_2D_dict_max(dictionary, val, key=False):
         """
-        Function for getting max of desired value from a dictionary
+        Function for getting max of desired value from a 2D dictionary
         :param dictionary: dict to get data from
         :param val: data you want to get max of
         :param key: if true returns also the key of the value
@@ -87,6 +87,21 @@ class Utils:
             maxKey = dictionary[maxVal][val]
             return maxVal, maxKey
         return maxVal
+
+    @staticmethod
+    def get_dict_max(dictionary, key=False):
+        """
+        Function for getting max of desired value from a dictionary
+        :param dictionary: dict to get data from
+        :param key: if true returns also the key of the value
+        :return: max value
+        """
+        maxKey = max(dictionary, key=dictionary.get)
+        if key:
+            maxVal = dictionary[maxKey]
+            return maxKey, maxVal
+        return maxKey
+
 
     @staticmethod
     def formatDeleteQuery(userId, func, symbol, val):
@@ -359,3 +374,62 @@ class Utils:
                 dataDict[symbol][mainIndex] += 1
 
         return dataDict, entriesList
+
+    @staticmethod
+    def format_admin_function_data(data, mainIndex, secondaryIndex, entriesList = None, dataDict = None):
+        """
+        Function for formatting admin function data
+        :param data: data to format
+        :param entriesList: list of entries
+        :param dataDict: dictionary for adding data into
+        :param mainIndex: main dictionary index to add to
+        :param secondaryIndex: secondary index to instantiate
+        :return: dictionary with admin function data, list with entries
+        """
+        if not dataDict:
+            dataDict = {}
+        if not entriesList:
+            entriesList = []
+
+        for i in data:
+            if i["function"] not in dataDict and i["function"] is not None:
+                entriesList.append(i["function"])
+                dataDict[i["function"]] = {}
+                dataDict[i["function"]][secondaryIndex] = 0
+                dataDict[i["function"]][mainIndex] = 1
+                dataDict[i["function"]]["symbols"] = []
+            elif i["function"] is not None:
+                dataDict[i["function"]][mainIndex] += 1
+
+            if i.get("symbol") and i["symbol"] not in dataDict[i["function"]]["symbols"]:
+                dataDict[i["function"]]["symbols"].append(i["symbol"])
+
+        return dataDict, entriesList
+
+    @staticmethod
+    def format_admin_digest_data(data, symbolDict=None, functionDict=None, dataType=None):
+
+
+        if not symbolDict:
+            symbolDict = {}
+        if not functionDict:
+            functionDict = {}
+
+        for i in data:
+            # Get the symbol
+            if dataType == "monitoredSymbols" and i["function"] == "digest":
+                symbol = i["arguments"][0]
+            else:
+                symbol = i["symbol"]
+            # Counter for usage of symbol
+            if symbol not in symbolDict and symbol is not None:
+                symbolDict[symbol] = 1
+            elif symbol is not None:
+                symbolDict[symbol] += 1
+            # Counter for usage of function
+            if i["function"] not in functionDict and i["function"] is not None:
+                functionDict[i["function"]] = 1
+            elif i["function"] is not None:
+                functionDict[i["function"]] += 1
+
+        return symbolDict, functionDict
