@@ -1,7 +1,8 @@
 from autoload import *
 class Utils:
-    def __init__(self, MongoDB):
+    def __init__(self, MongoDB, Crypto):
         self.db = MongoDB
+        self.crypto = Crypto
 
     @staticmethod
     def is_number(val):
@@ -46,13 +47,13 @@ class Utils:
         return datetime.fromtimestamp(unixTime / 1000).strftime('%Y-%m-%d %H:%M:%S')
 
     @staticmethod
-    def datetime_to_unix(datetime):
+    def datetime_to_unix(user_datetime):
         """
         Function that converts datetime to unix timestamp
-        :param datetime: Datetime to convert
+        :param user_datetime: Datetime to convert
         :return: Unix timestamp
         """
-        return int(datetime.timestamp())
+        return int(user_datetime.timestamp())
 
     @staticmethod
     def seconds_to_unix(seconds):
@@ -101,7 +102,6 @@ class Utils:
             maxVal = dictionary[maxKey]
             return maxKey, maxVal
         return maxKey
-
 
     @staticmethod
     def formatDeleteQuery(userId, func, symbol, val):
@@ -491,3 +491,17 @@ class Utils:
         plt.close('all')
 
         return IoStream
+
+    def format_kline_data(self, klines):
+        """
+        Function for formatting kline data
+        :param klines: kline data from api
+        :return: openingPrices, closingPrices, highPrices, lowPrices, timestamps, volumes
+        """
+        openingPrices = self.crypto.get_data_from_klines(klines, "Open price")
+        closingPrices = self.crypto.get_data_from_klines(klines, "Close price")
+        highPrices = self.crypto.get_data_from_klines(klines, "High price")
+        lowPrices = self.crypto.get_data_from_klines(klines, "Low price")
+        timestamps = self.crypto.get_data_from_klines(klines, "Close time")
+        volumes = self.crypto.get_data_from_klines(klines, "Volume")
+        return openingPrices, closingPrices, highPrices, lowPrices, timestamps, volumes

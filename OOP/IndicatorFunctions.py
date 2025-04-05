@@ -34,16 +34,10 @@ class Indicators:
         # Get the price data
         klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1HOUR,
                                               start_str=f"{period} days ago")
-        openingPrices = self.crypto.get_data_from_klines(klines = klines, desiredData="Open price")
-        closingPrices = self.crypto.get_data_from_klines(klines, "Close price")
-        highPrices = self.crypto.get_data_from_klines(klines, "High price")
-        lowPrices = self.crypto.get_data_from_klines(klines, "Low price")
-        volumes = self.crypto.get_data_from_klines(klines, "Volume")
-        timestamps = self.crypto.get_data_from_klines(klines, "Close time")
+        _, closingPrices, highPrices, lowPrices, _, volumes = self.utils.format_kline_data(klines=klines)
 
         # Calculate TPs
-        TPs = []
-        rawMoneyFlows = []
+        TPs, rawMoneyFlows = [], []
         negativeMoneyFlow = 0
         positiveMoneyFlow = 0
         for i in range(len(closingPrices)):
@@ -63,10 +57,8 @@ class Indicators:
 
         # Calculate money flow ratio
         MFR = positiveMoneyFlow / negativeMoneyFlow
-
         # Calculate money flow index
         MFI = 100 - (100 / (1 + MFR))
-
         return MFI
 
     # Function for getting atr of given symbol
@@ -82,13 +74,8 @@ class Indicators:
 
         klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1DAY,
                                               start_str=f"{period + 1} days ago")
-        closingPrices = self.crypto.get_data_from_klines(klines, "Close price")
-        highPrices = self.crypto.get_data_from_klines(klines, "High price")
-        lowPrices = self.crypto.get_data_from_klines(klines, "Low price")
-
-        InitialTRs = []
-        TRs = []
-        ATRs = []
+        _, closingPrices, highPrices, lowPrices, _, _ = self.utils.format_kline_data(klines=klines)
+        InitialTRs, TRs, ATRs = [], [], []
 
         for i in range(1, len(closingPrices)):
             # Calculate TR
@@ -103,7 +90,7 @@ class Indicators:
         ATR = BaseATR
         ATRs.append(ATR)
 
-        # Calculate the rest of ATRs using wilders formula
+        # Calculate the rest of ATRs using wilder`s formula
         for i in range(len(TRs)):
             # Calculate the ATR using the smoothing formula
             ATR = (ATR * (InitialRTAPeriod - 1) + TRs[i]) / InitialRTAPeriod
@@ -116,9 +103,7 @@ class Indicators:
                 "BaseATR": BaseATR,
                 "ATR": ATR
             }
-
             return data
-
         return ATR
 
     # Function for getting 14 day rsi for symbol
@@ -128,8 +113,7 @@ class Indicators:
         :param symbol: The symbol to get RSI
         :return: The RSI of the symbol
         """
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1DAY,
-                                              start_str="15 days ago")
+        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1DAY, start_str="15 days ago")
         closePrices = self.crypto.get_closing_prices(klines)
         gains = []
         loses = []
@@ -144,13 +128,11 @@ class Indicators:
 
         averageGain = sum(gains) / 14
         averageLoss = sum(loses) / 14
-
         if averageLoss == 0:
             rsi = 100
         else:
             rs = averageGain / averageLoss
             rsi = 100 - (100 / (1 + rs))
-
         return rsi
 
     # Function for calculating SMA of given symbol in the range of given days
@@ -178,8 +160,7 @@ class Indicators:
         :return: List of EMAs of given symbol over the span of given days
         """
         # Get the klines
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1DAY,
-                                              start_str=f"{emaDays} days ago")
+        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1DAY, start_str=f"{emaDays} days ago")
         # Extract the closing prices
         closePrices = self.crypto.get_closing_prices(klines)
         timestamps = self.crypto.get_data_from_klines(klines, "Close time")
@@ -211,14 +192,10 @@ class Indicators:
         """
         klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1DAY,
                                               start_str=f"{period} days ago")
-        closePrices = self.crypto.get_data_from_klines(klines, "Close price")
-        highPrices = self.crypto.get_data_from_klines(klines, "High price")
-        lowPrices = self.crypto.get_data_from_klines(klines, "Low price")
-        closeTimes = self.crypto.get_data_from_klines(klines, "Close time")
+        _, closePrices, highPrices, lowPrices, closeTimes, _ = self.utils.format_kline_data(klines=klines)
         # Lists for the KDJs
-        Ks = []
-        Ds = []
-        Js = []
+        Ks, Ds, Js = [], [], []
+
         for i in range(period):
             # Lowest prices till the day
             low = lowPrices[:(i + 1)]
@@ -305,18 +282,15 @@ class Indicators:
         :param dictionary: if true return dictionary with data
         :return: liquidity of given symbol
         """
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1DAY,
-                                              start_str=f"{period} days ago")
+        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1DAY, start_str=f"{period} days ago")
         # Get bid-ask spread
         baSpread = self.get_bid_ask_spread(symbol, limit=100)
-
         if baSpread <= 0:
             return 0
         # Get the traded volume
         tradedVolume = sum(self.crypto.get_data_from_klines(klines, "Volume"))
         # Calculate liquidity
         liquidity = tradedVolume / baSpread
-
         if dictionary:
             data = {
                 "baSpread": baSpread,
@@ -324,7 +298,6 @@ class Indicators:
                 "liquidity": liquidity
             }
             return data
-
         return liquidity
 
     # Function for getting cci of given symbol
@@ -337,14 +310,8 @@ class Indicators:
         :return: CCI data
         """
         # Get the price data
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1HOUR,
-                                              start_str=f"{period} days ago")
-        openingPrices = self.crypto.get_data_from_klines(klines, "Open price")
-        closingPrices = self.crypto.get_data_from_klines(klines, "Close price")
-        highPrices = self.crypto.get_data_from_klines(klines, "High price")
-        lowPrices = self.crypto.get_data_from_klines(klines, "Low price")
-        timestamps = self.crypto.get_data_from_klines(klines, "Close time")
-
+        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1HOUR, start_str=f"{period} days ago")
+        _, closingPrices, highPrices, lowPrices, timestamps, _ = self.utils.format_kline_data(klines=klines)
         TPs = []
         absoluteDifferences = []
         CCIs = []
@@ -381,9 +348,9 @@ class Indicators:
         :return: bid-ask spread
         """
         orderData = self.crypto.get_average_order_values(symbol=symbol, limit=limit, dictionary=True)
+
         bids = orderData['bids']
         asks = orderData['asks']
-
         bidAverage = self.crypto.calculate_weighted_average(bids)
         askAverage = self.crypto.calculate_weighted_average(asks)
 
@@ -441,12 +408,9 @@ class Indicators:
         :param timestamp: If true functions returns volatilities+corresponding timestamps
         :return: list of daily volatilities and timestamps
         """
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1HOUR,
-                                              start_str=f"{period} days ago")
-        openingPrices = self.crypto.get_data_from_klines(klines, "Open price")
-        highPrices = self.crypto.get_data_from_klines(klines, "High price")
-        lowPrices = self.crypto.get_data_from_klines(klines, "Low price")
-        timestamps = self.crypto.get_data_from_klines(klines, "Close time")
+        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1HOUR, start_str=f"{period} days ago")
+        openingPrices, _, highPrices, lowPrices, timestamps, _ = self.utils.format_kline_data(klines=klines)
+
         percentageVolatilities = []
         for i in range(len(openingPrices)):
             volatilityPercentage = (highPrices[i] - lowPrices[i]) / openingPrices[i] * 100

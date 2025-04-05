@@ -38,7 +38,7 @@ class SBBot:
         mongo = MongoDB()
         ai = AI()
         admin = Admin(mongo, None)
-        utils = Utils(mongo)
+        utils = Utils(mongo, None)
         client = Client()
         # Crypto je none, prida se potom
         indicators = Indicators(client, None, utils)
@@ -52,6 +52,7 @@ class SBBot:
         # indicators.crypto.status = active tak crypto.status bude taky active
         indicators.crypto = crypto
         admin.utils = utils
+        utils.crypto = crypto
 
         indicator_message = IndicatorMessage(crypto, ai, utils, indicators, plot, dataframe, admin)
         self.client = client
