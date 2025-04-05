@@ -1,4 +1,6 @@
 from autoload import *
+
+
 class Plot:
     def __init__(self, Client, Utils, Indicators):
         self.client = Client
@@ -24,18 +26,10 @@ class Plot:
             closingPrices.append(float(currentKline[4]))
 
         plt.plot(timestamps, closingPrices)
-        # Calculate the timestamp stepsize
+        # Calculate the timestamp step size
         num_ticks = 10
         step = len(timestamps) // num_ticks
-
-        plt.xticks(timestamps[::step], rotation=45, ha="right")
-        plt.subplots_adjust(bottom=0.3, left=0.15)
-        plt.title(f"{symbol} Historical Prices")
-        IoStream = io.BytesIO()
-        plt.savefig(IoStream, format='png')
-        IoStream.seek(0)
-        plt.close('all')
-
+        IoStream = self.utils.format_plot(symbol=symbol, name="Historical Prices", bottom_margin=0.3, left_margin=0.15, ticks=timestamps[::step])
         return IoStream
 
     # Function for getting graph of EMA for given symbol over period of time
@@ -53,14 +47,7 @@ class Plot:
             timestamps[i] = self.utils.unix_to_date(int(timestamps[i]), day=True)
         # Plot setup
         plt.plot(timestamps, emas, marker='o')
-        plt.xticks(rotation=45, ha="right")
-        plt.subplots_adjust(bottom=0.3, left=0.15)
-        plt.title(f"{symbol} EMA data")
-        IoStream = io.BytesIO()
-        plt.savefig(IoStream, format='png')
-        IoStream.seek(0)
-        plt.close('all')
-
+        IoStream = self.utils.format_plot(symbol=symbol, name="EMA data", bottom_margin=0.3, left_margin=0.15)
         return IoStream
 
     # Function for getting graph of KDJ for given symbol over period of time
@@ -76,15 +63,7 @@ class Plot:
         plt.plot(closeTimes, Ds, label="D")
         plt.plot(closeTimes, Js, label="J")
         # Plot setup
-        plt.xticks(rotation=45, ha="right")
-        plt.subplots_adjust(bottom=0.2)
-        plt.title(f"{symbol} KDJ data")
-        plt.legend()
-        IoStream = io.BytesIO()
-        plt.savefig(IoStream, format='png')
-        IoStream.seek(0)
-        plt.close('all')
-
+        IoStream = self.utils.format_plot(symbol=symbol, name="KDJ data", bottom_margin=0.2, legend_show=True)
         return IoStream
 
     # Function for plotting volatility graph
@@ -105,16 +84,7 @@ class Plot:
             ticks.append(timestamps[i])
 
         plt.plot(timestamps, volatilities, marker='o')
-        # misto timestamps tick pro min  popisku
-        plt.xticks(ticks, rotation=45, ha="right")
-        plt.xticks(rotation=45, ha="right")
-        plt.subplots_adjust(bottom=0.3, left=0.15)
-        plt.title(f"{symbol} volatility data")
-        IoStream = io.BytesIO()
-        plt.savefig(IoStream, format='png')
-        IoStream.seek(0)
-        plt.close('all')
-
+        IoStream = self.utils.format_plot(symbol=symbol, name="Volatility data", bottom_margin=0.3, left_margin=0.15, ticks=ticks)
         return IoStream
 
     # Function for plotting cci graph
@@ -129,11 +99,11 @@ class Plot:
         # Replace the timestamps with unix
         for i in range(len(timestamps)):
             timestamps[i] = self.utils.unix_to_date(int(timestamps[i]))
-        # Calculate the timestamp stepsize
+        # Calculate the timestamp step size
         num_ticks = 7
         step = len(timestamps) // num_ticks
 
-        # Get only the decired timestamps
+        # Get only the desired timestamps
         ticks = []
         ticks.append(timestamps[0])
         ticks.append(timestamps[-1])
@@ -141,14 +111,5 @@ class Plot:
             ticks.append(timestamps[i])
 
         plt.plot(timestamps, CCIs)
-        # misto timestamps tick pro min  popisku
-        plt.xticks(ticks, rotation=45, ha="right")
-        plt.xticks(rotation=45, ha="right")
-        plt.subplots_adjust(bottom=0.3, left=0.15)
-        plt.title(f"{symbol} CCI data")
-        IoStream = io.BytesIO()
-        plt.savefig(IoStream, format='png')
-        IoStream.seek(0)
-        plt.close('all')
-
+        IoStream = self.utils.format_plot(symbol=symbol, name="CCI data", bottom_margin=0.3, left_margin=0.15, ticks=ticks)
         return IoStream

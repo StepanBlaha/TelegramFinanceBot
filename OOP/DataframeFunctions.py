@@ -45,7 +45,8 @@ class Dataframe:
         Function for getting pandas dataframe of KDJ
         :param symbol: Symbol to get the dataframe of
         :param period: Days for measuring
-        :return: Dataframe
+        :param df: Boolean to get dataframe
+        :return: Dataframe in string form
         """
         Ks, Ds, Js, closeTimes = self.indicators.get_kdj(symbol, int(period))
         data = {

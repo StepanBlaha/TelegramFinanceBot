@@ -1,5 +1,3 @@
-
-
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 from bson import ObjectId
@@ -147,12 +145,3 @@ class MongoDB(DBInsert, DBSelect, DBUpdate, DBDelete):
             self.client = None
             self.db = None
             print("Connection closed.")
-
-
-if __name__ == "__main__":
-    """
-    
-    db = MongoDB()
-
-    db.close()
-    """

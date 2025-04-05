@@ -27,12 +27,10 @@ class User:
             if action == "remove":
                 return "No resources for given symbol"
             else:
-                # If the record doesnt exist and the action is "add" create new record
-                insertQuery = self.utils.formatInsertQuery(format="balance", func="baance", userId=userId,
-                                                           symbol=symbol,
-                                                           amount=amount)
+                # If the record doesn't exist and the action is "add" create new record
+                insertQuery = self.utils.formatInsertQuery(format="balance", func="baance", userId=userId, symbol=symbol, amount=amount)
                 insertResponse = self.db.insert(col="Usercrypto", query=insertQuery)
-                return "Successfuly updated"
+                return "Successfully updated"
 
         # Get the record data
         currentAmount = selectResponse[0]["amount"]
@@ -99,11 +97,11 @@ class User:
         :param userId: id of the user
         :return:
         """
-        # Check if user isnt already registered
+        # Check if user isn't already registered
         selectQuery = {"userId": userId}
         selectResponse = list(self.db.select(query=selectQuery, col="Users"))
 
-        # If he isnt register him
+        # If he isn't register him
         if len(selectResponse) == 0:
             insertQuery = self.utils.formatInsertQuery(format="user", userId=userId)
             self.db.insert(col="Users", query=insertQuery)

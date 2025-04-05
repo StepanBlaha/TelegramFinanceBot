@@ -459,3 +459,35 @@ class Utils:
         averageQuantity = averageQuantity / len(data)
 
         return averagePrice, averageQuantity
+
+    @staticmethod
+    def format_plot(symbol, name, bottom_margin, left_margin=None, rotation=45, legend_show=False, ticks=None):
+        """
+        Function to format plot
+        :param symbol: symbol for the plot
+        :param name: text for the plot title
+        :param bottom_margin: margin from bottom
+        :param left_margin: margin from left
+        :param rotation: rotation angle
+        :param legend_show: whether to show legend or not
+        :param ticks: labels
+        :return: IoStream object
+        """
+        if ticks:
+            plt.xticks(ticks, rotation=rotation, ha="right")
+        else:
+            plt.xticks(rotation=rotation, ha="right")
+
+        if left_margin:
+            plt.subplots_adjust(bottom=bottom_margin, left=left_margin)
+        else:
+            plt.subplots_adjust(bottom=bottom_margin)
+        if legend_show:
+            plt.legend()
+        plt.title(f"{symbol} {name}")
+        IoStream = io.BytesIO()
+        plt.savefig(IoStream, format='png')
+        IoStream.seek(0)
+        plt.close('all')
+
+        return IoStream
