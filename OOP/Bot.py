@@ -394,6 +394,8 @@ class SBBot:
         self.mongo.insert(col="Requesthistory", query=logQuery)
         self.mongo.close()
 
+
+    #Maybe fixnout
     # format:
     # /digest mena interval optional
     async def setDigest(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -470,6 +472,7 @@ class SBBot:
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
+    # Maybe fixnout
     # format
     # /crypto_update symbol interval
     async def cryptoUpdate(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -502,7 +505,6 @@ class SBBot:
 
             # Get current price
             lastPrice = float(self.crypto.current_price(symbol))
-
 
             query = self.utils.formatInsertQuery(format="cryptoUpdate", userId=userId, func=func, interval=interval,
                                       lastProcess=lastProcess, nextProcess=nextProcess, lastPrice=lastPrice,
@@ -604,6 +606,8 @@ class SBBot:
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
+
+    #Maybe fixnout
     # /balance action symbol amount
     async def balance(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         try:
@@ -648,7 +652,8 @@ class SBBot:
                     # Turn the response to readable format
                     response = self.utils.formatBalanceResponse(response)
                 await update.message.reply_text(f'Here is your account balance:\n\n {response}')
-            elif action == "remove":
+
+            elif action == "remove" or action == "add":
                 # Error handling
                 if not len(context.args) > 2:
                     await update.message.reply_text("This action requires an amount")
@@ -664,29 +669,13 @@ class SBBot:
                 # Return the response
                 response = self.user.update_balance(symbol=symbol, userId=userId, amount=float(amount), action=action)
                 await update.message.reply_text(f'{response} account balance for symbol {symbol}')
-            elif action == "add":
-                # Error handling
-                if not len(context.args) > 2:
-                    await update.message.reply_text("This action requires an amount")
-                    self.mongo.close()
-                    return
-                # Get the amount
-                amount = context.args[2]
-                # Error handling
-                if not self.utils.is_number(amount):
-                    await update.message.reply_text("Please enter a number")
-                    self.mongo.close()
-                    return
-                # Return the response
-                response = self.user.update_balance(symbol=symbol, userId=userId, amount=float(amount), action=action)
-                await update.message.reply_text(f'{response} account balance for symbol {symbol}')
+
             elif action == "value":
                 response = self.user.get_balance_worth(userId=userId, symbol=symbol)
                 await update.message.reply_text(f'{response}')
 
             logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="balance", symbol=symbol,
                                          args={"amount": amount})
-
             self.mongo.insert(col="Requesthistory", query=logQuery)
             self.mongo.close()
         except Exception as e:
@@ -713,7 +702,6 @@ class SBBot:
             action = context.args[0].lower()
 
             # Check if user has admin role
-
             selectQuery = {"userId": userId}
             selectResponse = list(self.mongo.select(query=selectQuery, col="Users"))
             self.mongo.close()
