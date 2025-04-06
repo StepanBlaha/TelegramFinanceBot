@@ -54,6 +54,8 @@ class SBBot:
         admin.utils = utils
         utils.crypto = crypto
 
+
+
         indicator_message = IndicatorMessage(crypto, ai, utils, indicators, plot, dataframe, admin)
         self.client = client
         self.crypto = crypto
