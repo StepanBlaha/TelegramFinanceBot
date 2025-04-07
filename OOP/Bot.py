@@ -75,6 +75,7 @@ class SBBot:
             "cryptoUpdate": self.auto_funcs.cryptoUpdate,
         }
 
+
     def add_handlers(self):
         """
         Function to add handlers
