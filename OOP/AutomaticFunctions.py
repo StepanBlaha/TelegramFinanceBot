@@ -26,6 +26,7 @@ class AutoFunc:
         await bot.send_message(chat_id=userId,
                                text=f" ''''''''''''''''''''''''''''Watch out''''''''''''''''''''''''''''\n\nThe price for {symbol} has changed by {percentageDiff}%\n Old price: {lastPrice}\n New price: {newPrice}\n Price change: {priceDiff}")
 
+    # Function for sending user general ingo about stats of desired crypto pair
     async def digest(self, params, userId, bot):
         """
         Function for sending basic infor about the symbol changes
@@ -69,7 +70,7 @@ class AutoFunc:
                                parse_mode="Markdown")
 
     # Function for sending user personalised update about chosen cryptocurrency
-    async def cryptoUpdate(self, symbol, userId, bot, lastPrice, interval):
+    async def cryptoUpdate(self, symbol, userId, bot, lastPrice, interval, tradeLimit = 200):
         """
         Function for sending user personalised update about chosen cryptocurrency
         :param symbol: symbol of cryptocurrency
@@ -77,6 +78,7 @@ class AutoFunc:
         :param bot: telegram bot
         :param lastPrice: last price of cryptocurrency
         :param interval: interval between updates
+        :param tradeLimit: max number of recent trades to get
         :return:
         """
         currentPrice = float(self.crypto.current_price(symbol))
@@ -85,7 +87,7 @@ class AutoFunc:
         await bot.send_message(chat_id=userId, text=f"The latest price for {symbol} is: {currentPrice}.\n Last recorded price: {lastPrice}\n Raw price change: {priceChange}.\n Percentual price change: {percentualChange}%")
 
         # Get the recent trade data and format them
-        tradeData = self.crypto.get_recent_trade_info(symbol=symbol, limit=200, dictionary=True)
+        tradeData = self.crypto.get_recent_trade_info(symbol=symbol, limit=tradeLimit, dictionary=True)
         await bot.send_message(chat_id=userId, text=f"Data about recent trades\n\n Total trade volume: {tradeData['tradeVolume']}\n Total trade price: {tradeData['priceVolume']}\n Max trade price: {tradeData['maxTradePrice']}\n Min trade price: {tradeData['minTradePrice']}\n Max trade volume: {tradeData['maxTradeQuantity']}\n Min trade volume: {tradeData['minTradeQuantity']}\n Average trade price: {tradeData['averageTradePrice']}\n Average trade volume: {tradeData['averageTradeQuantity']}")
 
         # Format the period for volatility into days

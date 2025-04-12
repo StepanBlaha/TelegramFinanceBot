@@ -28,7 +28,7 @@ class User:
                 return "No resources for given symbol"
             else:
                 # If the record doesn't exist and the action is "add" create new record
-                insertQuery = self.utils.formatInsertQuery(format="balance", func="baance", userId=userId, symbol=symbol, amount=amount)
+                insertQuery = self.utils.formatInsertQuery(format="balance", func="balance", userId=userId, symbol=symbol, amount=amount)
                 insertResponse = self.db.insert(col="Usercrypto", query=insertQuery)
                 return "Successfully updated"
 

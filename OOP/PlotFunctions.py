@@ -8,14 +8,16 @@ class Plot:
         self.indicators = Indicators
 
     # Function for generating graph of prices of symbol over specified period
-    def plot_price_in_time(self, symbol, period):
+    def plot_price_in_time(self, symbol, period, interval="1h", tickAmount=10):
         """
         Function for generating graph of prices of symbol over specified period
         :param symbol: Symbol to plot
         :param period: Number of days to plot
+        :param interval: Binance-compatible interval string like '1m', '1h', '1d', etc.
+        :param tickAmount: Number of ticks to plot
         :return:
         """
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1HOUR,
+        klines = self.client.get_historical_klines(symbol=symbol, interval=interval,
                                                    start_str=f"{period} days ago")
         timestamps = []
         closingPrices = []
@@ -27,7 +29,7 @@ class Plot:
 
         plt.plot(timestamps, closingPrices)
         # Calculate the timestamp step size
-        num_ticks = 10
+        num_ticks = tickAmount
         step = len(timestamps) // num_ticks
         IoStream = self.utils.format_plot(symbol=symbol, name="Historical Prices", bottom_margin=0.3, left_margin=0.15, ticks=timestamps[::step])
         return IoStream
@@ -67,48 +69,36 @@ class Plot:
         return IoStream
 
     # Function for plotting volatility graph
-    def plot_volatility(self, symbol, period):
+    def plot_volatility(self, symbol, period, tickAmount=7):
+        """
+        Function for getting graph of volatility for given symbol over period of time
+        :param symbol: Symbol to calculate volatility of
+        :param period: Period of time for calculation
+        :param tickAmount: Number of ticks to plot
+        :return:
+        """
         volatilities, timestamps = self.indicators.get_volatility(symbol=symbol, period=period, timestamp=True)
-        # Replace the timestamps with unix
-        for i in range(len(timestamps)):
-            timestamps[i] = self.utils.unix_to_date(int(timestamps[i]))
-        # Calculate the timestamp stepsize
-        num_ticks = 7
-        step = len(timestamps) // num_ticks
 
-        # Get only the decired timestamps
-        ticks = []
-        ticks.append(timestamps[0])
-        ticks.append(timestamps[-1])
-        for i in range(step, len(timestamps) - 1, step):
-            ticks.append(timestamps[i])
+        # Format the timestamps and ticks
+        timestamps, ticks = self.utils.format_plot_timestamps(timestamps=timestamps, tickAmount=tickAmount)
 
         plt.plot(timestamps, volatilities, marker='o')
         IoStream = self.utils.format_plot(symbol=symbol, name="Volatility data", bottom_margin=0.3, left_margin=0.15, ticks=ticks)
         return IoStream
 
     # Function for plotting cci graph
-    def plot_cci(self, symbol, period=14):
+    def plot_cci(self, symbol, period=14, tickAmount=7):
         """
         Function for plotting cci graph
         :param symbol: symbol to plot
         :param period: period of cci
+        :param tickAmount: Number of ticks to plot
         :return: graph
         """
         CCIs, timestamps = self.indicators.get_cci(symbol, period, timestamp=True)
-        # Replace the timestamps with unix
-        for i in range(len(timestamps)):
-            timestamps[i] = self.utils.unix_to_date(int(timestamps[i]))
-        # Calculate the timestamp step size
-        num_ticks = 7
-        step = len(timestamps) // num_ticks
 
-        # Get only the desired timestamps
-        ticks = []
-        ticks.append(timestamps[0])
-        ticks.append(timestamps[-1])
-        for i in range(step, len(timestamps) - 1, step):
-            ticks.append(timestamps[i])
+        # Format the timestamps and ticks
+        timestamps, ticks = self.utils.format_plot_timestamps(timestamps=timestamps, tickAmount=tickAmount)
 
         plt.plot(timestamps, CCIs)
         IoStream = self.utils.format_plot(symbol=symbol, name="CCI data", bottom_margin=0.3, left_margin=0.15, ticks=ticks)

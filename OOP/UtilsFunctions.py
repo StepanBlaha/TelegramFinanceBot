@@ -34,17 +34,19 @@ class Utils:
             return False
 
     @staticmethod
-    def unix_to_date(unix, day=False):
+    def unix_to_date(unix, day=False, time_format='%Y-%m-%d %H:%M:%S', day_time_format='%Y-%d-%m'):
         """
         Function that converts unix timestamp to datetime object
         :param unix: Unix timestamp
         :param day: Marker whether to return timestamp containing hours and minutes or not
+        :param time_format: Format of timestamp, default - %Y-%m-%d %H:%M:%S
+        :param day_time_format: Format of timestamp for the day option, default - %Y-%d-%m
         :return: datetime object
         """
         unixTime = int(unix)
         if day:
-            return datetime.fromtimestamp(unixTime / 1000).strftime('%Y-%d-%m')
-        return datetime.fromtimestamp(unixTime / 1000).strftime('%Y-%m-%d %H:%M:%S')
+            return datetime.fromtimestamp(unixTime / 1000).strftime(day_time_format)
+        return datetime.fromtimestamp(unixTime / 1000).strftime(time_format)
 
     @staticmethod
     def datetime_to_unix(user_datetime):
@@ -65,14 +67,28 @@ class Utils:
         return int(time.time()) + seconds
 
     @staticmethod
-    def unix_to_timestamp(unix):
+    def unix_to_timestamp(unix, time_format='%Y-%m-%d %H:%M:%S'):
         """
         Function that converts unix timestamp to datetime object
         :param unix: Unix timestamp
+        :param time_format: Format of timestamp, default - %Y-%m-%d %H:%M:%S
         :return: Timestamp object
         """
         timestamp = datetime.fromtimestamp(unix)
-        return timestamp.strftime('%Y-%m-%d %H:%M:%S')
+        return timestamp.strftime(time_format)
+
+    @staticmethod
+    def format_day_hours(seconds):
+        """
+        Function that formats seconds into days or hours
+        :param seconds: number of seconds
+        :return: formated time
+        """
+        if seconds > 86400:
+            interval = str((seconds / 86400)) + " Days"
+        else:
+            interval = str((seconds / 3600)) + " Hours"
+        return interval
 
     @staticmethod
     def get_2D_dict_max(dictionary, val, key=False):
@@ -286,10 +302,7 @@ class Utils:
                 # Format  the response based on db
                 if format == "digest":
                     # Format the interval
-                    if row["interval"] > 86400:
-                        interval = str((row["interval"] / 86400)) + " Days"
-                    else:
-                        interval = str((row["interval"] / 3600)) + " Hours"
+                    interval = self.format_day_hours(row["interval"])
                     # Format the record into a string
                     record = f'Function: {row["function"]}, Symbol: {row["arguments"][0]}, Interval: {interval}'
 
@@ -298,10 +311,7 @@ class Utils:
 
                 elif format == "cryptoupdate":
                     # Format the interval
-                    if row["interval"] > 86400:
-                        interval = str((row["interval"] / 86400)) + " Days"
-                    else:
-                        interval = str((row["interval"] / 3600)) + " Hours"
+                    interval = self.format_day_hours(row["interval"])
                     # Format the record into a string
                     record = f'Function: {row["function"]}, Symbol: {row["symbol"]}, Interval: {interval}'
 
@@ -505,3 +515,26 @@ class Utils:
         timestamps = self.crypto.get_data_from_klines(klines, "Close time")
         volumes = self.crypto.get_data_from_klines(klines, "Volume")
         return openingPrices, closingPrices, highPrices, lowPrices, timestamps, volumes
+
+    def format_plot_timestamps(self, timestamps, tickAmount):
+        """
+        Function for formatting plot timestamps and ticks
+        :param timestamps: timestamps to format
+        :param tickAmount: amount of ticks
+        :return:
+        """
+        # Replace the timestamps with unix
+        for i in range(len(timestamps)):
+            timestamps[i] = self.unix_to_date(int(timestamps[i]))
+        # Calculate the timestamp step size
+        num_ticks = tickAmount
+        step = len(timestamps) // num_ticks
+
+        # Get only the desired timestamps
+        ticks = []
+        ticks.append(timestamps[0])
+        ticks.append(timestamps[-1])
+        for i in range(step, len(timestamps) - 1, step):
+            ticks.append(timestamps[i])
+
+        return timestamps, ticks

@@ -5,7 +5,7 @@ class Admin:
     def __init__(self, MongoDB, Utils):
         self.db = MongoDB
         self.utils = Utils
-#fixed
+
     def admin_digest(self):
         """
         Function for getting basic admin info about the bot
@@ -42,7 +42,6 @@ class Admin:
         self.db.close()
         return response
 
-#fixed
     def admin_users(self, IDs=False, funcData=False, monitorData=False):
         """
         Function for getting data about users
@@ -71,6 +70,7 @@ class Admin:
             self.db.close()
             return userIDs, IDsMessage
 
+        self.db.close()
         if funcData:
             return self.utils.format_admin_user_data(collection="Requesthistory", entriesIndex="functions", counterIndex="functionCount")
 
@@ -78,9 +78,8 @@ class Admin:
             return self.utils.format_admin_user_data(collection="Userfunctions", entriesIndex="monitors", counterIndex="monitorCount")
 
         response = f"User data:\n\nTotal users: {userCount}\nAdmins: {adminCount}\nNumber of functions used: {functionUsedCount}\nNumber of monitors set: {monitorSetCount}\nAverage amount of functions used per user: {avgFuncPerUser}\nAverage amount of monitors set by user: {avgMonitorPerUser}"
-        self.db.close()
         return response
-#fixed
+
     def admin_symbols(self, dictionary=False):
         """
         Function for getting data about usage of different bot symbols
@@ -117,7 +116,7 @@ class Admin:
 
         response = f"Symbol data\n\nNumber of different symbols used: {len(symbolDict)}\nMost used symbol: {mostUsedSymbol} - {mostUsedSymbolCount} times\nMost monitored symbol: {mostMonitoredSymbol} - {mostMonitoredSymbolCount} times"
         return response
-#fixed
+
     def admin_functions(self, dictionary=False):
         """
         Function for getting data about usage of different bot functions

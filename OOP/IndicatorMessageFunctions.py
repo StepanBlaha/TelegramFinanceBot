@@ -26,8 +26,9 @@ class IndicatorMessage:
         await update.message.reply_text(f"The AVL for {symbol} for the last 14 days: {self.indicators.get_avl(symbol)}.")
 
     async def send_boll(self, update, symbol):
+        boll_data = self.indicators.get_boll(symbol, dictionary=True)
         await update.message.reply_text(
-            f"The bollinger lines for {symbol}:\n  middle band: {self.indicators.get_boll(symbol, dictionary=True)['MB']}\n  lower band: {self.indicators.get_boll(symbol, dictionary=True)['LB']}\n  upper band: {self.indicators.get_boll(symbol, dictionary=True)['UB']}")
+            f"The bollinger lines for {symbol}:\n  middle band: {boll_data['MB']}\n  lower band: {boll_data['LB']}\n  upper band: {boll_data['UB']}")
 
     async def send_ema(self, update, symbol):
         await update.message.reply_photo(photo=self.plot.plot_ema(symbol, 14), caption=f"EMA chart for {symbol} over 14 days."),

@@ -149,24 +149,26 @@ class Crypto:
         return formatedString
 
     # Function for getting prices of given symbol over the last period days
-    def get_historical_prices(self, symbol, period):
+    def get_historical_prices(self, symbol, period, interval="1h"):
         """
         Function for getting prices of given symbol over the last period days
         :param symbol: symbol to get prices of
         :param period: span of days to track
+        :param interval: Binance-compatible interval string like '1m', '1h', '1d', etc.
         :return: list of prices
         """
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1HOUR,
+        klines = self.client.get_historical_klines(symbol=symbol, interval=interval,
                                               start_str=f"{period} days ago")
         closingPrices = self.get_data_from_klines(klines, "Close price")
         return closingPrices
 
     # Function for showing basic info about given symbol
-    def format_symbol_info(self, symbol_name, period=14):
+    def format_symbol_info(self, symbol_name, period=14, trade_limit = 10):
         """
         Function for showing basic info
         :param symbol_name: symbol to get info about
         :param period: span of days to track
+        :param trade_limit: max number of trades to get for the calculation
         :return: Info
         """
         # Gets all the exchange pairs
@@ -182,7 +184,7 @@ class Crypto:
         # Get the market state of the symbol
         market_depth = self.get_average_order_values(symbol=symbol_name)
         # Get recent trades of symbol
-        recent_trades = self.get_recent_trade_info(symbol=symbol_name, limit=10)
+        recent_trades = self.get_recent_trade_info(symbol=symbol_name, limit=trade_limit)
         # Get recent prices
         recent_prices = self.get_historical_prices(symbol['symbol'], period)
 
@@ -202,41 +204,44 @@ class Crypto:
         return symbolPrice["price"]
 
     # Function for getting the recent traded volume of given symbol
-    def get_recent_traded_volume(self, symbol, period):
+    def get_recent_traded_volume(self, symbol, period, interval="1h"):
         """
         Function for getting the recent traded volume
         :param symbol: Symbol to calculate recent traded volume
         :param period: Period of time for calculation
+        :param interval: Binance-compatible interval string like '1m', '1h', '1d', etc.
         :return: Traded volume
         """
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1HOUR, start_str=f"{period} days ago")
+        klines = self.client.get_historical_klines(symbol=symbol, interval=interval, start_str=f"{period} days ago")
         volumes = self.get_data_from_klines(klines, "Volume")
         volume = sum(volumes)
         return volume
 
     # Function for getting the number of recent trades of given symbol
-    def get_number_of_recent_trades(self, symbol, period):
+    def get_number_of_recent_trades(self, symbol, period, interval="1h"):
         """
         Function for getting the number of recent trades
         :param symbol: Symbol to calculate number of recent trades
-        :param period: Period of time for calculation
+        :param period: Period of time for calculation in days
+        :param interval: Binance-compatible interval string like '1m', '1h', '1d', etc.
         :return: Number of recent trades
         """
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1HOUR, start_str=f"{period} days ago")
+        klines = self.client.get_historical_klines(symbol=symbol, interval=interval, start_str=f"{period} days ago")
         Trades = self.get_data_from_klines(klines, "Number of trades")
         tradeNumber = sum(Trades)
         return tradeNumber
 
     # Function for getting the latest price trend
-    def get_recent_trend(self, symbol, period):
+    def get_recent_trend(self, symbol, period=1, interval="1h"):
         """
         Function for getting the recent trend
         :param symbol: Symbol to calculate recent trend
-        :param period: Period of time for calculation
+        :param period: Period of time for calculation in hours
+        :param interval: Binance-compatible interval string like '1m', '1h', '1d', etc.
         :return: Trend
         """
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1HOUR,
-                                              start_str=f"1 hour ago")
+        klines = self.client.get_historical_klines(symbol=symbol, interval=interval,
+                                              start_str=f"{period} hour ago")
         openingPrice = self.get_data_from_klines(klines, "Open price")
         closingPrice = self.get_data_from_klines(klines, "Close price")
         trend = self.indicators.get_price_trend(float(openingPrice[0]), float(closingPrice[0]))

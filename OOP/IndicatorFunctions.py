@@ -24,15 +24,16 @@ class Indicators:
             return "neutral"
 
     # Function for getting mfi of given symbol
-    def get_mfi(self, symbol, period=14):
+    def get_mfi(self, symbol, period=14, interval="1h"):
         """
         Function for getting mfi of given symbol
         :param symbol: symbol to calculate mfi of
         :param period: period of mfi
+        :param interval: Binance-compatible interval string like '1m', '1h', '1d', etc.
         :return: mfi
         """
         # Get the price data
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1HOUR,
+        klines = self.client.get_historical_klines(symbol=symbol, interval=interval,
                                               start_str=f"{period} days ago")
         _, closingPrices, highPrices, lowPrices, _, volumes = self.utils.format_kline_data(klines=klines)
 
@@ -62,17 +63,18 @@ class Indicators:
         return MFI
 
     # Function for getting atr of given symbol
-    def get_atr(self, symbol, period=30, dictionary=False):
+    def get_atr(self, symbol, period=30, dictionary=False, interval="1d"):
         """
         Function for getting atr of given symbol
         :param symbol: symbol to calculate atr of
         :param period: period of atr
         :param dictionary: if true returns dictionary with more data
+        :param interval: Binance-compatible interval string like '1m', '1h', '1d', etc.
         :return: final atr over the last period/30 days
         """
         InitialRTAPeriod = 14
 
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1DAY,
+        klines = self.client.get_historical_klines(symbol=symbol, interval=interval,
                                               start_str=f"{period + 1} days ago")
         _, closingPrices, highPrices, lowPrices, _, _ = self.utils.format_kline_data(klines=klines)
         InitialTRs, TRs, ATRs = [], [], []
@@ -107,13 +109,15 @@ class Indicators:
         return ATR
 
     # Function for getting 14 day rsi for symbol
-    def get_rsi(self, symbol):
+    def get_rsi(self, symbol, days=15, interval="1d"):
         """
         Function for getting RSI of given symbol
         :param symbol: The symbol to get RSI
+        :param days: The number of days to get RSI
+        :param interval: Binance-compatible interval string like '1m', '1h', '1d', etc.
         :return: The RSI of the symbol
         """
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1DAY, start_str="15 days ago")
+        klines = self.client.get_historical_klines(symbol=symbol, interval=interval, start_str=f"{days} days ago")
         closePrices = self.crypto.get_closing_prices(klines)
         gains = []
         loses = []
@@ -136,31 +140,32 @@ class Indicators:
         return rsi
 
     # Function for calculating SMA of given symbol in the range of given days
-    def get_sma(self, symbol, days):
+    def get_sma(self, symbol, days, interval="1d"):
         """
         Function for calculating SMA of given symbol in the range of given days
         :param symbol: The symbol for calculating the sma of
         :param days: The number of days for calculations
+        :param interval: Binance-compatible interval string like '1m', '1h', '1d', etc.
         :return: SMA of given symbol
         """
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1DAY,
-                                              start_str=f"{days + 1} days ago")
+        klines = self.client.get_historical_klines(symbol=symbol, interval=interval, start_str=f"{days + 1} days ago")
         closePrices = self.crypto.get_closing_prices(klines)
         sma = sum(closePrices) / len(closePrices)
         return sma
 
     # Function for calculating EMA for given days
-    def get_ema(self, symbol, emaDays=14, smaDays=10, timestamp=False):
+    def get_ema(self, symbol, emaDays=14, smaDays=10, timestamp=False, interval="1d"):
         """
         Function for calculating EMA for given days
         :param symbol: The symbol for calculating the ema of
         :param emaDays: The number of days for ema calculations
         :param smaDays: The number of days for calculating the starting SMA
         :param timestamp: Flag for checking if you want to also return corresponding timestamps
+        :param interval: Binance-compatible interval string like '1m', '1h', '1d', etc.
         :return: List of EMAs of given symbol over the span of given days
         """
         # Get the klines
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1DAY, start_str=f"{emaDays} days ago")
+        klines = self.client.get_historical_klines(symbol=symbol, interval=interval, start_str=f"{emaDays} days ago")
         # Extract the closing prices
         closePrices = self.crypto.get_closing_prices(klines)
         timestamps = self.crypto.get_data_from_klines(klines, "Close time")
@@ -183,15 +188,15 @@ class Indicators:
         return emas
 
     # Function for calculating KDJ for given symbol over the given period of time
-    def get_kdj(self, symbol, period):
+    def get_kdj(self, symbol, period, interval="1d"):
         """
         Function for calculating KDJ for given symbol over the given period of time
         :param symbol: Symbol to calculate KDJ of
         :param period: Period of time for calculation
-        :return:
+        :param interval: Binance-compatible interval string like '1m', '1h', '1d', etc.
+        :return: KDJ data
         """
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1DAY,
-                                              start_str=f"{period} days ago")
+        klines = self.client.get_historical_klines(symbol=symbol, interval=interval, start_str=f"{period} days ago")
         _, closePrices, highPrices, lowPrices, closeTimes, _ = self.utils.format_kline_data(klines=klines)
         # Lists for the KDJs
         Ks, Ds, Js = [], [], []
@@ -223,16 +228,16 @@ class Indicators:
         return Ks, Ds, Js, closeTimes
 
     # Function for calculating bollinger lines for given symbol over given period of time
-    def get_boll(self, symbol, period=14, dictionary=False):
+    def get_boll(self, symbol, period=14, dictionary=False, interval="1d"):
         """
         Function for calculating bollinger lines for given symbol over given period of time
         :param symbol: symbol for calculating the bollinger of
         :param period: period of time for calculation
         :param dictionary: if true return dictionary with data
+        :param interval: Binance-compatible interval string like '1m', '1h', '1d', etc.
         :return: mb, ub, lb lines
         """
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1DAY,
-                                              start_str=f"{period} days ago")
+        klines = self.client.get_historical_klines(symbol=symbol, interval=interval, start_str=f"{period} days ago")
         closePrices = self.crypto.get_closing_prices(klines)
         SMA = sum(closePrices) / len(closePrices)
         MB = SMA
@@ -258,14 +263,15 @@ class Indicators:
         return MB, UB, LB
 
     # Function for calculating AVL of given symbol over given period of time
-    def get_avl(self, symbol, period=14):
+    def get_avl(self, symbol, period=14, interval="1d"):
         """
         Function for calculating AVL of given symbol over given period of time
         :param symbol: symbol for calculating the AVL of
         :param period: period of time for calculation
+        :param interval: Binance-compatible interval string like '1m', '1h', '1d', etc.
         :return: AVL of given symbol
         """
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1DAY,
+        klines = self.client.get_historical_klines(symbol=symbol, interval=interval,
                                               start_str=f"{period} days ago")
         # Get the trade volumes
         volumes = self.crypto.get_data_from_klines(klines, "Volume")
@@ -274,15 +280,16 @@ class Indicators:
         return AVL
 
     # Function for calculating liquidity for given symbol over given period of time
-    def get_liquidity(self, symbol, period=1, dictionary=False):
+    def get_liquidity(self, symbol, period=1, dictionary=False, interval="1d"):
         """
         Function for calculating liquidity for given symbol over given period of time
         :param symbol: symbol for calculating the liquidity
         :param period: period of time for calculation
         :param dictionary: if true return dictionary with data
+        :param interval: Binance-compatible interval string like '1m', '1h', '1d', etc.
         :return: liquidity of given symbol
         """
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1DAY, start_str=f"{period} days ago")
+        klines = self.client.get_historical_klines(symbol=symbol, interval=interval, start_str=f"{period} days ago")
         # Get bid-ask spread
         baSpread = self.get_bid_ask_spread(symbol, limit=100)
         if baSpread <= 0:
@@ -301,16 +308,17 @@ class Indicators:
         return liquidity
 
     # Function for getting cci of given symbol
-    def get_cci(self, symbol, period, timestamp=False):
+    def get_cci(self, symbol, period, timestamp=False, interval="1h"):
         """
         Function for getting cci of given symbol
         :param symbol: symbol to calculate cci of
         :param period: period of cci
         :param timestamp: if true returns cci data + timestamp
+        :param interval: Binance-compatible interval string like '1m', '1h', '1d', etc.
         :return: CCI data
         """
         # Get the price data
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1HOUR, start_str=f"{period} days ago")
+        klines = self.client.get_historical_klines(symbol=symbol, interval=interval, start_str=f"{period} days ago")
         _, closingPrices, highPrices, lowPrices, timestamps, _ = self.utils.format_kline_data(klines=klines)
         TPs = []
         absoluteDifferences = []
@@ -399,16 +407,17 @@ class Indicators:
         return imbalance
 
     # Function for getting volatility percentage of given symbol over the span of given days
-    def get_volatility(self, symbol, period, average=False, timestamp=False):
+    def get_volatility(self, symbol, period, average=False, timestamp=False, interval="1h"):
         """
         Function for getting volatility percentage of given symbol over the span of given days
         :param symbol: symbol to calculate volatility of
         :param period: number of days for measuring
         :param average: If true functions returns average volatility
         :param timestamp: If true functions returns volatilities+corresponding timestamps
+        :param interval: Binance-compatible interval string like '1m', '1h', '1d', etc.
         :return: list of daily volatilities and timestamps
         """
-        klines = self.client.get_historical_klines(symbol=symbol, interval=self.client.KLINE_INTERVAL_1HOUR, start_str=f"{period} days ago")
+        klines = self.client.get_historical_klines(symbol=symbol, interval=interval, start_str=f"{period} days ago")
         openingPrices, _, highPrices, lowPrices, timestamps, _ = self.utils.format_kline_data(klines=klines)
 
         percentageVolatilities = []
