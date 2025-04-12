@@ -30,7 +30,6 @@ class SBBot:
         self.bot = Bot("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU")
         self.create_objects()
 
-
     def create_objects(self):
         """
         Function to create the objects
@@ -74,7 +73,6 @@ class SBBot:
             "priceMonitor": self.auto_funcs.priceMonitor,
             "cryptoUpdate": self.auto_funcs.cryptoUpdate,
         }
-
 
     def add_handlers(self):
         """
@@ -120,7 +118,6 @@ class SBBot:
         :return:
         """
         while True:
-            #nesmim zapomenout closenout mongo
             digestRecords = self.mongo.select(col="Userfunctions")
             for record in digestRecords:
                 if record["function"] == "digest":
@@ -178,8 +175,6 @@ class SBBot:
 
                     formatedArguments = [symbol, priceDifference, percentageDifference, lastPrice]
                     await self.auto_func_dict[functionName](formatedArguments, userId, self.bot)
-                    # Old update func
-                    # updatePriceMonitor("priceMonitor", recordId, curPrice)
                     # Get the update query
                     query = self.utils.formatUpdateQuery("priceMonitor", newPrice=curPrice)
                     # Update
@@ -384,6 +379,7 @@ class SBBot:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
     # Example - usefull for future
+    # not used------------------------------------------------------------------------------------------------
     async def send_msg_to_user(self, user_chat_id: int, text: str, bot):
         await bot.send_message(chat_id=user_chat_id, text=text)
 
@@ -396,6 +392,7 @@ class SBBot:
         logQuery = self.utils.formatInsertQuery(format="log", userId=id, func="send")
         self.mongo.insert(col="Requesthistory", query=logQuery)
         self.mongo.close()
+    # not used------------------------------------------------------------------------------------------------
 
 
     #Maybe fixnout
@@ -557,7 +554,6 @@ class SBBot:
             symbol = context.args[1]
             val = int(context.args[2])
             # Format the delete query and delete
-
             query = self.utils.formatDeleteQuery(userId, func, symbol, val)
             response = self.mongo.delete(col, query)
 
@@ -608,7 +604,6 @@ class SBBot:
             self.mongo.close()
         except Exception as e:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
-
 
     #Maybe fixnout
     # /balance action symbol amount
