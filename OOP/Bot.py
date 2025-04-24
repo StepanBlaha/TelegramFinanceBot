@@ -86,7 +86,6 @@ class SBBot:
         self.application.add_handler(CommandHandler("price_chart", self.price_chart))
         self.application.add_handler(CommandHandler("KDJ", self.kdj))
         self.application.add_handler(CommandHandler("EMA", self.ema))
-        self.application.add_handler(CommandHandler("send", self.send))
         self.application.add_handler(CommandHandler("digest", self.setDigest))
         self.application.add_handler(CommandHandler("set_monitor", self.priceMonitor))
 
@@ -377,23 +376,6 @@ class SBBot:
         except Exception as e:
             await update.message.reply_text(str(e))
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
-
-    # Example - usefull for future
-    # not used------------------------------------------------------------------------------------------------
-    async def send_msg_to_user(self, user_chat_id: int, text: str, bot):
-        await bot.send_message(chat_id=user_chat_id, text=text)
-
-    async def send(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-
-        id = update.effective_user.id
-        text = f"dsmfsnd {id}"
-        await self.send_msg_to_user(user_chat_id=id, text=text, bot=context.bot)
-
-        logQuery = self.utils.formatInsertQuery(format="log", userId=id, func="send")
-        self.mongo.insert(col="Requesthistory", query=logQuery)
-        self.mongo.close()
-    # not used------------------------------------------------------------------------------------------------
-
 
     #Maybe fixnout
     # format:
