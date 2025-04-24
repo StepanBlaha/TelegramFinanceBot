@@ -232,7 +232,14 @@ class SBBot:
 
     async def echo(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         userId = update.effective_user.id
-        await update.message.reply_text(update.message.text)
+        msg = update.message.text
+        if msg in ["69", "420"]:
+            await update.message.reply_text("nice.")
+            return
+        if msg.lower() in ["vojta", "matyas", "dort", "bedrima", "beda", "sachrdort", "vendy", "cago", "nelinka"]:
+            await update.message.reply_text("Gyattttttttt")
+            return
+        await update.message.reply_text("FR. "+msg)
 
         logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="echo")
         self.mongo.insert(col="Requesthistory", query=logQuery)
