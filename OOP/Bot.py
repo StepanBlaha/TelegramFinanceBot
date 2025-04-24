@@ -249,9 +249,29 @@ class SBBot:
     # ------------------------------------Nefunguje--------------------------------------------------------
     async def list_commands(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         commands = await context.bot.get_my_commands()
+        command_descriptions = {
+            "start": "Start interacting with the bot",
+            "help": "Get help on how to use the bot",
+            "symbol_info": "Get the base info about a given symbol. (Format: /symbol_info symbol)",
+            "price_chart": "Get a graph of prices of given symbol over the span of given days. (Format: /price_chart symbol period)",
+            "ema": "Get a graph of EMA of given symbol over the span of given days. (Format: /EMA symbol period)",
+            "kdj": "Get a graph of KDJ of given symbol over the span of given days. (Format: /KDJ symbol period)",
+            "digest": "Set a symbol you want to get info about after given interval of time, optionally set the span of days the graphs should be measured. (Format: /digest symbol interval optional days). The interval can be in following format: daily, weekly, monthly, if the given interval is number it is taken as hours",
+            "indicators": "Get indicator for a desired symbol. (Format: /indicators symbol optional: name of indicator)",
+            "monitor": "Set monitor for desired symbol, you get notification after certain price change. (Format: /set_monitor symbol margin)",
+            "update": "Set a monitor to for getting basic info about a symbol after certain period of time. (Format: /crypto_update symbol interval)",
+            "my_functions": "Show all you set monitors, digests or cryptoupdates. (Format: /my_functions function)",
+            "delete": "Delete a set monitor, digest or cryptoupdate. (Format: /delete function symbol val(interval/margin)",
+            "chatbot": "Message a custom chatbot for anything you need. (Format: /chatbot message)",
+            "tradeadvice": "Get a trading advice for a symbol. (Format: /tradeAdvice symbol)",
+            "balance": "Check, add or delete your balance in database for a symbol. (Format: /balance action symbol amount)(actions: add, remove, show, value)",
+        }
         if commands:
             for command in commands:
-                await update.message.reply_text(f"Command: {command.command}, Description: {command.description}")
+                desc = "No description"
+                if command.command in command_descriptions:
+                    desc = command_descriptions[command.command]
+                await update.message.reply_text(f"Command: {command.command}, Description: {desc}")
         else:
             await update.message.reply_text("No commands available.")
 
