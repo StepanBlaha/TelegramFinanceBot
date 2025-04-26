@@ -31,9 +31,6 @@ balance - Check, add or delete your balance in database for a symbol. (Format: /
 
 
 
-
-
-
 start - Start interacting with the bot
 help - Get help on how to use the bot
 symbol_info - Get info about a symbol
