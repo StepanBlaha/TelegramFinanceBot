@@ -213,6 +213,12 @@ class SBBot:
             await asyncio.sleep(10)
 
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Function to handle the '/start' command and send a welcome message to the user.
+        :param update: update object from Telegram API
+        :param context: context object containing command arguments
+        :return:
+        """
         userId = update.effective_user.id
         # ceka na message od usera a odpovi v text formatu
         await update.message.reply_text(
@@ -223,14 +229,27 @@ class SBBot:
         self.user.register_user(userId=userId)
 
     async def help(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Function to handle the '/help' command and send a help message to the user.
+        :param update: update object from Telegram API
+        :param context: context object containing command arguments
+        :return:
+        """
         userId = update.effective_user.id
-        await update.message.reply_text("Help")
+        await update.message.reply_text("Here are the commands")
+        await self.list_commands(update, context)
 
         logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="help")
         self.mongo.insert(col="Requesthistory", query=logQuery)
         self.mongo.close()
 
     async def echo(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Function to handle user messages and echo them back with special responses for certain messages.
+        :param update: update object from Telegram API
+        :param context: context object containing message details
+        :return:
+        """
         userId = update.effective_user.id
         msg = update.message.text
         if msg in ["69", "420"]:
@@ -248,6 +267,12 @@ class SBBot:
     # Function for getting all the bot commands
     # ------------------------------------Nefunguje--------------------------------------------------------
     async def list_commands(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Function for listing all available bot commands with their descriptions.
+        :param update: update object from Telegram API
+        :param context: context object containing bot instance and command info
+        :return:
+        """
         commands = await context.bot.get_my_commands()
         command_descriptions = {
             "start": "Start interacting with the bot",
@@ -279,6 +304,12 @@ class SBBot:
 
     # Function for getting base info about symbol
     async def symbol_info(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Function for handling user requests to fetch basic information about a given cryptocurrency symbol.
+        :param update: update object from Telegram API
+        :param context: context object containing command arguments (symbol)
+        :return:
+        """
         # Takes user given argument
         userId = update.effective_user.id
         user_arg = "".join(context.args)
@@ -292,6 +323,12 @@ class SBBot:
 
     # Function for returning price chart for desired symbol
     async def price_chart(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Function for generating and sending a price chart of a given symbol over a specified number of days.
+        :param update: update object from Telegram API
+        :param context: context object containing command arguments (symbol and period)
+        :return:
+        """
         # Takes user given argument
         try:
             userId = update.effective_user.id
@@ -310,6 +347,12 @@ class SBBot:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
     async def kdj(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Function for generating and sending a KDJ indicator chart and its data for a given symbol and period.
+        :param update: update object from Telegram API
+        :param context: context object containing command arguments (symbol and period)
+        :return:
+        """
         # Takes user given argument
         try:
             userId = update.effective_user.id
@@ -330,6 +373,12 @@ class SBBot:
             await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
 
     async def ema(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Function for generating and sending an EMA chart and its data for a given symbol and period.
+        :param update: update object from Telegram API
+        :param context: context object containing command arguments (symbol and period)
+        :return:
+        """
         # Takes user given argument
         try:
             userId = update.effective_user.id
@@ -352,6 +401,12 @@ class SBBot:
     # format:
     # /indicators symbol <indicator-optional>
     async def indicators_func(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Function for handling user requests for technical indicators of a given symbol
+        :param update: update object from Telegram API
+        :param context: context object containing command arguments
+        :return:
+        """
         try:
             userId = update.effective_user.id
             symbol = context.args[0]
@@ -408,6 +463,12 @@ class SBBot:
     # format:
     # /digest mena interval optional
     async def setDigest(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Function for handling user requests to set up a digest for a given symbol at a specified interval
+        :param update: update object from Telegram API
+        :param context: context object containing command arguments
+        :return:
+        """
         # dictionary for possible user intervals
         intervalDIct = {
             "daily": 86400,
@@ -460,6 +521,12 @@ class SBBot:
     # format
     # /set_monitor mena margin
     async def priceMonitor(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Function for handling user requests to set a price margin monitor for a given symbol
+        :param update: update object from Telegram API
+        :param context: context object containing command arguments
+        :return:
+        """
         try:
             func = "priceMonitor"
             userId = update.effective_user.id
@@ -485,6 +552,12 @@ class SBBot:
     # format
     # /crypto_update symbol interval
     async def cryptoUpdate(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Function for handling user requests to set up periodic crypto price updates for a given symbol
+        :param update: update object from Telegram API
+        :param context: context object containing command arguments
+        :return:
+        """
         intervalDIct = {
             "daily": 86400,
             "weekly": 604800,
@@ -533,6 +606,12 @@ class SBBot:
     # format
     # /my_functions funkce
     async def showUserFunctions(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Function for handling user requests to display their currently registered bot functions
+        :param update: update object from Telegram API
+        :param context: context object containing command arguments
+        :return:
+        """
         try:
             # Get the parameters
             func = context.args[0]
@@ -555,6 +634,12 @@ class SBBot:
     # /delete funkce symbol val(interval/margin)
     # interval psany v hodinach
     async def deleteFunction(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Function for handling user requests to delete a previously registered function
+        :param update: update object from Telegram API
+        :param context: context object containing command arguments
+        :return:
+        """
         try:
             # Get all the necessary data
             func = context.args[0]
@@ -581,6 +666,12 @@ class SBBot:
     # /chatbot message
     # interval psany v hodinach
     async def chatbot(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Function for handling user chatbot requests and returning AI-generated responses
+        :param update: update object from Telegram API
+        :param context: context object containing command arguments
+        :return:
+        """
         try:
             userId = update.effective_user.id
             msg = " ".join(context.args)
@@ -598,6 +689,12 @@ class SBBot:
     # format
     # /tradeAdvice symbol
     async def tradeAdvice(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Function for handling user requests for trading advice based on calculated data and AI suggestions
+        :param update: update object from Telegram API
+        :param context: context object containing command arguments
+        :return:
+        """
         try:
             userId = update.effective_user.id
             symbol = context.args[0]
@@ -617,6 +714,12 @@ class SBBot:
     #Maybe fixnout
     # /balance action symbol amount
     async def balance(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Function for handling user balance-related requests such as showing, adding, removing, or checking value of crypto balances
+        :param update: update object from Telegram API
+        :param context: context object containing command arguments
+        :return:
+        """
         try:
             actionDict = {
                 "show": "show",
@@ -691,6 +794,12 @@ class SBBot:
 
     # /admin action
     async def admin_func(self,  update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Function for handling admin user requests for managing digests, users, symbols, and functions
+        :param update: update object from Telegram API
+        :param context: context object containing command arguments
+        :return:
+        """
         try:
             actionDict = {
                 "digest": self.admin.admin_digest,
