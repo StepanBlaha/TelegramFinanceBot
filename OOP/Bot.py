@@ -236,7 +236,7 @@ class SBBot:
         :return:
         """
         userId = update.effective_user.id
-        await update.message.reply_text("Here are the commands")
+        await update.message.reply_text("Need help?\nHere is the list of available commands:")
         await self.list_commands(update, context)
 
         logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="help")
