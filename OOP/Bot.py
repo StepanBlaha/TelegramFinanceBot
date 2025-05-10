@@ -258,7 +258,8 @@ class SBBot:
         if msg.lower() in ["vojta", "matyas", "dort", "bedrima", "beda", "sachrdort", "vendy", "cago", "nelinka"]:
             await update.message.reply_text("Gyattttttttt")
             return
-        await update.message.reply_text("FR. "+msg)
+        msg = self.ai.msgChatbot(message=msg)
+        await update.message.reply_text(msg)
 
         logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="echo")
         self.mongo.insert(col="Requesthistory", query=logQuery)
