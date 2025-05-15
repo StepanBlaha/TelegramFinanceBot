@@ -25,9 +25,9 @@ from AutomaticFunctions import AutoFunc
 
 class SBBot:
     def __init__(self):
-        self.application = Application.builder().token("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU").build()
+        self.application = Application.builder().token(os.getenv("BOT_KEY")).build()
         self.add_handlers()
-        self.bot = Bot("7493091157:AAEB1e9BKnQtb81QhL-Lcu5X08mXWHvgOjU")
+        self.bot = Bot(os.getenv("BOT_KEY"))
         self.create_objects()
 
     def create_objects(self):
