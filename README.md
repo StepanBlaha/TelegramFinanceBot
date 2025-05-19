@@ -19,7 +19,7 @@ Telegram bot for tracking prices of crypto currencies and getting useful insight
 - Telegram Bot api token
 - MongoDB uri
 - Python version 3.11 or newer
-- You can find the list of required libraries and packages in requirements.txt
+- You can find the list of required libraries and packages in `requirements.txt`
 
 ## Installation Guide
 ```
@@ -31,7 +31,7 @@ pip install -r requirements.txt
 ```
 
 ## Configuration
-In OOP/Bot.py change "BOT_KEY" for your telegram bot token:
+In `OOP/Bot.py` change "BOT_KEY" for your telegram bot token:
 ```
 class SBBot:
     def __init__(self):
@@ -40,14 +40,14 @@ class SBBot:
         self.bot = Bot(os.getenv("BOT_KEY"))
         self.create_objects()
 ```
-In OOP/AiFunctions.py change "OPENAI_KEY" for your OpenAI api key:
+In `OOP/AiFunctions.py` change "OPENAI_KEY" for your OpenAI api key:
 ```
 class AI:
     def __init__(self):
         self.api_key = os.getenv("OPENAI_KEY")
         self.client = OpenAI(api_key=self.api_key)
 ```
-In OOP/DatabaseFunctions.py change "MONGO_URI" for your MongoDB uri:
+In `OOP/DatabaseFunctions.py` change "MONGO_URI" for your MongoDB uri:
 ```
 class DBBase(abc.ABC):
     def __init__(self, uri=None, db_name="TelegramFinance"):
@@ -57,9 +57,21 @@ class DBBase(abc.ABC):
         if uri is None:
             uri = os.getenv("MONGO_URI")
 ```
-You can find the full setup guide with tips on how to get the telegram bot token in Documentation.pdf
+You can find the full setup guide with tips on how to get the telegram bot token in `Documentation.pdf`
 
 ## To run
 ```
 python OOP/Bot.py
 ```
+## Contributing
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are greatly appreciated.
+<br>
+<br>
+If you have a suggestion that would make this project better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement". Don't forget to give the project a star! Thanks again!
+
+## License
+Distributed under MIT License. See `LICENSE.txt` for more information. 
+
+## Contact
+Author - [Stepan Blaha](https://github.com/StepanBlaha)- stepa15.b@gmail.com<br>
+Project Link: [https://github.com/StepanBlaha/TelegramFinanceBot](https://github.com/StepanBlaha/TelegramFinanceBot)
