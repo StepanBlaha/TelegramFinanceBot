@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 from bson import ObjectId
+from autoload import *
 import abc
 
 # Base class with abstract methods for MongoDB operations
@@ -10,7 +11,7 @@ class DBBase(abc.ABC):
         Initializes the MongoDB connection.
         """
         if uri is None:
-            uri = "mongodb+srv://stepa15b:VIHctgxlrjBB45io@firstcluster.fbyfb.mongodb.net/?retryWrites=true&w=majority&appName=firstCluster"
+            uri = os.getenv("MONGO_URI")
         self.uri = uri
         self.db_name = db_name
         self.client = None
