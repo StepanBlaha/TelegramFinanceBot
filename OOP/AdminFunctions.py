@@ -38,7 +38,7 @@ class Admin:
         # Get the most monitored symbol and its count
         mostMonitoredFunction, mostMonitoredFunctionCount = self.utils.get_dict_max(dictionary=monitoredFunctionsDict, key=True)
 
-        response = f"Bot digest\n\nTotal users: {userCount}\nAdmins: {adminCount}\nMost used function: {mostUsedFunction} - {mostUsedFunctionCount} times\nMost used symbol: {mostUsedSymbol} - {mostUsedSymbolCount} times\nMost used monitor function: {mostMonitoredFunction} - {mostMonitoredFunctionCount} times\nMost monitored symbol: {mostMonitoredSymbol} - {mostMonitoredSymbolCount} times"
+        response = f"Bot digest\n\nTotal users🙋: {userCount}\nAdmins🧑‍💼: {adminCount}\nMost used function⚙️: {mostUsedFunction} - {mostUsedFunctionCount} times\nMost used symbol🔣: {mostUsedSymbol} - {mostUsedSymbolCount} times\nMost used monitor function: {mostMonitoredFunction} - {mostMonitoredFunctionCount} times\nMost monitored symbol: {mostMonitoredSymbol} - {mostMonitoredSymbolCount} times"
         self.db.close()
         return response
 
@@ -77,7 +77,7 @@ class Admin:
         if monitorData:
             return self.utils.format_admin_user_data(collection="Userfunctions", entriesIndex="monitors", counterIndex="monitorCount")
 
-        response = f"User data:\n\nTotal users: {userCount}\nAdmins: {adminCount}\nNumber of functions used: {functionUsedCount}\nNumber of monitors set: {monitorSetCount}\nAverage amount of functions used per user: {avgFuncPerUser}\nAverage amount of monitors set by user: {avgMonitorPerUser}"
+        response = f"User data:\n\nTotal users🙋: {userCount}\nAdmins🧑‍💼: {adminCount}\nNumber of functions used⚙️: {functionUsedCount}\nNumber of monitors set: {monitorSetCount}\nAverage amount of functions used per user: {avgFuncPerUser}\nAverage amount of monitors set by user: {avgMonitorPerUser}"
         return response
 
     def admin_symbols(self, dictionary=False):
@@ -114,7 +114,7 @@ class Admin:
             }
             return data
 
-        response = f"Symbol data\n\nNumber of different symbols used: {len(symbolDict)}\nMost used symbol: {mostUsedSymbol} - {mostUsedSymbolCount} times\nMost monitored symbol: {mostMonitoredSymbol} - {mostMonitoredSymbolCount} times"
+        response = f"Symbol data\n\nNumber of different symbols used: {len(symbolDict)}\nMost used symbol🔣: {mostUsedSymbol} - {mostUsedSymbolCount} times\nMost monitored symbol: {mostMonitoredSymbol} - {mostMonitoredSymbolCount} times"
         return response
 
     def admin_functions(self, dictionary=False):
@@ -151,5 +151,5 @@ class Admin:
             return data
 
         # Format response
-        response = f"Function data\n\nNumber of different functions used: {len(differentFunctions)}\nMost used function: {mostUsedFunction} - {mostUsedFunctionCount} times\nMost used monitor function: {mostUsedMonitor} - {mostUsedMonitorCount} times"
+        response = f"Function data\n\nNumber of different functions used: {len(differentFunctions)}\nMost used function⚙️: {mostUsedFunction} - {mostUsedFunctionCount} times\nMost used monitor function: {mostUsedMonitor} - {mostUsedMonitorCount} times"
         return response
