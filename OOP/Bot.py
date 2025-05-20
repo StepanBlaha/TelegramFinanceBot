@@ -222,7 +222,7 @@ class SBBot:
         userId = update.effective_user.id
         # ceka na message od usera a odpovi v text formatu
         await update.message.reply_text(
-            "Hello, im SBbot, your personal crypto assistant",
+            "Hello, im SBbot🙂, your personal crypto assistant💵",
             # tohle nastavi at vyzaduje odpoved
             reply_markup=ForceReply(selective=True),
         )
@@ -236,7 +236,7 @@ class SBBot:
         :return:
         """
         userId = update.effective_user.id
-        await update.message.reply_text("Need help?\nHere is the list of available commands:")
+        await update.message.reply_text("Need help?🤔\nHere is the list of available commands:")
         await self.list_commands(update, context)
 
         logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="help")
@@ -509,7 +509,7 @@ class SBBot:
                                       nextProcess=nextUnix, args=args)
             self.mongo.insert(col="Userfunctions", query=query)
 
-            await update.message.reply_text("Digest settings updated successfully.")
+            await update.message.reply_text("Digest settings updated successfully😁.")
 
             logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="Digest",
                                          args={"interval": interval, "currentTimestamp": curUnix})
@@ -540,7 +540,7 @@ class SBBot:
                                       symbol=symbol)
             self.mongo.insert(col="Userfunctions", query=query)
 
-            await update.message.reply_text("Price monitor set successfully.")
+            await update.message.reply_text("Price monitor set successfully😁.")
 
             logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="priceMonitor",
                                          args={"margin": margin, "lastPrice": lastPrice})
@@ -594,7 +594,7 @@ class SBBot:
                                       symbol=symbol)
             self.mongo.insert(col="Userfunctions", query=query)
 
-            await update.message.reply_text("Crypto update settings updated successfully.")
+            await update.message.reply_text("Crypto update settings updated successfully😁.")
 
             logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="cryptoUpdate",
                                          args={"interval": interval, "currentTimestamp": lastProcess,
@@ -824,7 +824,7 @@ class SBBot:
             self.mongo.close()
 
             if selectResponse[0]["role"] != "admin":
-                await update.message.reply_text("You need an admin role to use this command.")
+                await update.message.reply_text("You need an admin role to use this command🛡️.")
                 return
 
             # Get the data
