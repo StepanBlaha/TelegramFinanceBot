@@ -22,9 +22,12 @@ class AutoFunc:
         percentageDiff = params[2]
         lastPrice = params[3]
         newPrice = lastPrice + priceDiff
-
-        await bot.send_message(chat_id=userId,
-                               text=f" ''''''''''''''''''''''''''''Watch out''''''''''''''''''''''''''''\n\nThe price for {symbol} has changed by {percentageDiff}%\n Old price: {lastPrice}\n New price: {newPrice}\n Price change: {priceDiff}")
+        if lastPrice > newPrice:
+            await bot.send_message(chat_id=userId,
+                               text=f" ''''''''''''''''''''''''''''Watch out''''''''''''''''''''''''''''\n\nThe price for {symbol}🔣 has gone up by {percentageDiff}%📈\n Old price: {lastPrice}\n New price: {newPrice}\n Price change🔄: {priceDiff}")
+        else:
+            await bot.send_message(chat_id=userId,
+                                   text=f" ''''''''''''''''''''''''''''Watch out''''''''''''''''''''''''''''\n\nThe price for {symbol}🔣 has gone down by {percentageDiff}%📉\n Old price: {lastPrice}\n New price: {newPrice}\n Price change🔄: {priceDiff}")
 
     # Function for sending user general ingo about stats of desired crypto pair
     async def digest(self, params, userId, bot):
@@ -47,7 +50,7 @@ class AutoFunc:
         recentTradeNumber = self.crypto.get_number_of_recent_trades(symbol, period)
         recentTrend = self.crypto.get_recent_trend(symbol, period)
         await bot.send_message(chat_id=userId,
-                               text=f"The latest price for {symbol} is: {recentPrice}.\n The traded volume in the last {period} days: {recentTradeVolume}.\n The number of trades made in the last {period} days: {recentTradeNumber}.\n Latest trend: {recentTrend}")
+                               text=f"The latest price for {symbol}🔣 is: {recentPrice}💸.\n The traded volume in the last {period} days📦: {recentTradeVolume}.\n The number of trades made in the last {period} days🔢: {recentTradeNumber}.\n Latest trend: {recentTrend}")
 
         # Get the price data
         graphPrice = self.plot.plot_price_in_time(symbol, period)
@@ -58,7 +61,7 @@ class AutoFunc:
         dataframeEMA = self.dataframe.get_ema_dataframe(symbol, period)
 
         await bot.send_photo(chat_id=userId, photo=graphEMA)
-        await bot.send_message(chat_id=userId, text=f"Here is the EMA data:\n```\n{dataframeEMA}\n```",
+        await bot.send_message(chat_id=userId, text=f"Here is the EMA data📊:\n```\n{dataframeEMA}\n```",
                                parse_mode="Markdown")
 
         # Get the KDJ data
@@ -66,7 +69,7 @@ class AutoFunc:
         dataframeKDJ = self.dataframe.get_kdj_dataframe(symbol, period)
 
         await bot.send_photo(chat_id=userId, photo=graphKDJ)
-        await bot.send_message(chat_id=userId, text=f"Here is the KDJ data:\n```\n{dataframeKDJ}\n```",
+        await bot.send_message(chat_id=userId, text=f"Here is the KDJ data📊:\n```\n{dataframeKDJ}\n```",
                                parse_mode="Markdown")
 
     # Function for sending user personalised update about chosen cryptocurrency
@@ -84,24 +87,24 @@ class AutoFunc:
         currentPrice = float(self.crypto.current_price(symbol))
         priceChange = currentPrice - lastPrice
         percentualChange = (currentPrice - lastPrice) / lastPrice * 100
-        await bot.send_message(chat_id=userId, text=f"The latest price for {symbol} is: {currentPrice}.\n Last recorded price: {lastPrice}\n Raw price change: {priceChange}.\n Percentual price change: {percentualChange}%")
+        await bot.send_message(chat_id=userId, text=f"The latest price💸 for {symbol}🔣 is: {currentPrice}.\n Last recorded price⌛️: {lastPrice}\n Raw price change↕️: {priceChange}.\n Percentual price change: {percentualChange}%")
 
         # Get the recent trade data and format them
         tradeData = self.crypto.get_recent_trade_info(symbol=symbol, limit=tradeLimit, dictionary=True)
-        await bot.send_message(chat_id=userId, text=f"Data about recent trades\n\n Total trade volume: {tradeData['tradeVolume']}\n Total trade price: {tradeData['priceVolume']}\n Max trade price: {tradeData['maxTradePrice']}\n Min trade price: {tradeData['minTradePrice']}\n Max trade volume: {tradeData['maxTradeQuantity']}\n Min trade volume: {tradeData['minTradeQuantity']}\n Average trade price: {tradeData['averageTradePrice']}\n Average trade volume: {tradeData['averageTradeQuantity']}")
+        await bot.send_message(chat_id=userId, text=f"Data about recent trades🔍\n\n Total trade volume📦: {tradeData['tradeVolume']}\n Total trade price💰: {tradeData['priceVolume']}\n Max trade price⬆️: {tradeData['maxTradePrice']}\n Min trade price⬇️: {tradeData['minTradePrice']}\n Max trade volume⬆️: {tradeData['maxTradeQuantity']}\n Min trade volume⬇️: {tradeData['minTradeQuantity']}\n Average trade price⚖️💵: {tradeData['averageTradePrice']}\n Average trade volume⚖️📦: {tradeData['averageTradeQuantity']}")
 
         # Format the period for volatility into days
         period = interval / 86400
         if period < 1:
             period = 1
         avgPercentVolatility = self.indicators.get_volatility(symbol=symbol, period=period, average=True)
-        await bot.send_message(chat_id=userId, text=f"The average percentage volatility: {avgPercentVolatility}%")
+        await bot.send_message(chat_id=userId, text=f"The average percentage volatility📊⚡: {avgPercentVolatility}%")
         # Get the volatility graph and send it to user
         graphVolatilities = self.plot.plot_volatility(symbol, period)
         await bot.send_photo(chat_id=userId, photo=graphVolatilities)
 
         bidAskSpreadData = self.indicators.get_bid_ask_spread(symbol=symbol, dictionary=True)
-        await bot.send_message(chat_id=userId, text=f"The average bid-ask spread: {bidAskSpreadData['spread']}\n Average bid price: {bidAskSpreadData['averageBid']}\n Average ask price: {bidAskSpreadData['averageAsk']}")
+        await bot.send_message(chat_id=userId, text=f"The average bid-ask spread↔️💸 : {bidAskSpreadData['spread']}\n Average bid price⚖️🔻: {bidAskSpreadData['averageBid']}\n Average ask price⚖️🔺: {bidAskSpreadData['averageAsk']}")
 
         orderBookImbalance = self.indicators.get_order_book_imbalance(symbol=symbol)
-        await bot.send_message(chat_id=userId, text=f"The order book imbalance: {orderBookImbalance}%")
+        await bot.send_message(chat_id=userId, text=f"The order book imbalance⚖️📖❌: {orderBookImbalance}%")

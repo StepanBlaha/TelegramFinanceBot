@@ -160,7 +160,7 @@ class Utils:
                 "symbol": symbol,
             }
         else:
-            return "Invalid database"
+            return "Invalid database🗄️⚠️"
         return query
 
     @staticmethod
@@ -254,7 +254,7 @@ class Utils:
             query = formatDict[format]
             return query
         except Exception as e:
-            return "Invalid set of arguments"
+            return "Invalid set of arguments❌"
 
     @staticmethod
     def formatBalanceResponse(data, dictionary=False):
@@ -295,7 +295,7 @@ class Utils:
             selectQuery = {"userId": userId, "function": func}
             response = self.db.select(col=col, query=selectQuery)
             self.db.close()
-            formatedResponse = "Here are your set functions:\n\n"
+            formatedResponse = "Here are your set functions⚙️:\n\n"
             format = func.lower()
 
             for row in response:
@@ -304,23 +304,23 @@ class Utils:
                     # Format the interval
                     interval = self.format_day_hours(row["interval"])
                     # Format the record into a string
-                    record = f'Function: {row["function"]}, Symbol: {row["arguments"][0]}, Interval: {interval}'
+                    record = f'Function⚙️: {row["function"]}, Symbol🔣: {row["arguments"][0]}, Interval⏳: {interval}'
 
                 elif format == "pricemonitor":
-                    record = f'Function: {row["function"]}, Symbol: {row["symbol"]}, Monitor change margin: {row["margin"]}%'
+                    record = f'Function⚙️: {row["function"]}, Symbol🔣: {row["symbol"]}, Monitor change margin📐: {row["margin"]}%'
 
                 elif format == "cryptoupdate":
                     # Format the interval
                     interval = self.format_day_hours(row["interval"])
                     # Format the record into a string
-                    record = f'Function: {row["function"]}, Symbol: {row["symbol"]}, Interval: {interval}'
+                    record = f'Function⚙️: {row["function"]}, Symbol🔣: {row["symbol"]}, Interval⏳: {interval}'
 
                 else:
-                    record = "Invalid database"
+                    record = "Invalid database🗄️❌"
                 formatedResponse = formatedResponse + record
                 formatedResponse = formatedResponse + '\n'
             return formatedResponse
-        return "Not enough data"
+        return "Not enough data⚠️"
 
     def format_admin_user_data(self, collection, entriesIndex, counterIndex):
         """
@@ -495,6 +495,7 @@ class Utils:
         if legend_show:
             plt.legend()
         plt.title(f"{symbol} {name}")
+        plt.grid(True)
         IoStream = io.BytesIO()
         plt.savefig(IoStream, format='png')
         IoStream.seek(0)

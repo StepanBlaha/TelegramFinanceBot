@@ -84,7 +84,7 @@ class User:
         formatedResponse = ""
         for i in response:
             symbolPrice = self.crypto.current_price(i["symbol"])
-            formatedStr = f"Your wallet:\n\nsymbol: {i['symbol']}\namount: {i['amount']}\nvalue: {float(symbolPrice) * float(i['amount'])}"
+            formatedStr = f"Your wallet💵:\n\nsymbol: {i['symbol']}\namount: {i['amount']}\nvalue: {float(symbolPrice) * float(i['amount'])}"
             formatedResponse = formatedResponse + formatedStr
 
         self.db.close()

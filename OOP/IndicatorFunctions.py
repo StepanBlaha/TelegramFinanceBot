@@ -356,17 +356,17 @@ class Indicators:
         :return: bid-ask spread
         """
         orderData = self.crypto.get_average_order_values(symbol=symbol, limit=limit, dictionary=True)
-
+        # Get the data
         bids = orderData['bids']
         asks = orderData['asks']
         bidAverage = self.crypto.calculate_weighted_average(bids)
         askAverage = self.crypto.calculate_weighted_average(asks)
 
         spread = bidAverage - askAverage
-
         if spread < 0:
             spread = 0
 
+        # Return dictionary if needed
         if dictionary:
             data = {
                 "averageBid": bidAverage,
@@ -419,12 +419,12 @@ class Indicators:
         """
         klines = self.client.get_historical_klines(symbol=symbol, interval=interval, start_str=f"{period} days ago")
         openingPrices, _, highPrices, lowPrices, timestamps, _ = self.utils.format_kline_data(klines=klines)
-
+        # Get the volatility data
         percentageVolatilities = []
         for i in range(len(openingPrices)):
             volatilityPercentage = (highPrices[i] - lowPrices[i]) / openingPrices[i] * 100
             percentageVolatilities.append(volatilityPercentage)
-
+        # Return based on desired data
         if average:
             return sum(percentageVolatilities) / len(percentageVolatilities)
 

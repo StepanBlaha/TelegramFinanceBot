@@ -1,16 +1,9 @@
 import logging
-
 from telegram import ForceReply, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 from telegram import Bot, BotCommand
-
 from binance.client import Client
-
 from autoload import *
-
-
-
-
 from CryptoFunctions import Crypto
 from AdminFunctions import Admin
 from AiFunctions import AI
@@ -39,23 +32,17 @@ class SBBot:
         admin = Admin(mongo, None)
         utils = Utils(mongo, None)
         client = Client()
-        # Crypto je none, prida se potom
         indicators = Indicators(client, None, utils)
         dataframe = Dataframe(client, utils, indicators)
         plot = Plot(client, utils, indicators)
         crypto = Crypto(client, ai, utils, indicators, plot, dataframe)
         user = User(crypto, utils, mongo)
         auto_funcs = AutoFunc(client, crypto, plot, dataframe, indicators)
-        # nevadi mi setovat crypto u indicatoru az potom
-        # kdyz predam necemu objekt v pythonu nevytvari kopii ale jakoby dam access k tomu pr.
-        # indicators.crypto.status = active tak crypto.status bude taky active
         indicators.crypto = crypto
         admin.utils = utils
         utils.crypto = crypto
-
-
-
         indicator_message = IndicatorMessage(crypto, ai, utils, indicators, plot, dataframe, admin)
+        # Initiate the attributes
         self.client = client
         self.crypto = crypto
         self.ai = ai
@@ -109,7 +96,7 @@ class SBBot:
         loop = asyncio.get_event_loop()
         loop.create_task(self.loop())
         self.application.run_polling(allowed_updates=Update.ALL_TYPES)
-        print("Bot closing..")
+        print("Bot closing🚪..")
 
     async def loop(self):
         """
@@ -150,7 +137,7 @@ class SBBot:
                     query = self.utils.formatUpdateQuery("digest", lastProcess=newLastProcess, nextProcess=newNextProcess)
                     # Update
                     self.mongo.update("Userfunctions", recordId, query)
-                    print(f'Function {functionName} for user {userId} executed successfully.')
+                    print(f'Function {functionName} for user {userId} executed successfully✅.')
                 elif record["function"] == "priceMonitor":
                     userId = record["userId"]
                     recordId = str(record["_id"])
@@ -178,7 +165,7 @@ class SBBot:
                     query = self.utils.formatUpdateQuery("priceMonitor", newPrice=curPrice)
                     # Update
                     self.mongo.update("Userfunctions", recordId, query)
-                    print(f'Function {functionName} for user {userId} executed successfully.')
+                    print(f'Function {functionName} for user {userId} executed successfully✅.')
                 elif record["function"] == "cryptoUpdate":
                     # Get the record data
                     recordId = str(record["_id"])
@@ -208,7 +195,7 @@ class SBBot:
                     query = self.utils.formatUpdateQuery("cryptoUpdate", lastProcess=newLastProcess, nextProcess=newNextProcess,
                                               newPrice=currentPrice)
                     self.mongo.update("Userfunctions", recordId, query)
-                    print(f'Function {functionName} for user {userId} executed successfully.')
+                    print(f'Function {functionName} for user {userId} executed successfully✅.')
 
             await asyncio.sleep(10)
 
@@ -220,10 +207,9 @@ class SBBot:
         :return:
         """
         userId = update.effective_user.id
-        # ceka na message od usera a odpovi v text formatu
         await update.message.reply_text(
             "Hello, im SBbot🙂, your personal crypto assistant💵",
-            # tohle nastavi at vyzaduje odpoved
+            # Wats for a reply
             reply_markup=ForceReply(selective=True),
         )
         self.user.register_user(userId=userId)
@@ -266,7 +252,6 @@ class SBBot:
         self.mongo.close()
 
     # Function for getting all the bot commands
-    # ------------------------------------Nefunguje--------------------------------------------------------
     async def list_commands(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Function for listing all available bot commands with their descriptions.
@@ -299,9 +284,7 @@ class SBBot:
                     desc = command_descriptions[command.command]
                 await update.message.reply_text(f"Command: {command.command}, Description: {desc}")
         else:
-            await update.message.reply_text("No commands available.")
-
-    # ------------------------------------Nefunguje--------------------------------------------------------
+            await update.message.reply_text("No commands available🔍❌.")
 
     # Function for getting base info about symbol
     async def symbol_info(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -337,7 +320,7 @@ class SBBot:
             period = int(context.args[1])
             graph = self.plot.plot_price_in_time(symbol, period)
 
-            await update.message.reply_photo(photo=graph, caption=f"Price chart for {symbol} over {period} days.")
+            await update.message.reply_photo(photo=graph, caption=f"Price chart for {symbol} over {period} days💸.")
 
             logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="price_chart",
                                          args=[period])
@@ -345,7 +328,7 @@ class SBBot:
             self.mongo.insert(col="Requesthistory", query=logQuery)
             self.mongo.close()
         except Exception as e:
-            await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
+            await update.message.reply_text("Problem in getting response❌. Check for any format mistakes.")
 
     async def kdj(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
@@ -362,16 +345,16 @@ class SBBot:
             graph = self.plot.plot_kdj(symbol, period)
             dataframe = self.dataframe.get_kdj_dataframe(symbol, period)
 
-            await update.message.reply_photo(photo=graph, caption=f"KDJ chart for {symbol} over {period} days.")
+            await update.message.reply_photo(photo=graph, caption=f"KDJ chart for {symbol} over {period} days📊.")
             await update.message.reply_text(f"Here is the KDJ data:\n```\n{dataframe}\n```", parse_mode="Markdown")
 
             logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="kdj", args=[period])
 
             self.mongo.insert(col="Requesthistory", query=logQuery)
             self.mongo.close()
-            # await update.message.reply_document(document=dataframe, filename="data.csv")
+
         except Exception as e:
-            await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
+            await update.message.reply_text("Problem in getting response❌. Check for any format mistakes.")
 
     async def ema(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
@@ -388,16 +371,16 @@ class SBBot:
             graph = self.plot.plot_ema(symbol, period)
             dataframe = self.dataframe.get_ema_dataframe(symbol, period)
 
-            await update.message.reply_photo(photo=graph, caption=f"EMA chart for {symbol} over {period} days.")
+            await update.message.reply_photo(photo=graph, caption=f"EMA chart for {symbol} over {period} days📊.")
             await update.message.reply_text(f"Here is the EMA data:\n```\n{dataframe}\n```", parse_mode="Markdown")
 
             logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="ema", args=[period])
 
             self.mongo.insert(col="Requesthistory", query=logQuery)
             self.mongo.close()
-            # await update.message.reply_document(document=dataframe, filename="data.csv")
+
         except Exception as e:
-            await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
+            await update.message.reply_text("Problem in getting response🔍❌. Check for any format mistakes.")
 
     # format:
     # /indicators symbol <indicator-optional>
@@ -427,7 +410,7 @@ class SBBot:
                 }
 
                 # Trigger the correct function according to user picked indicator
-                await indicatorDict.get(indicator, lambda update, symbol: update.message.reply_text("Invalid indicator."))(update, symbol)
+                await indicatorDict.get(indicator, lambda update, symbol: update.message.reply_text("Invalid indicator❌."))(update, symbol)
 
                 logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="indicators",
                                              args=[indicator])
@@ -438,19 +421,19 @@ class SBBot:
             else:
                 # Simple indicator data
                 await update.message.reply_text(
-                    f"Technical indicators for {symbol}\n\n The MFI for {symbol}: {self.indicators.get_mfi(symbol)}\n The ATR for {symbol}: {self.indicators.get_atr(symbol)}\n The RSI for {symbol} for the last 14 days: {self.indicators.get_rsi(symbol)}\n The AVL for {symbol} for the last 14 days: {self.indicators.get_avl(symbol)}\n The bollinger lines for {symbol}:\n  middle band: {self.indicators.get_boll(symbol, dictionary=True)['MB']}\n  lower band: {self.indicators.get_boll(symbol, dictionary=True)['LB']}\n  upper band: {self.indicators.get_boll(symbol, dictionary=True)['UB']}")
+                    f"Technical indicators⚙️ for {symbol}\n\n The MFI for {symbol}: {self.indicators.get_mfi(symbol)}\n The ATR for {symbol}: {self.indicators.get_atr(symbol)}\n The RSI for {symbol} for the last 14 days: {self.indicators.get_rsi(symbol)}\n The AVL for {symbol} for the last 14 days: {self.indicators.get_avl(symbol)}\n The bollinger lines for {symbol}:\n  middle band: {self.indicators.get_boll(symbol, dictionary=True)['MB']}\n  lower band: {self.indicators.get_boll(symbol, dictionary=True)['LB']}\n  upper band: {self.indicators.get_boll(symbol, dictionary=True)['UB']}")
                 # EMA data
                 await update.message.reply_photo(photo=self.plot.plot_ema(symbol, 14),
-                                                 caption=f"EMA chart for {symbol} over 14 days."),
+                                                 caption=f"EMA chart for {symbol} over 14 days📊."),
                 await update.message.reply_text(f"Here is the EMA data:\n```\n{self.dataframe.get_ema_dataframe(symbol, 14)}\n```",
                                                 parse_mode="Markdown")
                 # KDJ data
                 await update.message.reply_photo(photo=self.plot.plot_kdj(symbol, 14),
-                                                 caption=f"KDJ chart for {symbol} over 14 days."),
+                                                 caption=f"KDJ chart for {symbol} over 14 days📊."),
                 await update.message.reply_text(f"Here is the KDJ data:\n```\n{self.dataframe.get_kdj_dataframe(symbol, 14)}\n```",
                                                 parse_mode="Markdown")
                 # CCI data
-                await update.message.reply_photo(photo=self.plot.plot_cci(symbol), caption=f"CCI chart for{symbol}.")
+                await update.message.reply_photo(photo=self.plot.plot_cci(symbol), caption=f"CCI chart for{symbol}📊.")
 
                 logQuery = self.utils.formatInsertQuery(format="log", userId=userId, symbol=symbol, func="indicators")
 
@@ -458,9 +441,9 @@ class SBBot:
                 self.mongo.close()
         except Exception as e:
             await update.message.reply_text(str(e))
-            await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
+            await update.message.reply_text("Problem in getting response❌. Check for any format mistakes.")
 
-    #Maybe fixnout
+
     # format:
     # /digest mena interval optional
     async def setDigest(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -517,7 +500,7 @@ class SBBot:
             self.mongo.close()
 
         except Exception as e:
-            await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
+            await update.message.reply_text("Problem in getting response❌. Check for any format mistakes.")
 
     # format
     # /set_monitor mena margin
@@ -547,7 +530,7 @@ class SBBot:
             self.mongo.insert(col="Requesthistory", query=logQuery)
             self.mongo.close()
         except Exception as e:
-            await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
+            await update.message.reply_text("Problem in getting response❌. Check for any format mistakes.")
 
     # Maybe fixnout
     # format
@@ -602,7 +585,7 @@ class SBBot:
             self.mongo.insert(col="Requesthistory", query=logQuery)
             self.mongo.close()
         except Exception as e:
-            await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
+            await update.message.reply_text("Problem in getting response❌. Check for any format mistakes.")
 
     # format
     # /my_functions funkce
@@ -629,7 +612,7 @@ class SBBot:
             self.mongo.insert(col="Requesthistory", query=logQuery)
             self.mongo.close()
         except Exception as e:
-            await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
+            await update.message.reply_text("Problem in getting response❌. Check for any format mistakes.")
 
     # format
     # /delete funkce symbol val(interval/margin)
@@ -661,7 +644,7 @@ class SBBot:
 
         except Exception as e:
             await update.message.reply_text(str(e))
-            await update.message.reply_text("Problem in deleting. Check for any format mistakes.")
+            await update.message.reply_text("Problem in deleting🗑️❌. Check for any format mistakes.")
 
     # format
     # /chatbot message
@@ -685,7 +668,7 @@ class SBBot:
             self.mongo.insert(col="Requesthistory", query=logQuery)
             self.mongo.close()
         except Exception as e:
-            await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
+            await update.message.reply_text("Problem in getting response❌. Check for any format mistakes.")
 
     # format
     # /tradeAdvice symbol
@@ -703,16 +686,15 @@ class SBBot:
             aiResponse = self.crypto.get_gpt_trade_advice(symbol)
 
             await update.message.reply_text(
-                f'Here is your trading advice for {symbol}\n\n Calculated advice: {functionResponse}\n OpenAI advice: {aiResponse}')
+                f'Here is your trading advice📝 for {symbol}\n\n Calculated advice➗: {functionResponse}\n OpenAI advice🤖: {aiResponse}')
 
             logQuery = self.utils.formatInsertQuery(format="log", userId=userId, func="tradeAdvice", symbol=symbol)
 
             self.mongo.insert(col="Requesthistory", query=logQuery)
             self.mongo.close()
         except Exception as e:
-            await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
+            await update.message.reply_text("Problem in getting response❌. Check for any format mistakes.")
 
-    #Maybe fixnout
     # /balance action symbol amount
     async def balance(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
@@ -736,7 +718,7 @@ class SBBot:
 
             # Error handling
             if action not in actionDict:
-                await update.message.reply_text("Please choose an action: show, remove, add.")
+                await update.message.reply_text("Please choose an action🛠️: show, remove, add.")
                 return
 
             # Get the symbol
@@ -745,7 +727,7 @@ class SBBot:
 
             # Error handling
             if (not symbol and action == "add") or (not symbol and action == "remove"):
-                await update.message.reply_text("Add and remove actions require symbol")
+                await update.message.reply_text("Add and remove actions require symbol🔣")
                 return
 
             # Different actions
@@ -762,24 +744,24 @@ class SBBot:
                     response = list(self.mongo.select(query=query, col="Usercrypto"))
                     # Turn the response to readable format
                     response = self.utils.formatBalanceResponse(response)
-                await update.message.reply_text(f'Here is your account balance:\n\n {response}')
+                await update.message.reply_text(f'Here is your account balance💳:\n\n {response}')
 
             elif action == "remove" or action == "add":
                 # Error handling
                 if not len(context.args) > 2:
-                    await update.message.reply_text("This action requires an amount")
+                    await update.message.reply_text("This action requires an amount🔢")
                     self.mongo.close()
                     return
                 # Get the amount
                 amount = context.args[2]
                 # Error handling
                 if not self.utils.is_number(amount):
-                    await update.message.reply_text("Please enter a number")
+                    await update.message.reply_text("Please enter a number🔢")
                     self.mongo.close()
                     return
                 # Return the response
                 response = self.user.update_balance(symbol=symbol, userId=userId, amount=float(amount), action=action)
-                await update.message.reply_text(f'{response} account balance for symbol {symbol}')
+                await update.message.reply_text(f'{response} account balance💳 for symbol {symbol}')
 
             elif action == "value":
                 response = self.user.get_balance_worth(userId=userId, symbol=symbol)
@@ -791,7 +773,7 @@ class SBBot:
             self.mongo.close()
         except Exception as e:
             await update.message.reply_text(str(e))
-            await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
+            await update.message.reply_text("Problem in getting response❌. Check for any format mistakes.")
 
     # /admin action
     async def admin_func(self,  update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -812,7 +794,7 @@ class SBBot:
 
             # Checks if user picked valid action
             if len(context.args) < 1 or context.args[0].lower() not in actionDict:
-                await update.message.reply_text("Please choose a valid action: digest, users, symbols, functions.")
+                await update.message.reply_text("Please choose a valid action🛠️: digest, users, symbols, functions.")
                 return
 
             # Gets the user action
@@ -824,7 +806,7 @@ class SBBot:
             self.mongo.close()
 
             if selectResponse[0]["role"] != "admin":
-                await update.message.reply_text("You need an admin role to use this command🛡️.")
+                await update.message.reply_text("You need an admin role to use this command🛡️🛑.")
                 return
 
             # Get the data
@@ -833,7 +815,7 @@ class SBBot:
 
         except Exception as e:
             await update.message.reply_text(str(e))
-            await update.message.reply_text("Problem in getting response. Check for any format mistakes.")
+            await update.message.reply_text("Problem in getting response❌. Check for any format mistakes.")
 
 
 

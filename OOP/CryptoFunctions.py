@@ -99,7 +99,7 @@ class Crypto:
                 "averageBidQuantity": averageBuyQuantity,
             }
             return data
-
+        #response = f"Average offered price💸: {averageSellPrice}\n Average offered quantity📦: {averageSellQuantity}\n Average asked price💵: {averageBuyPrice}\n Average asked quantity📦: {averageBuyQuantity}"
         response = f"Average offered price: {averageSellPrice}\n Average offered quantity: {averageSellQuantity}\n Average asked price: {averageBuyPrice}\n Average asked quantity: {averageBuyQuantity}"
         return response
 
@@ -144,7 +144,7 @@ class Crypto:
                 "minTradeQuantity": MinTradeQuantity
             }
             return data
-
+        #formatedString = f'Average trade quantity⚖️📦: {averageTradeQuantity}\n Average trade price⚖️💰: {averageTradePrice}\n Minimum trade price⬇️💰: {MinTradePrice}\n Maximum trade price⬆️💰: {MaxTradePrice}\n Minimun trade quantity⬇️📦: {MinTradeQuantity}\n Maximum trade quantity⬆️📦: {MaxTradeQuantity}\n'
         formatedString = f'Average trade quantity: {averageTradeQuantity}\n Average trade price: {averageTradePrice}\n Minimum trade price: {MinTradePrice}\n Maximum trade price: {MaxTradePrice}\n Minimun trade quantity: {MinTradeQuantity}\n Maximum trade quantity: {MaxTradeQuantity}\n'
         return formatedString
 
@@ -190,7 +190,7 @@ class Crypto:
 
         tradeAdvice = self.ai.gptTradeAdvice(symbol["symbol"], period, recent_prices, recent_trades, market_depth).capitalize()
 
-        response = f"Symbol: {symbol['symbol']}\n Status: {symbol['status']}\n Price: {last_price['price']}\n Trade advice: {tradeAdvice}\n\n Current market: \n {market_depth}\n\n Recent trades: \n {recent_trades}\n "
+        response = f"Symbol🔣: {symbol['symbol']}\n Status🟢: {symbol['status']}\n Price💸: {last_price['price']}\n Trade advice💡: {tradeAdvice}\n\n Current market🏦: \n {market_depth}\n\n Recent trades🕒: \n {recent_trades}\n "
         return response
 
     # Function for getting the current price of given symbol
@@ -246,7 +246,8 @@ class Crypto:
         closingPrice = self.get_data_from_klines(klines, "Close price")
         trend = self.indicators.get_price_trend(float(openingPrice[0]), float(closingPrice[0]))
         return trend
-#-----------------------------dodelat a fixnout----------------------------
+
+    # Function for calculating custom trade advice
     def trade_advice(self, symbol, period):
         """
         Custom function for giving suggestions on whether o buy or sell
