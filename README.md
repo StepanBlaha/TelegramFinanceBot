@@ -66,9 +66,11 @@ python OOP/Bot.py
 
 ## Usage
 After setting up the bot and adding the command descriptions (Via `Documentation.pdf`) you can do /help or open the command menu in the chat with your bot to see all the commands.<br>
-;tady screen command v chatu<br>
+![Help command](Resources/help_command.png)<br>
+<br>
 Now simply use any command. Dont forget to use the correct format for its parmeters!<br>
-;tady sceen pouziteho comandu
+<br>
+![Example command](Resources/sample_command.png)
 
 ## Contributing
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are greatly appreciated.
